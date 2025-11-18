@@ -13,8 +13,13 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser } from '../../redux/slices/authSlice'; // ✅ import thunk
 
 export default function LoginScreen({ navigation }) {
+  const dispatch = useDispatch();
+  const { user, loading, error } = useSelector((state) => state.auth);
+  
   const [mobile, setMobile] = useState('');
 
   const handleGetOtpText = () => {

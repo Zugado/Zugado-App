@@ -1,4 +1,4 @@
-package com.jugado
+package com.zugado
 
 import android.app.Application
 import com.facebook.react.PackageList
