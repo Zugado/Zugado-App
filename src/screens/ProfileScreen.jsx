@@ -7,14 +7,18 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
+  StatusBar,
 } from 'react-native';
-// Make sure you have react-native-vector-icons installed
+import { useSelector, useDispatch } from 'react-redux';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { logout } from '../redux/slices/authSlice';
 
-// Reusable component for the 4 info boxes
+// Reusable InfoBox component
 const InfoBox = ({ iconName, title, value }) => (
   <View style={styles.infoBox}>
     <Feather name={iconName} size={24} color="#333" style={styles.infoIcon} />
@@ -23,21 +27,111 @@ const InfoBox = ({ iconName, title, value }) => (
   </View>
 );
 
+const GuestFeature = ({ icon, title, desc }) => (
+  <View style={styles.guestFeatureItem}>
+    <View style={styles.guestFeatureIconBg}>
+      <Feather name={icon} size={20} color="#000" />
+    </View>
+    <View>
+      <Text style={styles.guestFeatureTitle}>{title}</Text>
+      <Text style={styles.guestFeatureDesc}>{desc}</Text>
+    </View>
+  </View>
+);
+
 export default function ProfileScreen({ navigation }) {
-  // State to track the selected role, as seen in the image
+  const dispatch = useDispatch();
+  const { user, isGuest } = useSelector((state) => state.auth);
   const [selectedRole, setSelectedRole] = useState('provider');
 
+  // Guest alert handler
+  const guestAction = () => {
+    Alert.alert(
+      "Login Required",
+      "You need to login to access this feature",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Login", onPress: () =>  dispatch(logout()) },
+      ]
+    );
+  };
+
+  // Guest UI
+ if (isGuest) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#050505ff" />
+        <View style={styles.guestContainer}>
+          
+          {/* Top Header */}
+          <View style={styles.topNav}>
+            <Text style={styles.screenTitle}>Profile</Text>
+          </View>
+
+          {/* Hero Section */}
+          <View style={styles.guestHero}>
+            <View style={styles.guestImageWrapper}>
+              <Image 
+                source={{ uri: "https://cdn-icons-png.flaticon.com/512/747/747376.png" }} 
+                style={styles.guestAvatar} 
+              />
+              <View style={styles.lockBadge}>
+                <Feather name="lock" size={16} color="#fff" />
+              </View>
+            </View>
+            <Text style={styles.guestTitle}>Unlock Your Potential</Text>
+            <Text style={styles.guestSubtitle}>
+              Log in to manage your profile, track jobs, and get verified.
+            </Text>
+          </View>
+
+          {/* Features List */}
+          <View style={styles.guestFeaturesContainer}>
+            <GuestFeature 
+              icon="briefcase" 
+              title="Job Management" 
+              desc="Apply to jobs or post new openings." 
+            />
+            <GuestFeature 
+              icon="shield" 
+              title="Verified Badge" 
+              desc="Build trust with ID verification." 
+            />
+            <GuestFeature 
+              icon="bell" 
+              title="Instant Alerts" 
+              desc="Never miss a new opportunity." 
+            />
+          </View>
+
+          {/* Bottom Action */}
+          <View style={styles.guestFooter}>
+            <TouchableOpacity
+              style={styles.guestBtn}
+              onPress={() => dispatch(logout())}
+            >
+              <Text style={styles.guestBtnText}>Login / Sign Up</Text>
+              <Feather name="arrow-right" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Logged-in user UI
   return (
     <ScrollView style={styles.container}>
-      {/* Profile Header: Image, Name, Age, Rating */}
+      {/* Profile Header */}
       <View style={styles.profileHeader}>
         <Image
-          source={require('../assets/profile.png')} // Replace with actual image path
+          source={require('../assets/profile.png')}
           style={styles.profileImage}
         />
-        <Text style={styles.profileName}>Mohit Sharma</Text>
+        <Text style={styles.profileName}>{user?.name || "User Name"}</Text>
         <View style={styles.subHeader}>
-          <Text style={styles.ageText}>Age - 32 Yrs</Text>
+          <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
           <View style={styles.ratingContainer}>
             <FontAwesome name="star" size={14} color="#FF9529" />
             <Text style={styles.ratingText}>4.5</Text>
@@ -45,62 +139,40 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </View>
 
-      {/* Info Grid: Contact, Job Type, etc. */}
+      {/* Info Grid */}
       <View style={styles.infoGrid}>
-        <InfoBox iconName="phone" title="Contact" value="98765 43210" />
-        <InfoBox iconName="briefcase" title="Job Type" value="Full-Time" />
-        <InfoBox iconName="map-pin" title="Working Model" value="Remote" />
+        <InfoBox iconName="phone" title="Contact" value={user?.phone || "N/A"} />
+        <InfoBox iconName="briefcase" title="Job Type" value={user?.jobType || "Full-Time"} />
+        <InfoBox iconName="map-pin" title="Working Model" value={user?.location || "Remote"} />
         <InfoBox iconName="bar-chart-2" title="Level" value="Advanced" />
       </View>
 
-      {/* Role Selection: Job Provider / Job Seeker */}
+      {/* Role Selection */}
       <View style={styles.roleSelectionContainer}>
         <TouchableOpacity
-          style={[
-            styles.roleButton,
-            selectedRole === 'provider' && styles.selectedRole,
-          ]}
+          style={[styles.roleButton, selectedRole === 'provider' && styles.selectedRole]}
           onPress={() => setSelectedRole('provider')}
         >
           <MaterialCommunityIcons
             name="account-hard-hat"
             size={30}
-            style={[
-              styles.roleIcon,
-              selectedRole === 'provider' && styles.selectedRoleText,
-            ]}
+            style={[styles.roleIcon, selectedRole === 'provider' && styles.selectedRoleText]}
           />
-          <Text
-            style={[
-              styles.roleText,
-              selectedRole === 'provider' && styles.selectedRoleText,
-            ]}
-          >
+          <Text style={[styles.roleText, selectedRole === 'provider' && styles.selectedRoleText]}>
             Job Provider
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.roleButton,
-            selectedRole === 'seeker' && styles.selectedRole,
-          ]}
+          style={[styles.roleButton, selectedRole === 'seeker' && styles.selectedRole]}
           onPress={() => setSelectedRole('seeker')}
         >
           <MaterialCommunityIcons
             name="account-tie"
             size={30}
-            style={[
-              styles.roleIcon,
-              selectedRole === 'seeker' && styles.selectedRoleText,
-            ]}
+            style={[styles.roleIcon, selectedRole === 'seeker' && styles.selectedRoleText]}
           />
-          <Text
-            style={[
-              styles.roleText,
-              selectedRole === 'seeker' && styles.selectedRoleText,
-            ]}
-          >
+          <Text style={[styles.roleText, selectedRole === 'seeker' && styles.selectedRoleText]}>
             Job Seeker
           </Text>
         </TouchableOpacity>
@@ -117,13 +189,13 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.verificationItem}>
           <Feather name="x-circle" size={20} color="red" />
           <Text style={styles.verificationText}>ID Verification</Text>
-          <Text style={styles.clickText}>Click to verify</Text>
+          <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
         </View>
       </View>
 
-      {/* Payment Details Section */}
+      {/* Payment Details */}
       <View style={styles.sectionContainer}>
-        <TouchableOpacity style={styles.paymentButton}>
+        <TouchableOpacity style={styles.paymentButton} onPress={guestAction}>
           <Ionicons name="card-outline" size={24} color="#000" />
           <Text style={styles.sectionTitle}>Payment Details</Text>
         </TouchableOpacity>
@@ -132,8 +204,131 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
+// ------------------ Styles ------------------
 const styles = StyleSheet.create({
-  // Main container styles from your original code
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  // Header
+  topNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  screenTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+
+  // --- GUEST UI STYLES ---
+  guestContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  guestHero: {
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    marginTop: 20, // Adjust spacing from top
+    marginBottom: 40,
+  },
+  guestImageWrapper: {
+    position: 'relative',
+    marginBottom: 20,
+  },
+  guestAvatar: {
+    width: 100,
+    height: 100,
+    opacity: 0.9,
+  },
+  lockBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#000',
+    padding: 8,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+  guestTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#000',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  guestSubtitle: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  
+  // Feature List
+  guestFeaturesContainer: {
+    paddingHorizontal: 25,
+    marginBottom: 30,
+  },
+  guestFeatureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    backgroundColor: '#F9F9F9',
+    padding: 15,
+    borderRadius: 12,
+  },
+  guestFeatureIconBg: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  guestFeatureTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 2,
+  },
+  guestFeatureDesc: {
+    fontSize: 13,
+    color: '#666',
+  },
+  guestFooter: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  guestBtn: {
+    backgroundColor: '#000',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  guestBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 10,
+  },
   container: {
     flex: 1,
     borderTopLeftRadius: 20,
@@ -189,12 +384,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   infoBox: {
-    width: '48%', // For 2 columns
+    width: '48%',
     backgroundColor: '#f7f7f7',
     borderRadius: 15,
     padding: 15,
     marginBottom: 10,
-    alignItems: 'flex-start', // Align items to the start
+    alignItems: 'flex-start',
   },
   infoIcon: {
     marginBottom: 8,
@@ -221,21 +416,21 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     flex: 1,
     borderBottomWidth: 3,
-    borderColor: 'transparent', // Default transparent border
+    borderColor: 'transparent',
   },
   selectedRole: {
-    borderColor: '#000', // Black border for selected
+    borderColor: '#000',
   },
   roleIcon: {
-    color: '#777', // Default dim color
+    color: '#777',
   },
   roleText: {
     fontSize: 16,
-    color: '#777', // Default dim color
+    color: '#777',
     marginTop: 8,
   },
   selectedRoleText: {
-    color: '#000', // Black color for selected text/icon
+    color: '#000',
     fontWeight: 'bold',
   },
   sectionContainer: {
@@ -257,7 +452,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     marginLeft: 10,
-    flex: 1, // To push text on the right
+    flex: 1,
   },
   pendingText: {
     fontSize: 14,
@@ -273,10 +468,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: 18,
+
+  // Guest UI styles
+  guestContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  guestAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 15,
+  },
+  guestTitle: {
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#000',
-    marginLeft: 10, // Space from icon
+    marginBottom: 5,
+  },
+  guestSubtitle: {
+    fontSize: 15,
+    color: "#777",
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  guestBtn: {
+    backgroundColor: "#111",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+  },
+  guestBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

@@ -15,6 +15,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../../redux/slices/authSlice'; // ✅ import thunk
+import { setGuestMode } from '../../redux/slices/authSlice';
 
 export default function LoginScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -34,7 +35,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleSkip = () => {
-    navigation.replace('Main'); // Or your main app screen
+    dispatch(setGuestMode());
   };
 
   return (

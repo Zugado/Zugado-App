@@ -4,10 +4,10 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import HomeScreen from '../screens/HomeScreen';
-// import ManageJobScreen from '../screens/Jobs/ManageJobScreen';
-// import CreateJob from '../screens/Jobs/CreateJob';
-// import MessageScreen from '../screens/Message/MessageScreen';
+import HomeScreen from '../screens/Home/HomeScreen';
+import ManageJobScreen from '../screens/Jobs/ManageJobScreen';
+import CreateJobScreen from '../screens/Jobs/CreateJobScreen';
+import MessageScreen from '../screens/MessageScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -44,10 +44,10 @@ export default function TabNavigator() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      {/* <Tab.Screen name="Manage Job" component={ManageJobScreen} /> */}
-      {/* <Tab.Screen
+      <Tab.Screen name="Manage Job" component={ManageJobScreen} />
+      <Tab.Screen
         name="Add"
-        component={CreateJob}
+        component={CreateJobScreen}
         options={{
           tabBarStyle: { display: 'none' },
           tabBarButton: (props) => (
@@ -56,8 +56,8 @@ export default function TabNavigator() {
             </CustomTabBarButton>
           ),
         }}
-      /> */}
-      {/* <Tab.Screen name="Message" component={MessageScreen} /> */}
+      />
+      <Tab.Screen name="Message" component={MessageScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

@@ -6,12 +6,15 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Button,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Header from '../components/Header';
-import JobCard from '../components/JobCard';
+import Header from '../../components/Header';
+import JobCard from './JobCard';
 // We still use SafeAreaView, but in a different way
 import { SafeAreaView } from 'react-native-safe-area-context'; 
+import Snackbar from '../../components/Snackbar';
+import { useState } from 'react';
 
 const HomeScreen = () => {
   const tags = ['Tag-1', 'Tag-2', 'Tag-3', 'Tag-4'];
@@ -20,7 +23,7 @@ const HomeScreen = () => {
     <SafeAreaView style={styles.safeAreaBlack}>
       
       {/* 2. This configures the text/icons to be WHITE */}
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#050505ff" />
 
       {/* 3. This View contains your ACTUAL app content */}
       <View style={styles.appContainer}>
@@ -58,6 +61,7 @@ const HomeScreen = () => {
           <JobCard />
         </ScrollView>
       </View>
+
     </SafeAreaView>
   );
 };

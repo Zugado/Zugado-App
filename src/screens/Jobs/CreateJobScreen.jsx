@@ -12,15 +12,12 @@ import {
 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// You'll need react-native-vector-icons for this
 import Feather from 'react-native-vector-icons/Feather';
 
 export default function CreateJob({ navigation }) {
-  // State to manage which experience level is selected
   const [experienceLevel, setExperienceLevel] = useState('Intermediate');
-  const [tags, setTags] = useState(['Tag-1', 'Tag-2']); // Example tags
+  const [tags, setTags] = useState(['Tag-1', 'Tag-2']);
 
-  // Helper component for the radio button
   const RadioButton = ({ label, selected, onPress }) => (
     <TouchableOpacity style={styles.option} onPress={onPress}>
       <View style={styles.radio}>
@@ -36,7 +33,7 @@ export default function CreateJob({ navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        {/* <StatusBar barStyle="dark-content" backgroundColor="#fff" /> */}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}

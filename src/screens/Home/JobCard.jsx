@@ -9,7 +9,7 @@ const JobCard = () => {
     <TouchableOpacity style={styles.cardContainer}>
       {/* Image */}
       <Image
-        source={require('../assets/jobCard.png')} 
+        source={require('../../assets/jobCard.png')} 
         style={styles.cardImage}
         resizeMode='cover'
       />
