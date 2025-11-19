@@ -1,15 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Image, StyleSheet, StatusBar } from 'react-native';
 
-export default function SplashScreen({ navigation }) {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace('Login');
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [navigation]);
-
+export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <Image 

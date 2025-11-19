@@ -1,28 +1,49 @@
 // src/navigation/RootNavigator.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import i18n from '../i18n/i18n';
 import { useSelector, useDispatch } from 'react-redux';
-import AuthNavigator from './AuthNavigator';
-import AppStackNavigator from './AppStackNavigator';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loadUserFromStorage } from '../redux/slices/authSlice';
-
+import AppStackNavigator from './AppStackNavigator';
+import OnboardingNavigator from './OnboardingNavigator';
+import SplashScreen from '../screens/SplashScreen';
+import LanguageSelectScreen from '../screens/LanguageSelectScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RootNavigator() {
   const dispatch = useDispatch();
   const { user, loading, isGuest } = useSelector((state) => state.auth);
+  const [showSplash, setShowSplash] = useState(true);
+  const [appLanguage, setAppLanguage] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    // Load user/guest from AsyncStorage
     dispatch(loadUserFromStorage());
-  }, []);
 
-  if (loading) return null; // or splash
+     const loadLanguage = async () => {
+      const lang = await AsyncStorage.getItem("appLanguage");
+      if (lang) {
+        i18n.changeLanguage(lang);
+        setAppLanguage(lang);
+      }
+    };
 
-  // If user logged in
-  if (user) return <AppStackNavigator />;
+    loadLanguage();
 
-  // If using guest mode
-  if (isGuest) return <AppStackNavigator />;
+    // Always show splash for 2 seconds
+    const timer = setTimeout(() => setShowSplash(false), 1000);
 
-  // Else show Auth for first time
-  return <AuthNavigator />;
+    return () => clearTimeout(timer);
+  }, [dispatch]);
+
+  // Show splash until auth is loaded and 3 seconds passed
+  if (loading || showSplash) return <SplashScreen />;
+
+  // Check if language is set
+  if (!appLanguage)
+  return <LanguageSelectScreen onComplete={(lang) => setAppLanguage(lang)} />;
+
+
+  // Navigate based on auth state
+  if (user || isGuest) return <AppStackNavigator />;
+  return <OnboardingNavigator />;
 }

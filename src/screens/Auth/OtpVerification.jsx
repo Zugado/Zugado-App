@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,17 +7,34 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Image, // <--- Import Image component
+  Image,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import { verifyOtp } from '../../redux/slices/authSlice';
+import { useDispatch } from 'react-redux';
 
-export default function OtpVerification() {
+export default function OtpVerification({ route, navigation }) {
+  const { mobile } = route.params;
+
+  // 6 digits instead of 4
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const otpInputs = useRef([]);
 
   const handleOtpChange = (text, index) => {
     if (text.length === 1 && index < otpInputs.current.length - 1) {
       otpInputs.current[index + 1].focus();
     }
+  };
+
+  const dispatch = useDispatch();
+
+  const handleSubmit = () => {
+    console.log(otp);
+    dispatch(
+      verifyOtp({
+        mobileOrEmail: mobile,
+        otp: otp.join(''),
+      })
+    );
   };
 
   return (
@@ -27,46 +44,44 @@ export default function OtpVerification() {
     >
       <View style={styles.container}>
 
-
-        {/* --- REPLACED MAIN GRAPHIC WITH IMAGE --- */}
         <Image
-          source={require('../../assets/otpImage.png')} // <--- Adjust this path to your image
+          source={require('../../assets/otpImage.png')}
           style={styles.mainGraphicImage}
         />
-        {/* --- END IMAGE REPLACEMENT --- */}
 
-        {/* Logo */}
-        {/* If your image already contains the 'zugado' logo, you might remove this Text component */}
-       <Image
-          source={require('../../assets/logo.png')} // <--- Adjust this path to your logo image
+        <Image
+          source={require('../../assets/logo.png')}
           style={{ width: 160, height: 50, marginBottom: 60 }}
           resizeMode="contain"
         />
 
-        {/* OTP Verification Text */}
         <View style={styles.textContainer}>
           <Text style={styles.title}>OTP Verification</Text>
           <Text style={styles.description}>
-            Thank you for registering with you. Please type the OTP as shared on your Mobile
-            <Text style={styles.phoneNumber}> +91 XXXXXX5471</Text>
+            Please enter the OTP sent to
+            <Text style={styles.phoneNumber}> +91 {mobile} </Text>
           </Text>
         </View>
 
         {/* OTP Input Fields */}
         <View style={styles.otpInputContainer}>
-          {[0, 1, 2, 3].map((index) => (
+          {[0, 1, 2, 3, 4, 5].map((index) => (
             <TextInput
               key={index}
               ref={(el) => (otpInputs.current[index] = el)}
               style={styles.otpInput}
               keyboardType="number-pad"
               maxLength={1}
-              onChangeText={(text) => handleOtpChange(text, index)}
+              onChangeText={(text) => {
+                const newOtp = [...otp];
+                newOtp[index] = text;
+                setOtp(newOtp);
+                handleOtpChange(text, index);
+              }}
             />
           ))}
         </View>
 
-        {/* Resend OTP */}
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>OTP not received? </Text>
           <TouchableOpacity>
@@ -74,8 +89,7 @@ export default function OtpVerification() {
           </TouchableOpacity>
         </View>
 
-        {/* Submit Button */}
-        <TouchableOpacity style={styles.submitButton}>
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
       </View>
@@ -91,23 +105,12 @@ const styles = StyleSheet.create({
     padding: 20,
     position: 'relative',
   },
-  // --- NEW STYLE FOR THE IMAGE ---
   mainGraphicImage: {
-    width: '100%',  // Adjust width as needed
-    height: 250, // Adjust height as needed
-    resizeMode: 'cover', // Or 'cover', 'stretch', 'center' based on your image
+    width: '100%',
+    height: 250,
+    resizeMode: 'cover',
     marginTop: 60,
     marginBottom: 10,
-    },
-
-  logo: {
-    fontSize: 34,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 40,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
   textContainer: {
     alignItems: 'center',
@@ -133,11 +136,11 @@ const styles = StyleSheet.create({
   otpInputContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '80%',
+    width: '90%',   // Increased width to fit 6 boxes
     marginBottom: 40,
   },
   otpInput: {
-    width: 50,
+    width: 45,
     height: 50,
     borderWidth: 2,
     borderColor: '#000',

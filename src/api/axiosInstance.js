@@ -1,6 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-export const API_BASE_URL = 'http://192.168.29.20:5000/api';
+export const API_BASE_URL = 'https://apiuat.zugado.com/api';
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
     headers: {

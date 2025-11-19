@@ -1,0 +1,18 @@
+{
+  "Home": "Home",
+  "Manage Job": "Manage Job",
+  "Message": "Message",
+  "Profile": "Profile",
+  
+  "select_language": "Select Language",
+  "welcome": "Welcome",
+  "login": "Login",
+  "login_subtitle": "Welcome to Zugado, where you manage your daily tasks",
+  "mobile_number": "Mobile No.",
+  "enter_mobile": "Enter Mobile No.",
+  "get_otp_text": "Get OTP on Text",
+  "get_otp_whatsapp": "Get OTP on WhatsApp",
+  "agreement_text": "By registering, you agree to our",
+  "terms_privacy": "Terms & Privacy Policy",
+  "skip": "SKIP"
+}

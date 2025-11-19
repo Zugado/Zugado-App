@@ -1,6 +1,8 @@
 import { enableScreens } from 'react-native-screens';
 enableScreens();
 
+import "./src/i18n/i18n";
+
 import React from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

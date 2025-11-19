@@ -1,0 +1,18 @@
+{
+   "Home": "হোম",
+  "Manage Job": "চাকরি পরিচালনা",
+  "Message": "বার্তা",
+  "Profile": "প্রোফাইল",
+  
+  "select_language": "ভাষা নির্বাচন করুন",
+  "welcome": "স্বাগতম",
+  "login": "লগ ইন",
+  "login_subtitle": "Zugado তে স্বাগতম, যেখানে আপনি আপনার দৈনন্দিন কাজগুলি পরিচালনা করেন",
+  "mobile_number": "মোবাইল নং",
+  "enter_mobile": "মোবাইল নং লিখুন",
+  "get_otp_text": "OTP পান (টেক্সটে)",
+  "get_otp_whatsapp": "OTP পান (হোয়াটসঅ্যাপে)",
+  "agreement_text": "নিবন্ধন করার মাধ্যমে, আপনি আমাদের সাথে একমত হন",
+  "terms_privacy": "নিয়মাবলী ও গোপনীয়তা নীতি",
+  "skip": "স্কিপ"
+}

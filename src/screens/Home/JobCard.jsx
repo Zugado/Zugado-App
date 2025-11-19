@@ -60,12 +60,14 @@ const JobCard = () => {
   );
 };
 
+// components/JobCard.js - Updated Styles
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: '#fff',
     borderRadius: 15,
     marginHorizontal: 15,
-    marginVertical: 10,
+    // Reduced vertical margin slightly
+    marginVertical: 7, 
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 1},
@@ -73,8 +75,9 @@ const styles = StyleSheet.create({
     shadowRadius: 1.41,
   },
   cardImage: {
+    // *** KEY CHANGE: Reduced Image Height from 200 to 120-130 ***
     width: '100%',
-    height: 200,
+    height: 120, // Adjusted from 200
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
   },
@@ -83,55 +86,59 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     backgroundColor: '#ff6600',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingHorizontal: 8, // Reduced padding
+    paddingVertical: 2,   // Reduced padding
     borderRadius: 7,
   },
   urgentText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: 10, // Reduced font size slightly
   },
   contentContainer: {
-    padding: 15,
+    // Reduced padding from 15 to 10
+    padding: 10, 
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    // Reduced bottom margin
+    marginBottom: 5, 
   },
   title: {
-    fontSize: 18,
+    fontSize: 16, // Reduced font size
     fontWeight: 'bold',
     color: '#333',
   },
   price: {
-    fontSize: 18,
+    fontSize: 16, // Reduced font size
     fontWeight: 'bold',
     color: '#333',
   },
   description: {
     color: '#666',
-    fontSize: 14,
-    marginBottom: 10,
+    fontSize: 13, // Reduced font size
+    // Reduced bottom margin
+    marginBottom: 5, 
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    // Reduced bottom margin
+    marginBottom: 5, 
   },
   locationIcon: {
     color: '#888',
-    fontSize: 16,
+    fontSize: 14, // Reduced icon size
     marginRight: 5,
   },
   locationText: {
     color: '#888',
-    fontSize: 14,
+    fontSize: 13, // Reduced font size
   },
   vendorName: {
-    fontSize: 16,
+    fontSize: 14, // Reduced font size
     fontWeight: 'bold',
     color: '#333',
   },
@@ -141,44 +148,45 @@ const styles = StyleSheet.create({
   },
   starIcon: {
     color: '#FFD700',
-    fontSize: 16,
+    fontSize: 14, // Reduced icon size
     marginRight: 5,
   },
   ratingText: {
     color: '#666',
-    fontSize: 14,
+    fontSize: 13, // Reduced font size
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 15,
+    // Reduced top margin
+    marginTop: 10, 
   },
   bidButton: {
     flex: 1,
     backgroundColor: '#111',
-    borderRadius: 25,
-    paddingVertical: 12,
+    borderRadius: 20, // Reduced border radius slightly
+    paddingVertical: 8, // Reduced padding
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 8, // Reduced margin
   },
   bidButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 14, // Reduced font size
   },
   chatButton: {
     flex: 1,
     borderWidth: 1.5,
     borderColor: '#111',
-    borderRadius: 25,
-    paddingVertical: 12,
+    borderRadius: 20, // Reduced border radius slightly
+    paddingVertical: 8, // Reduced padding
     alignItems: 'center',
-    marginLeft: 10,
+    marginLeft: 8, // Reduced margin
   },
   chatButtonText: {
     color: '#111',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 14, // Reduced font size
   },
 });
 

@@ -4,24 +4,34 @@ import axiosInstance from '../../api/axiosInstance';
 
 // -------------------- THUNKS --------------------
 
-// Signup
-export const signup = createAsyncThunk(
-  "auth/signup",
-  async ({ name, email, phone, password }, { rejectWithValue }) => {
+//send otp
+
+export const sendOtp = createAsyncThunk(
+  'auth/sendOtp',
+  async ({ mobileOrEmail }, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.post("/auth/signup", {
-        name,
-        email,
-        phone,
-        password,
-      });
-      const { user, token } = res.data;
-      await AsyncStorage.setItem("token", token);
-      await AsyncStorage.setItem("user", JSON.stringify(user));
-      await AsyncStorage.removeItem("guest");
-      return { user, token };
+      const res = await axiosInstance.post('/auth/send-otp', { mobileOrEmail });
+      console.log('Send OTP Response:', res.data);
+      return res.data.message; // success message
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Signup failed");
+      const msg = error.response?.data?.message || 'Failed to send OTP';
+      return rejectWithValue(msg);
+    }
+  }
+);
+
+export const verifyOtp = createAsyncThunk(
+  'auth/verifyOtp',
+  async ({ mobileOrEmail, otp }, { rejectWithValue }) => {
+    console.log('Verifying OTP:', otp);
+    try {
+      const res = await axiosInstance.post('/auth/verify-otp', { mobileOrEmail, otp });
+      console.log('Verify OTP Response:', res.data);
+      return res.data.message; // success message
+    } catch (error) {
+      const msg = error.response?.data?.message || 'OTP verification failed';
+      console.log('OTP Verification Error:', msg);
+      return rejectWithValue(msg);
     }
   }
 );
@@ -77,7 +87,7 @@ const authSlice = createSlice({
     user: null,
     token: null,
     isGuest: false,
-    loading: false,
+    loading: true,
     signUpLoading: false,
     error: null,
     forgotPasswordMessage: null,
@@ -109,23 +119,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-
-      // Signup
-      .addCase(signup.pending, (state) => {
-        state.signUpLoading = true;
-        state.error = null;
-      })
-      .addCase(signup.fulfilled, (state, action) => {
-        state.signUpLoading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isGuest = false;
-      })
-      .addCase(signup.rejected, (state, action) => {
-        state.signUpLoading = false;
-        state.error = action.payload;
-      })
-
       // Login
       .addCase(login.pending, (state) => {
         state.loading = true;

@@ -12,7 +12,6 @@ export default function AppStackNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {/* Main bottom tabs */}
       <Stack.Screen name="MainTabs" component={TabNavigator} />
-
       {/* Screens outside tabs */}
       {/* <Stack.Screen name="JobDetails" component={JobDetails} /> */}
       {/* <Stack.Screen name="EditProfile" component={EditProfile} /> */}
