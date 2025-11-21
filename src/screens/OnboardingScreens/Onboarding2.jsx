@@ -1,96 +1,149 @@
-// src/screens/Onboarding/Onboarding2.js
 import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ImageBackground,
-  StatusBar,
   Image,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Replace with your illustration for Screen 2
-import backgroundImage from '../../assets/logo.png';
+import illustration from '../../assets/onboarding2.png'; 
 
 export default function Onboarding2({ navigation }) {
+
+  const handleSkip = () => {
+    navigation.navigate('Auth', { screen: 'Login' });
+  };
+
+  const handleNext = () => {
+    navigation.navigate('Onboarding3'); 
+  };
+
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F4F7F9" />
 
-      <ImageBackground
-        source={backgroundImage}
-        resizeMode="cover"
-        style={styles.imageBackground}
-      >
-        {/* Semi-transparent overlay */}
-        <View style={styles.overlay} />
+      <View style={styles.skipContainer}>
+        <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.contentContainer}>
-          {/* Title */}
-          <Text style={styles.title}>Explore Amazing Services</Text>
+      <View style={styles.contentContainer}>
+        <Image source={illustration} style={styles.illustration} resizeMode="contain" />
 
-          {/* Subtitle */}
-          <Text style={styles.subtitle}>
-            Browse and book everything you need in one app. Wide range of services, easy search & filter, quick booking.
-          </Text>
+        <Text style={styles.title}>Fair Bidding. Transparent Earnings.</Text>
+        
+        <Text style={styles.subtitle}>
+          Choose your model: bid credits or commission-based payments. No confusion just clarity
+        </Text>
 
-          {/* Pagination Dots */}
-          <View style={styles.paginationContainer}>
-            <View style={styles.dot} />
-            <View style={[styles.dot, styles.activeDot]} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-          </View>
-
-          {/* Next Button */}
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={() => navigation.navigate('Onboarding3')}
-          >
-            <Text style={styles.nextButtonText}>Next</Text>
-          </TouchableOpacity>
-
-          {/* Footer: Sign In Link */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Auth', { screen: 'Login' })}
-          >
-            <Text style={styles.footerText}>
-              Already have an account?{' '}
-              <Text style={styles.signInLink}>Sign in</Text>
-            </Text>
-          </TouchableOpacity>
+        <View style={styles.paginationContainer}>
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+          <View style={[styles.dot, styles.activeDot]} />
         </View>
-      </ImageBackground>
-    </View>
+      </View>
+
+      <View style={styles.buttonWrapper}>
+        <TouchableOpacity
+          style={styles.getStartedButton}
+          onPress={handleNext}>
+          <Text style={styles.getStartedButtonText}>Next</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
-// -------------------- Styles --------------------
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  imageBackground: { flex: 1, justifyContent: 'flex-end' },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.3)' },
-  contentContainer: { paddingHorizontal: 25, paddingBottom: 50, alignItems: 'center' },
-  title: { fontSize: 32, fontWeight: 'bold', color: '#FFF', textAlign: 'center', marginBottom: 15 },
-  subtitle: { fontSize: 16, color: '#E0E0E0', textAlign: 'center', marginBottom: 30, lineHeight: 24 },
-  paginationContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 30 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255, 255, 255, 0.5)', marginHorizontal: 5 },
-  activeDot: { width: 20, backgroundColor: '#FFA500' },
-  nextButton: {
-    backgroundColor: '#156778',
-    paddingVertical: 16,
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F7F9',
+  },
+  skipContainer: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  skipButton: {
+    padding: 5,
+  },
+  skipText: {
+    fontSize: 16,
+    color: '#666666',
+    fontWeight: '500',
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    marginTop: -50,
+  },
+  illustration: {
+    width: '100%',
+    height: 250, 
+    marginBottom: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700', 
+    color: '#333333',
+    textAlign: 'center',
+    marginBottom: 15,
+    lineHeight: 32,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 40,
+    lineHeight: 24,
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#D0D5DD',
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: '#4C7AFE',
+    width: 20,
+    borderRadius: 4, 
+  },
+  buttonWrapper: {
+    paddingHorizontal: 30,
+    paddingBottom: 30,
+  },
+  getStartedButton: {
+    backgroundColor: '#000000',
+    paddingVertical: 18,
     borderRadius: 30,
     alignItems: 'center',
     width: '100%',
-    marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 8,
   },
-  nextButtonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
-  footerText: { color: '#E0E0E0', fontSize: 15 },
-  signInLink: { color: '#FFA500', fontWeight: 'bold' },
+  getStartedButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
+  },
 });

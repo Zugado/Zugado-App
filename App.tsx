@@ -19,7 +19,7 @@ export default function App() {
       <SafeAreaProvider>
          <NetworkProvider>
           <NetworkGuard>
-        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+            
         <NavigationContainer>
           <RootNavigator />
         </NavigationContainer>

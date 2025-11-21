@@ -19,13 +19,8 @@ import { useState } from 'react';
 const HomeScreen = () => {
   const tags = ['Tag-1', 'Tag-2', 'Tag-3', 'Tag-4'];
   return (
-    // 1. This OUTER SafeAreaView sets the status bar background color
     <SafeAreaView style={styles.safeAreaBlack}>
-      
-      {/* 2. This configures the text/icons to be WHITE */}
       <StatusBar barStyle="light-content" backgroundColor="#050505ff" />
-
-      {/* 3. This View contains your ACTUAL app content */}
       <View style={styles.appContainer}>
         <Header />
 
@@ -67,21 +62,19 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  // NEW STYLE for the outer wrapper
   safeAreaBlack: {
     flex: 1,
-    backgroundColor: '#000000', // This makes the status bar area black on iOS
+    backgroundColor: '#000000',
   },
-  // RENAMED from 'safeArea' to 'appContainer'
   appContainer: {
     flex: 1,
-    backgroundColor: '#f4f4f4', // This is your app's light gray background
+    backgroundColor: '#f4f4f4',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80, // Ensure content isn't hidden by the FAB
+    paddingBottom: 80,
   },
 
   tagRow: {

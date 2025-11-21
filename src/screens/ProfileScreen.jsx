@@ -1,4 +1,3 @@
-// ProfileScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -42,7 +41,7 @@ const GuestFeature = ({ icon, title, desc }) => (
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const { user, isGuest } = useSelector((state) => state.auth);
-  console.log(user);
+  // console.log(user); // Console log removed for cleaner output
   const [selectedRole, setSelectedRole] = useState('provider');
 
   // Guest alert handler
@@ -61,7 +60,8 @@ export default function ProfileScreen({ navigation }) {
  if (isGuest) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#050505ff" />
+        {/* FIX: Ensure StatusBar is set for white background/dark text here */}
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         <View style={styles.guestContainer}>
           
           {/* Top Header */}
@@ -123,85 +123,97 @@ export default function ProfileScreen({ navigation }) {
 
   // Logged-in user UI
   return (
-    <ScrollView style={styles.container}>
-      {/* Profile Header */}
-      <View style={styles.profileHeader}>
-        <Image
-          source={require('../assets/profile.png')}
-          style={styles.profileImage}
-        />
-        <Text style={styles.profileName}>{user?.name || "User Name"}</Text>
-        <View style={styles.subHeader}>
-          <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
-          <View style={styles.ratingContainer}>
-            <FontAwesome name="star" size={14} color="#FF9529" />
-            <Text style={styles.ratingText}>4.5</Text>
-          </View>
-        </View>
-      </View>
+    // FIX: Wrap in a simple View to correctly handle the status bar background color
+    <View style={{ flex: 1, backgroundColor: '#fff' }}> 
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <ScrollView style={styles.container}>
+            {/* Profile Header */}
+            <View style={styles.profileHeader}>
+                <Image
+                source={require('../assets/profile.png')}
+                style={styles.profileImage}
+                />
+                <Text style={styles.profileName}>{user?.name || "User Name"}</Text>
+                <View style={styles.subHeader}>
+                <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
+                <View style={styles.ratingContainer}>
+                    <FontAwesome name="star" size={14} color="#FF9529" />
+                    <Text style={styles.ratingText}>4.5</Text>
+                </View>
+                </View>
+            </View>
 
-      {/* Info Grid */}
-      <View style={styles.infoGrid}>
-        <InfoBox iconName="phone" title="Contact" value={user?.phone || "N/A"} />
-        <InfoBox iconName="briefcase" title="Job Type" value={user?.jobType || "Full-Time"} />
-        <InfoBox iconName="map-pin" title="Working Model" value={user?.location?.coordinates || "Remote"} />
-        <InfoBox iconName="bar-chart-2" title="Level" value="Advanced" />
-      </View>
+            {/* Info Grid */}
+            <View style={styles.infoGrid}>
+                <InfoBox iconName="phone" title="Contact" value={user?.phone || "N/A"} />
+                <InfoBox iconName="briefcase" title="Job Type" value={user?.jobType || "Full-Time"} />
+                <InfoBox
+                    iconName="map-pin"
+                    title="Location"
+                    value={
+                        Array.isArray(user?.location?.coordinates)
+                        ? user.location.coordinates.join(", ")
+                        : "Not Available"
+                    }
+                />
+                <InfoBox iconName="bar-chart-2" title="Level" value="Advanced" />
+            </View>
 
-      {/* Role Selection */}
-      <View style={styles.roleSelectionContainer}>
-        <TouchableOpacity
-          style={[styles.roleButton, selectedRole === 'provider' && styles.selectedRole]}
-          onPress={() => setSelectedRole('provider')}
-        >
-          <MaterialCommunityIcons
-            name="account-hard-hat"
-            size={30}
-            style={[styles.roleIcon, selectedRole === 'provider' && styles.selectedRoleText]}
-          />
-          <Text style={[styles.roleText, selectedRole === 'provider' && styles.selectedRoleText]}>
-            Job Provider
-          </Text>
-        </TouchableOpacity>
+            {/* Role Selection */}
+            <View style={styles.roleSelectionContainer}>
+                <TouchableOpacity
+                style={[styles.roleButton, selectedRole === 'provider' && styles.selectedRole]}
+                onPress={() => setSelectedRole('provider')}
+                >
+                <MaterialCommunityIcons
+                    name="account-hard-hat"
+                    size={30}
+                    style={[styles.roleIcon, selectedRole === 'provider' && styles.selectedRoleText]}
+                />
+                <Text style={[styles.roleText, selectedRole === 'provider' && styles.selectedRoleText]}>
+                    Job Provider
+                </Text>
+                </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.roleButton, selectedRole === 'seeker' && styles.selectedRole]}
-          onPress={() => setSelectedRole('seeker')}
-        >
-          <MaterialCommunityIcons
-            name="account-tie"
-            size={30}
-            style={[styles.roleIcon, selectedRole === 'seeker' && styles.selectedRoleText]}
-          />
-          <Text style={[styles.roleText, selectedRole === 'seeker' && styles.selectedRoleText]}>
-            Job Seeker
-          </Text>
-        </TouchableOpacity>
-      </View>
+                <TouchableOpacity
+                style={[styles.roleButton, selectedRole === 'seeker' && styles.selectedRole]}
+                onPress={() => setSelectedRole('seeker')}
+                >
+                <MaterialCommunityIcons
+                    name="account-tie"
+                    size={30}
+                    style={[styles.roleIcon, selectedRole === 'seeker' && styles.selectedRoleText]}
+                />
+                <Text style={[styles.roleText, selectedRole === 'seeker' && styles.selectedRoleText]}>
+                    Job Seeker
+                </Text>
+                </TouchableOpacity>
+            </View>
 
-      {/* Verification Section */}
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Verification</Text>
-        <View style={styles.verificationItem}>
-          <Feather name="check-circle" size={20} color="green" />
-          <Text style={styles.verificationText}>Mobile Verification</Text>
-          <Text style={styles.pendingText}>Pending U2</Text>
-        </View>
-        <View style={styles.verificationItem}>
-          <Feather name="x-circle" size={20} color="red" />
-          <Text style={styles.verificationText}>ID Verification</Text>
-          <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
-        </View>
-      </View>
+            {/* Verification Section */}
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>Verification</Text>
+                <View style={styles.verificationItem}>
+                <Feather name="check-circle" size={20} color="green" />
+                <Text style={styles.verificationText}>Mobile Verification</Text>
+                <Text style={styles.pendingText}>Pending U2</Text>
+                </View>
+                <View style={styles.verificationItem}>
+                <Feather name="x-circle" size={20} color="red" />
+                <Text style={styles.verificationText}>ID Verification</Text>
+                <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
+                </View>
+            </View>
 
-      {/* Payment Details */}
-      <View style={styles.sectionContainer}>
-        <TouchableOpacity style={styles.paymentButton} onPress={guestAction}>
-          <Ionicons name="card-outline" size={24} color="#000" />
-          <Text style={styles.sectionTitle}>Payment Details</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+            {/* Payment Details */}
+            <View style={styles.sectionContainer}>
+                <TouchableOpacity style={styles.paymentButton} onPress={guestAction}>
+                <Ionicons name="card-outline" size={24} color="#000" />
+                <Text style={styles.sectionTitle}>Payment Details</Text>
+                </TouchableOpacity>
+            </View>
+        </ScrollView>
+    </View>
   );
 }
 
@@ -209,7 +221,7 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#000000ff',
   },
   // Header
   topNav: {
@@ -332,7 +344,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    borderTopLeftRadius: 20,
+    // Note: The border radius styling is applied to the ScrollView, which can cause issues on some platforms.
+    // Assuming this is intended to create a visual break from a parent container.
+    borderTopLeftRadius: 20, 
     borderTopRightRadius: 20,
     backgroundColor: '#fff',
     padding: 20,
@@ -468,41 +482,5 @@ const styles = StyleSheet.create({
   paymentButton: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-
-  // Guest UI styles
-  guestContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  guestAvatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 15,
-  },
-  guestTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  guestSubtitle: {
-    fontSize: 15,
-    color: "#777",
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  guestBtn: {
-    backgroundColor: "#111",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  guestBtnText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });
