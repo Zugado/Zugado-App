@@ -5,29 +5,44 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
   Platform,
   Image,
+  ScrollView,
+  Keyboard,
 } from 'react-native';
 import { verifyOtp } from '../../redux/slices/authSlice';
 import { useDispatch } from 'react-redux';
 
 export default function OtpVerification({ route, navigation }) {
-  const { mobile } = route.params;
-
-  // 6 digits instead of 4
+  const { mobile, exposedOTP } = route.params;
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const otpInputs = useRef([]);
 
+  const dispatch = useDispatch();
+
   const handleOtpChange = (text, index) => {
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+
     if (text.length === 1 && index < otpInputs.current.length - 1) {
       otpInputs.current[index + 1].focus();
     }
   };
 
-  const dispatch = useDispatch();
+  const handleKeyPress = ({ nativeEvent: { key } }, index) => {
+    if (key === 'Backspace' && index > 0) {
+      if (otp[index] === '') {
+        const newOtp = [...otp];
+        newOtp[index - 1] = '';
+        setOtp(newOtp);
+        otpInputs.current[index - 1].focus();
+      }
+    }
+  };
 
   const handleSubmit = () => {
+    Keyboard.dismiss();
     console.log(otp);
     dispatch(
       verifyOtp({
@@ -38,12 +53,12 @@ export default function OtpVerification({ route, navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <ScrollView 
+      contentContainerStyle={styles.scrollContainer}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
       <View style={styles.container}>
-
         <Image
           source={require('../../assets/otpImage.png')}
           style={styles.mainGraphicImage}
@@ -54,6 +69,8 @@ export default function OtpVerification({ route, navigation }) {
           style={{ width: 160, height: 50, marginBottom: 60 }}
           resizeMode="contain"
         />
+
+        <Text style={{color: 'green'}}>OTP is: {exposedOTP}</Text>
 
         <View style={styles.textContainer}>
           <Text style={styles.title}>OTP Verification</Text>
@@ -72,11 +89,10 @@ export default function OtpVerification({ route, navigation }) {
               style={styles.otpInput}
               keyboardType="number-pad"
               maxLength={1}
-              onChangeText={(text) => {
-                const newOtp = [...otp];
-                newOtp[index] = text;
-                setOtp(newOtp);
-                handleOtpChange(text, index);
+              value={otp[index]} // Controlled input
+              onChangeText={(text) => handleOtpChange(text, index)}
+              onKeyPress={(event) => handleKeyPress(event, index)}
+              onFocus={() => {
               }}
             />
           ))}
@@ -89,21 +105,28 @@ export default function OtpVerification({ route, navigation }) {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <TouchableOpacity 
+          style={styles.submitButton} 
+          onPress={handleSubmit}
+        >
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 40,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
     padding: 20,
-    position: 'relative',
   },
   mainGraphicImage: {
     width: '100%',
@@ -136,7 +159,7 @@ const styles = StyleSheet.create({
   otpInputContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '90%',   // Increased width to fit 6 boxes
+    width: '90%',
     marginBottom: 40,
   },
   otpInput: {
@@ -152,7 +175,7 @@ const styles = StyleSheet.create({
   },
   resendContainer: {
     flexDirection: 'row',
-    marginBottom: 60,
+    marginBottom: 40, 
   },
   resendText: {
     fontSize: 14,
@@ -169,8 +192,6 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 30,
     alignItems: 'center',
-    position: 'absolute',
-    bottom: 30,
   },
   submitButtonText: {
     color: '#fff',

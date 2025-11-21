@@ -2,6 +2,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import TabNavigator from './TabNavigator';
+import NotificationScreen from '../screens/NotificationScreen';
 // import JobDetails from '../screens/Jobs/JobDetails';
 // import EditProfile from '../screens/Profile/EditProfile';
 
@@ -13,7 +14,7 @@ export default function AppStackNavigator() {
       {/* Main bottom tabs */}
       <Stack.Screen name="MainTabs" component={TabNavigator} />
       {/* Screens outside tabs */}
-      {/* <Stack.Screen name="JobDetails" component={JobDetails} /> */}
+      {/* // <Stack.Screen name="Notification" component={NotificationScreen} /> */}
       {/* <Stack.Screen name="EditProfile" component={EditProfile} /> */}
     </Stack.Navigator>
   );

@@ -9,40 +9,56 @@ import {
   Image,
   StatusBar,
   ScrollView,
+  Alert,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser, sendOtp, setGuestMode } from '../../redux/slices/authSlice';
+import { sendOtp, setGuestMode } from '../../redux/slices/authSlice';
 
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { user, loading, error } = useSelector((state) => state.auth);
 
   const [mobile, setMobile] = useState('');
+  const [agreed, setAgreed] = useState(false);
 
-  const handleGetOtpText = () => {
-    dispatch(sendOtp({ mobileOrEmail: mobile }));
-    navigation.navigate('OtpVerification', { mobile });
+  const handleToggleAgreement = () => {
+    setAgreed(!agreed);
   };
 
-  const handleGetOtpWhatsapp = () => {
-    dispatch(sendOtp({ mobileOrEmail: mobile }));
-    navigation.navigate('OtpVerification', { mobile });
+  const handleGetOtp = (method) => {
+    if (mobile.length !== 10) {
+      Alert.alert(t('error'), t('please_enter_valid_mobile'));
+      return;
+    }
+
+    if (!agreed) {
+      Alert.alert(t('error'), t('please_agree_to_terms'));
+      return;
+    }
+
+  dispatch(sendOtp({ mobileOrEmail: mobile }))
+  .unwrap()
+  .then((res) => { // <-- res is now the object { message: '...', exposedOTP: '...' }
+    console.log("EXPOSED OTP:", res.data.exposedOTP); // <-- res.data is WRONG
+    navigation.navigate('OtpVerification', { mobile, exposedOTP: res.data.exposedOTP }); // <-- res.data is WRONG
+  })
   };
+
+  const handleGetOtpText = () => handleGetOtp('text');
+  const handleGetOtpWhatsapp = () => handleGetOtp('whatsapp');
 
   const handleSkip = () => {
     dispatch(setGuestMode());
   };
 
+  const isButtonEnabled = mobile.length === 10 && agreed;
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-
-        {/* Illustration */}
         <Image
           source={require('../../assets/illustration.png')}
           style={styles.illustration}
@@ -75,30 +91,46 @@ export default function LoginScreen({ navigation }) {
           />
         </View>
 
+        {/* Agreement Text and Checkbox */}
+        <TouchableOpacity style={styles.agreementContainer} onPress={handleToggleAgreement}>
+          <MaterialCommunityIcons 
+            name={agreed ? "checkbox-marked" : "checkbox-blank-outline"} 
+            size={20} 
+            color={agreed ? "#000" : "#666"} 
+          />
+          <Text style={styles.agreementText}>
+            {t('agreement_text')} <Text style={styles.linkText}>{t('terms_privacy')}</Text>
+          </Text>
+        </TouchableOpacity>
+
         {/* Buttons */}
         <TouchableOpacity
-          style={[styles.button, styles.buttonBlack]}
-          onPress={handleGetOtpText}>
+          style={[
+            styles.button, 
+            styles.buttonBlack, 
+            !isButtonEnabled && styles.buttonDisabled // Apply disabled style
+          ]}
+          onPress={handleGetOtpText}
+          disabled={!isButtonEnabled} // Disable button
+        >
           <Text style={[styles.buttonText, styles.buttonTextWhite]}>
             {t('get_otp_text')}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, styles.buttonGreen]}
-          onPress={handleGetOtpWhatsapp}>
+          style={[
+            styles.button, 
+            styles.buttonGreen,
+            !isButtonEnabled && styles.buttonDisabled // Apply disabled style
+          ]}
+          onPress={handleGetOtpWhatsapp}
+          disabled={!isButtonEnabled} // Disable button
+        >
           <Text style={[styles.buttonText, styles.buttonTextWhite]}>
             {t('get_otp_whatsapp')}
           </Text>
         </TouchableOpacity>
-
-        {/* Agreement Text */}
-        <View style={styles.agreementContainer}>
-          <MaterialCommunityIcons name="checkbox-marked" size={20} color="#333" />
-          <Text style={styles.agreementText}>
-            {t('agreement_text')} <Text style={styles.linkText}>{t('terms_privacy')}</Text>
-          </Text>
-        </View>
 
         {/* Skip Button */}
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
@@ -123,10 +155,12 @@ const styles = StyleSheet.create({
   button: { width: '100%', paddingVertical: 16, borderRadius: 30, alignItems: 'center', marginBottom: 15 },
   buttonBlack: { backgroundColor: '#000' },
   buttonGreen: { backgroundColor: '#25D366' },
+  buttonDisabled: { backgroundColor: '#ccc' }, // New style for disabled buttons
   buttonText: { fontSize: 16, fontWeight: 'bold' },
   buttonTextWhite: { color: '#fff' },
-  agreementContainer: { flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30, paddingHorizontal: 10 },
-  agreementText: { marginLeft: 10, color: '#555', fontSize: 12, flex: 1, lineHeight: 18 },
+  // Changed agreementContainer to use TouchableOpacity style conventions
+  agreementContainer: { flexDirection: 'row', alignItems: 'flex-start', width: '100%', marginBottom: 30, paddingHorizontal: 5 }, 
+  agreementText: { marginLeft: 10, color: '#555', fontSize: 12, flex: 1, lineHeight: 18, paddingTop: 1 }, // Added minor padding adjustment
   linkText: { color: '#000', fontWeight: 'bold' },
   skipButton: { padding: 10 },
   skipText: { color: '#777', fontSize: 14, fontWeight: 'bold' },
