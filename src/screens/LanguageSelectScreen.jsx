@@ -4,7 +4,7 @@ import i18n from "../i18n/i18n";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
 
-export default function LanguageSelectScreen({ navigation }) {
+export default function LanguageSelectScreen({ navigation, onComplete }) {
   const { t } = useTranslation();
 
   const languages = [
@@ -17,8 +17,9 @@ export default function LanguageSelectScreen({ navigation }) {
     i18n.changeLanguage(lang);
     await AsyncStorage.setItem("appLanguage", lang);
 
-    // Optional navigation if needed
-    // navigation.navigate("Home");
+    if (onComplete) {
+      onComplete(lang);
+    }
   };
 
   return (

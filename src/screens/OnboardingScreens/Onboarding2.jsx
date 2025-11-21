@@ -8,6 +8,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PaginationDots from '../../components/PaginationDots';
 
 import illustration from '../../assets/onboarding2.png'; 
 
@@ -40,11 +41,7 @@ export default function Onboarding2({ navigation }) {
           Choose your model: bid credits or commission-based payments. No confusion just clarity
         </Text>
 
-        <View style={styles.paginationContainer}>
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={[styles.dot, styles.activeDot]} />
-        </View>
+          <PaginationDots currentIndex={1} />
       </View>
 
       <View style={styles.buttonWrapper}>
@@ -112,18 +109,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 20,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#D0D5DD',
-    marginHorizontal: 4,
-  },
-  activeDot: {
-    backgroundColor: '#4C7AFE',
-    width: 20,
-    borderRadius: 4, 
   },
   buttonWrapper: {
     paddingHorizontal: 30,

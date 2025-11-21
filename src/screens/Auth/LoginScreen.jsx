@@ -108,10 +108,8 @@ export default function LoginScreen({ navigation }) {
           style={[
             styles.button, 
             styles.buttonBlack, 
-            !isButtonEnabled && styles.buttonDisabled // Apply disabled style
           ]}
           onPress={handleGetOtpText}
-          disabled={!isButtonEnabled} // Disable button
         >
           <Text style={[styles.buttonText, styles.buttonTextWhite]}>
             {t('get_otp_text')}
@@ -122,10 +120,8 @@ export default function LoginScreen({ navigation }) {
           style={[
             styles.button, 
             styles.buttonGreen,
-            !isButtonEnabled && styles.buttonDisabled // Apply disabled style
           ]}
           onPress={handleGetOtpWhatsapp}
-          disabled={!isButtonEnabled} // Disable button
         >
           <Text style={[styles.buttonText, styles.buttonTextWhite]}>
             {t('get_otp_whatsapp')}
@@ -155,7 +151,6 @@ const styles = StyleSheet.create({
   button: { width: '100%', paddingVertical: 16, borderRadius: 30, alignItems: 'center', marginBottom: 15 },
   buttonBlack: { backgroundColor: '#000' },
   buttonGreen: { backgroundColor: '#25D366' },
-  buttonDisabled: { backgroundColor: '#ccc' }, // New style for disabled buttons
   buttonText: { fontSize: 16, fontWeight: 'bold' },
   buttonTextWhite: { color: '#fff' },
   // Changed agreementContainer to use TouchableOpacity style conventions

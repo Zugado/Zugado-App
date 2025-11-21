@@ -3,8 +3,11 @@ import React from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../redux/slices/authSlice';
 
 const JobCard = () => {
+  const dispatch = useDispatch();
   return (
     <TouchableOpacity style={styles.cardContainer}>
       {/* Image */}
@@ -48,10 +51,14 @@ const JobCard = () => {
 
         {/* Buttons */}
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.bidButton}>
+          <TouchableOpacity style={styles.bidButton}
+           onPress={() => dispatch(logout())}
+          >
             <Text style={styles.bidButtonText}>Bid</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.chatButton}>
+          <TouchableOpacity style={styles.chatButton}
+          onPress={() => dispatch(logout())}
+          >
             <Text style={styles.chatButtonText}>Chat</Text>
           </TouchableOpacity>
         </View>

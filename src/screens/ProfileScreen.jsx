@@ -44,6 +44,8 @@ export default function ProfileScreen({ navigation }) {
   // console.log(user); // Console log removed for cleaner output
   const [selectedRole, setSelectedRole] = useState('provider');
 
+  console.log("ProfileScreen Render:", { user, isGuest });
+
   // Guest alert handler
   const guestAction = () => {
     Alert.alert(

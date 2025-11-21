@@ -9,10 +9,11 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PaginationDots from '../../components/PaginationDots';
 
 import illustration from '../../assets/onboarding1.png'; 
 
-export default function Onboarding2({ navigation }) {
+export default function Onboarding1({ navigation }) {
 
   const handleSkip = () => {
     navigation.navigate('Auth', { screen: 'Login' });
@@ -39,11 +40,7 @@ export default function Onboarding2({ navigation }) {
           Browse thousands of tasks or hire skilled professional instantly using our smart matching system
         </Text>
 
-        <View style={styles.paginationContainer}>
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={[styles.dot, styles.activeDot]} />
-        </View>
+        <PaginationDots currentIndex={0} />
       </View>
 
       <View style={styles.buttonWrapper}>
@@ -111,18 +108,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 20,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#D0D5DD',
-    marginHorizontal: 4,
-  },
-  activeDot: {
-    backgroundColor: '#4C7AFE',
-    width: 20,
-    borderRadius: 4, 
   },
   buttonWrapper: {
     paddingHorizontal: 30,
