@@ -16,9 +16,9 @@ export default function LanguageSelectScreen({ navigation }) {
   const handleLanguageChange = async (lang) => {
     i18n.changeLanguage(lang);
     await AsyncStorage.setItem("appLanguage", lang);
-    if (navigation && navigation.replace) {
-      navigation.replace("Onboarding1");
-    }
+
+    // Optional navigation if needed
+    // navigation.navigate("Home");
   };
 
   return (

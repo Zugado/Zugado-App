@@ -2,17 +2,12 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../../api/axiosInstance';
 
-// -------------------- THUNKS --------------------
-
-//send otp
-
 export const sendOtp = createAsyncThunk(
   'auth/sendOtp',
   async ({ mobileOrEmail }, { rejectWithValue }) => {
     try {
       const res = await axiosInstance.post('/auth/send-otp', { mobileOrEmail });
-      console.log('Send OTP Response:', res.data);
-      return res.data.message; // success message
+      return res.data;
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to send OTP';
       return rejectWithValue(msg);
@@ -23,11 +18,10 @@ export const sendOtp = createAsyncThunk(
 export const verifyOtp = createAsyncThunk(
   'auth/verifyOtp',
   async ({ mobileOrEmail, otp }, { rejectWithValue }) => {
-    console.log('Verifying OTP:', otp);
     try {
       const res = await axiosInstance.post('/auth/verify-otp', { mobileOrEmail, otp });
       console.log('Verify OTP Response:', res.data);
-      return res.data.message; // success message
+      return res.data; // success data (should contain user/token)
     } catch (error) {
       const msg = error.response?.data?.message || 'OTP verification failed';
       console.log('OTP Verification Error:', msg);
@@ -36,66 +30,31 @@ export const verifyOtp = createAsyncThunk(
   }
 );
 
-// Login
-export const login = createAsyncThunk(
-  'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
+export const registerUser = createAsyncThunk(
+  'auth/registerUser',
+  async (userData, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.post('/auth/login', { email, password });
-      const { token, user } = res.data;
-
-      await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('user', JSON.stringify(user));
-      await AsyncStorage.removeItem("guest");
-      return { user, token };
+      const res = await axiosInstance.post('/auth/register', userData);
+      return res.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      const msg = error.response?.data?.message || 'Registration failed';
+      console.log('Registration Error:', msg);
+      return rejectWithValue(msg);
     }
   }
 );
 
-// Auto Login
-export const loadUserFromStorage = createAsyncThunk(
-  "auth/loadUserFromStorage",
-  async (_, { rejectWithValue }) => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      const userData = await AsyncStorage.getItem("user");
-      const guest = await AsyncStorage.getItem("guest");
-
-      if (token && userData) {
-        return { token, user: JSON.parse(userData) };
-      }
-
-      if (guest === "true") {
-        return { guest: true };
-      }
-
-      return rejectWithValue("No user found");
-    } catch (error) {
-      return rejectWithValue("Failed to load user");
-    }
-  }
-);
-
-// Forgot, OTP, Reset → (unchanged)
-
-// -------------------- SLICE --------------------
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
     user: null,
-    token: null,
-    isGuest: false,
-    loading: true,
-    signUpLoading: false,
+    loading: false,
     error: null,
-    forgotPasswordMessage: null,
-    otpVerified: false,
-    resetPasswordMessage: null,
+    isGuest: false,
+    token: null,
   },
   reducers: {
-    setGuestMode: (state) => {
+    setGuestMode(state) {
       state.isGuest = true;
       state.user = null;
       state.token = null;
@@ -119,44 +78,60 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login
-      .addCase(login.pending, (state) => {
+      .addCase(sendOtp.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(login.fulfilled, (state, action) => {
+      .addCase(sendOtp.fulfilled, (state) => {
+        // We don't need to store the message here, just clear loading/error
         state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isGuest = false;
+        state.error = null;
       })
-      .addCase(login.rejected, (state, action) => {
+      .addCase(sendOtp.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-
-      // Load User / Guest
-      .addCase(loadUserFromStorage.pending, (state) => {
+      .addCase(verifyOtp.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
-      .addCase(loadUserFromStorage.fulfilled, (state, action) => {
-        state.loading = false;
+      .addCase(verifyOtp.fulfilled, (state, action) => {
+    state.loading = false;
+    state.user = action.payload.data.user;
+    state.token = action.payload.data.token;
+    state.error = null;
 
-        if (action.payload?.guest) {
-          state.isGuest = true;
-          state.user = null;
-          state.token = null;
-        } else {
-          state.user = action.payload.user;
-          state.token = action.payload.token;
-          state.isGuest = false;
-        }
-      })
-      .addCase(loadUserFromStorage.rejected, (state) => {
+    if (action.payload.data.token) {
+        AsyncStorage.setItem("token", action.payload.data.token);
+        AsyncStorage.setItem("user", JSON.stringify(action.payload.data.user));
+    }
+})
+      .addCase(verifyOtp.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+  state.loading = false;
+  state.user = action.payload.data.user;
+  state.token = action.payload.data.token;
+
+  if (action.payload.data.token) {
+    AsyncStorage.setItem('token', action.payload.data.token);
+    AsyncStorage.setItem('user', JSON.stringify(action.payload.data.user));
+  }
+
+  state.error = null;
+})
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
-  },
+  }
 });
 
-export const { logout, clearAuthState, setGuestMode } = authSlice.actions;
+export const {  logout, clearAuthState, setGuestMode } = authSlice.actions;
 export default authSlice.reducer;

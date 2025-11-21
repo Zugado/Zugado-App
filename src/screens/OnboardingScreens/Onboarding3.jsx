@@ -14,7 +14,7 @@ const backgroundImage = image;
 
 export default function Onboarding3({ navigation }) {
   const handleGetStarted = () => {
-    navigation.navigate('Onboarding4'); // Or your main app screen, e.g., 'Home'
+    navigation.navigate('Auth', { screen: 'Login' }); // Or your main app screen, e.g., 'Home'
   };
 
   return (

@@ -14,5 +14,9 @@
   "get_otp_whatsapp": "Get OTP on WhatsApp",
   "agreement_text": "By registering, you agree to our",
   "terms_privacy": "Terms & Privacy Policy",
-  "skip": "SKIP"
+  "skip": "SKIP",
+  "error": "Error",
+  "please_enter_valid_mobile": "Please enter a valid 10-digit mobile number.",
+  "please_agree_to_terms": "Please agree to the terms and privacy policy."
+  
 }

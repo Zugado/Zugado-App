@@ -1,49 +1,46 @@
-// src/navigation/RootNavigator.js
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import i18n from '../i18n/i18n';
-import { useSelector, useDispatch } from 'react-redux';
-import { loadUserFromStorage } from '../redux/slices/authSlice';
-import AppStackNavigator from './AppStackNavigator';
-import OnboardingNavigator from './OnboardingNavigator';
-import SplashScreen from '../screens/SplashScreen';
-import LanguageSelectScreen from '../screens/LanguageSelectScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import SplashScreen from '../screens/SplashScreen';
+import LanguageSelectScreen from '../screens/LanguageSelectScreen';
+import OnboardingNavigator from './OnboardingNavigator';
+import AppStackNavigator from './AppStackNavigator';
+import RegisterScreen from '../screens/Auth/RegisterScreen';
+
 export default function RootNavigator() {
-  const dispatch = useDispatch();
-  const { user, loading, isGuest } = useSelector((state) => state.auth);
+  const { user, isGuest, loading } = useSelector(state => state.auth);
   const [showSplash, setShowSplash] = useState(true);
   const [appLanguage, setAppLanguage] = useState(null);
 
-  useEffect(() => {
-    // Load user/guest from AsyncStorage
-    dispatch(loadUserFromStorage());
+setTimeout(() => console.log('Auth State in RootNavigator:', user?.isNewUser), 2000);
 
-     const loadLanguage = async () => {
+  useEffect(() => {
+    const loadLanguage = async () => {
       const lang = await AsyncStorage.getItem("appLanguage");
       if (lang) {
         i18n.changeLanguage(lang);
         setAppLanguage(lang);
       }
     };
-
     loadLanguage();
 
-    // Always show splash for 2 seconds
     const timer = setTimeout(() => setShowSplash(false), 1000);
-
     return () => clearTimeout(timer);
-  }, [dispatch]);
+  }, []);
 
-  // Show splash until auth is loaded and 3 seconds passed
-  if (loading || showSplash) return <SplashScreen />;
+  if (showSplash) return <SplashScreen />;
 
-  // Check if language is set
-  if (!appLanguage)
-  return <LanguageSelectScreen onComplete={(lang) => setAppLanguage(lang)} />;
+  if (!appLanguage) {
+    return <LanguageSelectScreen onComplete={(lang) => setAppLanguage(lang)} />;
+  }
 
+  if (isGuest) return <AppStackNavigator />;
 
-  // Navigate based on auth state
-  if (user || isGuest) return <AppStackNavigator />;
+  if (user) {
+    return user.isNewUser ? <AppStackNavigator /> : <RegisterScreen />;
+  }
+
   return <OnboardingNavigator />;
 }

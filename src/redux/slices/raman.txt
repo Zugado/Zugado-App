@@ -1,0 +1,71 @@
+
+
+// -------------------- THUNKS --------------------
+
+//send otp
+
+
+
+// Login
+export const login = createAsyncThunk(
+  'auth/login',
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.post('/auth/login', { email, password });
+      const { token, user } = res.data;
+
+      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      await AsyncStorage.removeItem("guest");
+      return { user, token };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Login failed');
+    }
+  }
+);
+
+// Auto Login
+
+// Forgot, OTP, Reset → (unchanged)
+
+// -------------------- SLICE --------------------
+const authSlice = createSlice({
+  name: 'auth',
+  initialState: {
+    user: null,
+    token: null,
+    isGuest: false,
+    loading: true,
+    signUpLoading: false,
+    error: null,
+    forgotPasswordMessage: null,
+    otpVerified: false,
+    resetPasswordMessage: null,
+  },
+  reducers: {
+    done
+  },
+  extraReducers: (builder) => {
+    builder
+      // Login
+      .addCase(login.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isGuest = false;
+      })
+      .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+    
+  },
+});
+
+export const { } = authSlice.actions;
+export default authSlice.reducer;

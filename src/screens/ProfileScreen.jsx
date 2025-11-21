@@ -42,6 +42,7 @@ const GuestFeature = ({ icon, title, desc }) => (
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const { user, isGuest } = useSelector((state) => state.auth);
+  console.log(user);
   const [selectedRole, setSelectedRole] = useState('provider');
 
   // Guest alert handler
@@ -143,7 +144,7 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.infoGrid}>
         <InfoBox iconName="phone" title="Contact" value={user?.phone || "N/A"} />
         <InfoBox iconName="briefcase" title="Job Type" value={user?.jobType || "Full-Time"} />
-        <InfoBox iconName="map-pin" title="Working Model" value={user?.location || "Remote"} />
+        <InfoBox iconName="map-pin" title="Working Model" value={user?.location?.coordinates || "Remote"} />
         <InfoBox iconName="bar-chart-2" title="Level" value="Advanced" />
       </View>
 
