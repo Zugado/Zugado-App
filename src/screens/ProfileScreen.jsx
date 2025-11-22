@@ -49,6 +49,7 @@ export default function ProfileScreen({ navigation }) {
   const { showSnackbar } = useSnackbar();
   console.log("User = ",user); // Console log removed for cleaner output
   const [selectedRole, setSelectedRole] = useState('provider');
+  const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
 
   console.log("ProfileScreen Render:", { user, isGuest });
 
@@ -182,7 +183,7 @@ export default function ProfileScreen({ navigation }) {
                 onPress={() => setSelectedRole('provider')}
                 >
                 <MaterialCommunityIcons
-                    name="account-hard-hat"
+                    name="briefcase-variant"
                     size={30}
                     style={[styles.roleIcon, selectedRole === 'provider' && styles.selectedRoleText]}
                 />
@@ -196,7 +197,7 @@ export default function ProfileScreen({ navigation }) {
                 onPress={() => setSelectedRole('seeker')}
                 >
                 <MaterialCommunityIcons
-                    name="account-tie"
+                    name="account-search"
                     size={30}
                     style={[styles.roleIcon, selectedRole === 'seeker' && styles.selectedRoleText]}
                 />
@@ -208,17 +209,35 @@ export default function ProfileScreen({ navigation }) {
 
             {/* Verification Section */}
             <View style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>Verification</Text>
-                <View style={styles.verificationItem}>
-                <Feather name="check-circle" size={20} color="green" />
-                <Text style={styles.verificationText}>Mobile Verification</Text>
-                <Text style={styles.pendingText}>Pending U2</Text>
-                </View>
-                <View style={styles.verificationItem}>
-                <Feather name="x-circle" size={20} color="red" />
-                <Text style={styles.verificationText}>ID Verification</Text>
-                <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
-                </View>
+                <TouchableOpacity 
+                  style={styles.verificationButton} 
+                  onPress={() => setIsVerificationExpanded(!isVerificationExpanded)}
+                >
+                  <MaterialCommunityIcons name="shield-check-outline" size={24} color="#000" />
+                  <Text style={styles.verificationTitle}>Verification</Text>
+                  <View style={styles.verificationRight}>
+                    <Text style={styles.verificationStatus}>Pending 1/2</Text>
+                    <Feather 
+                      name={isVerificationExpanded ? "chevron-up" : "chevron-down"} 
+                      size={16} 
+                      color="#666" 
+                    />
+                  </View>
+                </TouchableOpacity>
+                {isVerificationExpanded && (
+                  <View style={styles.verificationDetails}>
+                    <View style={styles.verificationItem}>
+                      <Feather name="check-circle" size={20} color="green" />
+                      <Text style={styles.verificationText}>Mobile Verification</Text>
+                      <Text style={styles.completedText}>Completed</Text>
+                    </View>
+                    <View style={styles.verificationItem}>
+                      <Feather name="x-circle" size={20} color="red" />
+                      <Text style={styles.verificationText}>ID Verification</Text>
+                      <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
+                    </View>
+                  </View>
+                )}
             </View>
 
             {/* Payment Details */}
@@ -487,6 +506,31 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 15,
   },
+  verificationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  verificationTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginLeft: 10,
+    flex: 1,
+  },
+  verificationRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  verificationStatus: {
+    fontSize: 14,
+    color: 'red',
+    fontWeight: '500',
+    marginRight: 8,
+  },
+  verificationDetails: {
+    marginTop: 15,
+    paddingLeft: 34,
+  },
   verificationItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -498,10 +542,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
   },
-  pendingText: {
+  completedText: {
     fontSize: 14,
-    color: 'red',
-    fontStyle: 'italic',
+    color: 'green',
+    fontWeight: '500',
   },
   clickText: {
     fontSize: 14,
