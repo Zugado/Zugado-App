@@ -2,11 +2,11 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+     <item name="android:windowBackground">@drawable/launch_background</item>
         <!-- Customize your theme here. -->
-        <!-- <item name="android:editTextBackground">@drawable/rn_edit_text_material</item> -->
-
-        <!-- Add this for black splash with logo -->
-        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>
 
 </resources>
+
+
