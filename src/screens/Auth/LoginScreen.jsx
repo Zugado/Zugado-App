@@ -14,7 +14,9 @@ import {
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { sendOtp, setGuestMode } from '../../redux/slices/authSlice';
+import { setGuestMode } from '../../store/slices/authSlice';
+import { sendOtp } from '../../store/thunks/authThunk';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
@@ -22,12 +24,13 @@ export default function LoginScreen({ navigation }) {
 
   const [mobile, setMobile] = useState('');
   const [agreed, setAgreed] = useState(false);
+  const { showSnackbar } = useSnackbar();
 
   const handleToggleAgreement = () => {
     setAgreed(!agreed);
   };
 
-  const handleGetOtp = (method) => {
+  const handleGetOtp = async (method) => {
     if (mobile.length !== 10) {
       Alert.alert(t('error'), t('please_enter_valid_mobile'));
       return;
@@ -38,15 +41,23 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-  dispatch(sendOtp({ mobileOrEmail: mobile }))
-  .unwrap()
-  .then((res) => { // <-- res is now the object { message: '...', exposedOTP: '...' }
-    console.log("EXPOSED OTP:", res.data.exposedOTP); // <-- res.data is WRONG
-    navigation.navigate('OtpVerification', { mobile, exposedOTP: res.data.exposedOTP }); // <-- res.data is WRONG
-  })
+    try {
+      const response = await dispatch(sendOtp({ mobileOrEmail: mobile, method }));
+      
+      if (sendOtp.fulfilled.match(response)) {
+        const exposedOTP = response?.payload?.data?.exposedOTP;
+        console.log("EXPOSED OTP:", exposedOTP);
+        showSnackbar(response?.payload?.message || 'OTP sent successfully', 'success');
+        navigation.navigate('OtpVerification', { mobile, exposedOTP });
+      } else {
+        showSnackbar(response?.payload?.message || 'Failed to send OTP', 'error');
+      }
+    } catch (error) {
+      showSnackbar('Failed to send OTP', 'error');
+    }
   };
 
-  const handleGetOtpText = () => handleGetOtp('text');
+  const handleGetOtpText = () => handleGetOtp('sms');
   const handleGetOtpWhatsapp = () => handleGetOtp('whatsapp');
 
   const handleSkip = () => {
@@ -153,9 +164,8 @@ const styles = StyleSheet.create({
   buttonGreen: { backgroundColor: '#25D366' },
   buttonText: { fontSize: 16, fontWeight: 'bold' },
   buttonTextWhite: { color: '#fff' },
-  // Changed agreementContainer to use TouchableOpacity style conventions
   agreementContainer: { flexDirection: 'row', alignItems: 'flex-start', width: '100%', marginBottom: 30, paddingHorizontal: 5 }, 
-  agreementText: { marginLeft: 10, color: '#555', fontSize: 12, flex: 1, lineHeight: 18, paddingTop: 1 }, // Added minor padding adjustment
+  agreementText: { marginLeft: 10, color: '#555', fontSize: 12, flex: 1, lineHeight: 18, paddingTop: 1 },
   linkText: { color: '#000', fontWeight: 'bold' },
   skipButton: { padding: 10 },
   skipText: { color: '#777', fontSize: 14, fontWeight: 'bold' },

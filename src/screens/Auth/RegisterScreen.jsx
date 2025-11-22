@@ -14,7 +14,8 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { registerUser } from '../../redux/slices/authSlice';
+import { register } from '../../store/thunks/authThunk';
+import Snackbar from '../../components/Snackbar';
 
 export default function RegisterScreen({ navigation }) {  
   const dispatch = useDispatch();
@@ -24,14 +25,14 @@ export default function RegisterScreen({ navigation }) {
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [mobile, setMobile] = useState('');
+  const [snackbar, setSnackbar] = useState({ visible: false, message: '', type: 'success' });
+
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const mobileRegex = /^[0-9]{10}$/;
+
 
   const handleRegister = async () => {
-    // Basic required fields
-    if (!firstName || !lastName || !email || !mobile) {
+    if (!firstName || !lastName || !email ) {
       Alert.alert('Error', 'Please fill all required fields.');
       return;
     }
@@ -41,22 +42,20 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
 
-    if (!mobileRegex.test(mobile.replace(/\D/g, ''))) {
-      Alert.alert('Error', 'Please enter a valid 10-digit mobile number.');
-      return;
-    }
-
-    const userData = { firstName, middleName, lastName, email, mobile };
+   
+    const userData = { firstName, middleName, lastName, email };
 
     try {
-      const resultAction = await dispatch(registerUser(userData));
-      if (registerUser.fulfilled.match(resultAction)) {
-        Alert.alert('Success', 'Registration successful!');
+      const response = await dispatch(register(userData));
+      
+      if (register.fulfilled.match(response)) {
+        console.log("User registered successful");
+        setSnackbar({ visible: true, message: response?.payload?.message || 'Registration successful!', type: 'success' });
       } else {
-        Alert.alert('Error', resultAction.payload || 'Registration failed');
+        setSnackbar({ visible: true, message: response?.payload?.message || 'Registration failed', type: 'error' });
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      setSnackbar({ visible: true, message: 'Registration failed', type: 'error' });
     }
   };
 
@@ -83,7 +82,7 @@ export default function RegisterScreen({ navigation }) {
         </View>
 
         {/* Logo & Titles */}
-        <Text style={styles.logo}>zugado</Text>
+        <Text style={styles.logo}>Zugado</Text>
         <Text style={styles.signupTitle}>Signup</Text>
         <Text style={styles.signupSubtitle}>Please Fill Your Details</Text>
 
@@ -128,13 +127,13 @@ export default function RegisterScreen({ navigation }) {
             style={styles.input}
             placeholder="example@mail.com"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={text => setEmail(text.toLowerCase())}
             placeholderTextColor="#999"
             keyboardType="email-address"
           />
         </View>
 
-        {/* Mobile */}
+        {/* Mobile 
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Mobile</Text>
           <TextInput
@@ -145,7 +144,7 @@ export default function RegisterScreen({ navigation }) {
             placeholderTextColor="#999"
             keyboardType="phone-pad"
           />
-        </View>
+        </View> */}
 
         {/* Continue Button */}
         <TouchableOpacity
@@ -162,6 +161,13 @@ export default function RegisterScreen({ navigation }) {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      
+      <Snackbar
+        visible={snackbar.visible}
+        message={snackbar.message}
+        type={snackbar.type}
+        onHide={() => setSnackbar({ ...snackbar, visible: false })}
+      />
     </SafeAreaView>
   );
 }

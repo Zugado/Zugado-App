@@ -4,7 +4,7 @@ import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch } from 'react-redux';
-import { logout } from '../../redux/slices/authSlice';
+import { logout } from '../../store/slices/authSlice';
 
 const JobCard = () => {
   const dispatch = useDispatch();
@@ -195,13 +195,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 15,
     marginHorizontal: 15,
-    // Reduced vertical margin slightly
-    marginVertical: 7, 
+    marginVertical: 7,
+    // Android shadow
     elevation: 3,
+    // iOS shadow
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   cardImage: {
     // *** KEY CHANGE: Reduced Image Height from 200 to 120-130 ***

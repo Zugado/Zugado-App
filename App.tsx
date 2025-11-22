@@ -7,25 +7,29 @@ import React from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
-import { store } from './src/redux/store';
+import { store } from './src/store/store';
 import RootNavigator from './src/navigation/RootNavigator';
 import { NavigationContainer } from '@react-navigation/native';
 import NetworkProvider from './src/components/NetworkProvider';
 import NetworkGuard from './src/components/NetworkGuard';
+import { SnackbarProvider } from './src/contexts/SnackbarContext';
+import GlobalSnackbar from './src/components/GlobalSnackbar';
 
 export default function App() {
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
-         <NetworkProvider>
-          <NetworkGuard>
-            
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-        </NetworkGuard>
-        </NetworkProvider>
-      </SafeAreaProvider>
+      <SnackbarProvider>
+        <SafeAreaProvider>
+          <NetworkProvider>
+            <NetworkGuard>
+              <NavigationContainer>
+                <RootNavigator />
+              </NavigationContainer>
+            </NetworkGuard>
+          </NetworkProvider>
+          <GlobalSnackbar />
+        </SafeAreaProvider>
+      </SnackbarProvider>
     </Provider>
   );
 }

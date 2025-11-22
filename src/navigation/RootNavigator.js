@@ -9,7 +9,7 @@ import AppStackNavigator from './AppStackNavigator';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
 
 export default function RootNavigator() {
-  const { user, isGuest, loading } = useSelector(state => state.auth);
+  const { user, isGuest, loading, isNewUser } = useSelector(state => state.auth);
   const [showSplash, setShowSplash] = useState(true);
   const [appLanguage, setAppLanguage] = useState(null);
 
@@ -35,8 +35,12 @@ export default function RootNavigator() {
 
   if (isGuest) return <AppStackNavigator />;
 
+  if (isNewUser) {
+    return  <RegisterScreen />;
+  }
+
   if (user) {
-    return user.isNewUser ? <AppStackNavigator /> : <RegisterScreen />;
+    return <AppStackNavigator /> ;
   }
 
   return <OnboardingNavigator />;

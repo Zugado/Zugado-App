@@ -15,7 +15,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { logout } from '../redux/slices/authSlice';
+import { logout } from '../store/slices/authSlice';
 
 // Reusable InfoBox component
 const InfoBox = ({ iconName, title, value }) => (
@@ -41,7 +41,7 @@ const GuestFeature = ({ icon, title, desc }) => (
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const { user, isGuest } = useSelector((state) => state.auth);
-  // console.log(user); // Console log removed for cleaner output
+  console.log("User = ",user); // Console log removed for cleaner output
   const [selectedRole, setSelectedRole] = useState('provider');
 
   console.log("ProfileScreen Render:", { user, isGuest });
@@ -54,6 +54,18 @@ export default function ProfileScreen({ navigation }) {
       [
         { text: "Cancel", style: "cancel" },
         { text: "Login", onPress: () =>  dispatch(logout()) },
+      ]
+    );
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Logout", style: "destructive", onPress: () => dispatch(logout()) },
       ]
     );
   };
@@ -128,14 +140,14 @@ export default function ProfileScreen({ navigation }) {
     // FIX: Wrap in a simple View to correctly handle the status bar background color
     <View style={{ flex: 1, backgroundColor: '#fff' }}> 
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        <ScrollView style={styles.container}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
             {/* Profile Header */}
             <View style={styles.profileHeader}>
                 <Image
                 source={require('../assets/profile.png')}
                 style={styles.profileImage}
                 />
-                <Text style={styles.profileName}>{user?.name || "User Name"}</Text>
+                <Text style={styles.profileName}>{ `${user?.firstName} ${user?.middleName} ${user?.lastName}` || "User Name"}</Text>
                 <View style={styles.subHeader}>
                 <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
                 <View style={styles.ratingContainer}>
@@ -212,6 +224,14 @@ export default function ProfileScreen({ navigation }) {
                 <TouchableOpacity style={styles.paymentButton} onPress={guestAction}>
                 <Ionicons name="card-outline" size={24} color="#000" />
                 <Text style={styles.sectionTitle}>Payment Details</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Logout Section */}
+            <View style={styles.sectionContainer}>
+                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Feather name="log-out" size={24} color="#ff4444" />
+                <Text style={styles.logoutText}>Logout</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -346,12 +366,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    // Note: The border radius styling is applied to the ScrollView, which can cause issues on some platforms.
-    // Assuming this is intended to create a visual break from a parent container.
     borderTopLeftRadius: 20, 
     borderTopRightRadius: 20,
     backgroundColor: '#fff',
     padding: 20,
+  },
+  scrollContent: {
+    paddingBottom: 100,
   },
   profileHeader: {
     marginTop: 40,
@@ -484,5 +505,20 @@ const styles = StyleSheet.create({
   paymentButton: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff5f5',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ffebee',
+  },
+  logoutText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ff4444',
+    marginLeft: 10,
   },
 });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   StatusBar,
@@ -6,18 +6,24 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Button,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Header from '../../components/Header';
 import JobCard from './JobCard';
-// We still use SafeAreaView, but in a different way
-import { SafeAreaView } from 'react-native-safe-area-context'; 
-import Snackbar from '../../components/Snackbar';
-import { useState } from 'react';
+import JobCardSkeleton from '../../components/JobCardSkeleton';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
+  const [loading, setLoading] = useState(true);
   const tags = ['Tag-1', 'Tag-2', 'Tag-3', 'Tag-4'];
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
       <StatusBar barStyle="light-content" backgroundColor="#050505ff" />
@@ -50,10 +56,21 @@ const HomeScreen = () => {
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}>
-          {/* Render multiple job cards */}
-          <JobCard />
-          <JobCard />
-          <JobCard />
+          {loading ? (
+            // Show skeleton loaders
+            <>
+              <JobCardSkeleton />
+              <JobCardSkeleton />
+              <JobCardSkeleton />
+            </>
+          ) : (
+            // Show actual job cards
+            <>
+              <JobCard />
+              <JobCard />
+              <JobCard />
+            </>
+          )}
         </ScrollView>
       </View>
 
