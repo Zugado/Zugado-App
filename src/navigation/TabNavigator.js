@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 
 import HomeScreen from '../screens/Home/HomeScreen';
-import ManageJobScreen from '../screens/Jobs/ManageJobScreen';
+import ManageJobScreen from '../screens/ManageJobScreen';
 import CreateJobScreen from '../screens/Jobs/CreateJobScreen';
 import MessageScreen from '../screens/MessageScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import TabLoadingOverlay from '../components/TabLoadingOverlay';
 
 const Tab = createBottomTabNavigator();
 
@@ -26,43 +27,57 @@ const CustomTabBarButton = ({ children, onPress }) => (
 
 export default function TabNavigator() {
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleTabPress = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  };
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: { position: 'absolute', height: 80, backgroundColor: '#fff', ...styles.shadow },
-        tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginTop: 4 },
-        tabBarIcon: ({ focused }) => {
-          const iconColor = focused ? '#111' : '#888';
-          const iconSize = 28;
-          switch (route.name) {
-            case t('Home'): return <MaterialCommunityIcons name="home-variant-outline" size={iconSize} color={iconColor} />;
-            case t('Manage Job'): return <MaterialCommunityIcons name="briefcase-outline" size={iconSize} color={iconColor} />;
-            case t('Message'): return <MaterialCommunityIcons name="chat-outline" size={iconSize} color={iconColor} />;
-            case t('Profile'): return <MaterialCommunityIcons name="account-outline" size={iconSize} color={iconColor} />;
-            default: return <MaterialCommunityIcons name="circle-outline" size={iconSize} color={iconColor} />;
-          }
-        },
-      })}
-    >
-      <Tab.Screen name={t('Home')} component={HomeScreen} />
-      <Tab.Screen name={t('Manage Job')} component={ManageJobScreen} />
-      <Tab.Screen
-        name="Add"
-        component={CreateJobScreen}
-        options={{
-          tabBarStyle: { display: 'none' },
-          tabBarButton: (props) => (
-            <CustomTabBarButton {...props}>
-              <MaterialCommunityIcons name="plus" size={34} color="#fff" />
-            </CustomTabBarButton>
-          ),
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarStyle: { position: 'absolute', height: 80, backgroundColor: '#fff', ...styles.shadow },
+          tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginTop: 4 },
+          tabBarIcon: ({ focused }) => {
+            const iconColor = focused ? '#111' : '#888';
+            const iconSize = 28;
+            switch (route.name) {
+              case t('Home'): return <MaterialCommunityIcons name="home-variant-outline" size={iconSize} color={iconColor} />;
+              case t('Manage Job'): return <MaterialCommunityIcons name="briefcase-outline" size={iconSize} color={iconColor} />;
+              case t('Message'): return <MaterialCommunityIcons name="chat-outline" size={iconSize} color={iconColor} />;
+              case t('Profile'): return <MaterialCommunityIcons name="account-outline" size={iconSize} color={iconColor} />;
+              default: return <MaterialCommunityIcons name="circle-outline" size={iconSize} color={iconColor} />;
+            }
+          },
+        })}
+        screenListeners={{
+          tabPress: handleTabPress,
         }}
-      />
-      <Tab.Screen name={t('Message')} component={MessageScreen} />
-      <Tab.Screen name={t('Profile')} component={ProfileScreen} />
-    </Tab.Navigator>
+      >
+        <Tab.Screen name={t('Home')} component={HomeScreen} />
+        <Tab.Screen name={t('Manage Job')} component={ManageJobScreen} />
+        <Tab.Screen
+          name="Add"
+          component={CreateJobScreen}
+          options={{
+            tabBarStyle: { display: 'none' },
+            tabBarButton: (props) => (
+              <CustomTabBarButton {...props}>
+                <MaterialCommunityIcons name="plus" size={34} color="#fff" />
+              </CustomTabBarButton>
+            ),
+          }}
+        />
+        <Tab.Screen name={t('Message')} component={MessageScreen} />
+        <Tab.Screen name={t('Profile')} component={ProfileScreen} />
+      </Tab.Navigator>
+      <TabLoadingOverlay visible={isLoading} />
+    </View>
   );
 }
 

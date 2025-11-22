@@ -10,40 +10,40 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function MessageScreen() {
+export default function ManageJobScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
+        <Text style={styles.headerTitle}>Manage Jobs</Text>
       </View>
 
       {/* Main Content */}
       <View style={styles.content}>
         {/* Icon */}
         <View style={styles.iconContainer}>
-          <MaterialCommunityIcons name="message-outline" size={80} color="#E0E0E0" />
-          <View style={styles.chatBubbles}>
-            <View style={styles.bubble1} />
-            <View style={styles.bubble2} />
-            <View style={styles.bubble3} />
+          <MaterialCommunityIcons name="briefcase-outline" size={80} color="#E0E0E0" />
+          <View style={styles.toolsContainer}>
+            <Feather name="settings" size={24} color="#BDBDBD" style={styles.tool1} />
+            <Feather name="edit-3" size={20} color="#BDBDBD" style={styles.tool2} />
+            <Feather name="plus" size={18} color="#BDBDBD" style={styles.tool3} />
           </View>
         </View>
 
         {/* Text Content */}
-        <Text style={styles.title}>Chat System Coming Soon</Text>
+        <Text style={styles.title}>Job Management Coming Soon</Text>
         <Text style={styles.subtitle}>
-          Connect directly with job providers and seekers through our secure messaging platform.
+          We're building powerful tools to help you create, edit, and manage your job postings with ease.
         </Text>
 
         {/* Features List */}
         <View style={styles.featuresList}>
-          <FeatureItem icon="message-circle" text="Real-time messaging" />
-          <FeatureItem icon="image" text="Share files and images" />
-          <FeatureItem icon="shield" text="Secure conversations" />
-          <FeatureItem icon="clock" text="Message history" />
+          <FeatureItem icon="plus-circle" text="Create new job postings" />
+          <FeatureItem icon="edit" text="Edit existing listings" />
+          <FeatureItem icon="users" text="Manage applications" />
+          <FeatureItem icon="bar-chart" text="Track job performance" />
         </View>
 
         {/* Action Button */}
@@ -89,37 +89,25 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 30,
   },
-  chatBubbles: {
+  toolsContainer: {
     position: 'absolute',
     width: 120,
     height: 120,
   },
-  bubble1: {
+  tool1: {
     position: 'absolute',
-    top: 15,
-    right: -5,
-    width: 20,
-    height: 12,
-    backgroundColor: '#E8F4FD',
-    borderRadius: 8,
+    top: 10,
+    right: -10,
   },
-  bubble2: {
+  tool2: {
     position: 'absolute',
-    bottom: 25,
-    left: -10,
-    width: 24,
-    height: 14,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 10,
+    bottom: 20,
+    left: -15,
   },
-  bubble3: {
+  tool3: {
     position: 'absolute',
-    top: 40,
-    left: 15,
-    width: 16,
-    height: 10,
-    backgroundColor: '#E8F4FD',
-    borderRadius: 6,
+    top: 30,
+    left: 10,
   },
   title: {
     fontSize: 28,
