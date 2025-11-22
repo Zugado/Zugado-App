@@ -16,13 +16,18 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { logout } from '../store/slices/authSlice';
+import { useSnackbar } from '../contexts/SnackbarContext';
 
 // Reusable InfoBox component
 const InfoBox = ({ iconName, title, value }) => (
   <View style={styles.infoBox}>
-    <Feather name={iconName} size={24} color="#333" style={styles.infoIcon} />
-    <Text style={styles.infoTitle}>{title}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
+    <View style={styles.infoIconContainer}>
+      <Feather name={iconName} size={20} color="#666" />
+    </View>
+    <View style={styles.infoTextContainer}>
+      <Text style={styles.infoTitle}>{title}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
   </View>
 );
 
@@ -41,6 +46,7 @@ const GuestFeature = ({ icon, title, desc }) => (
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const { user, isGuest } = useSelector((state) => state.auth);
+  const { showSnackbar } = useSnackbar();
   console.log("User = ",user); // Console log removed for cleaner output
   const [selectedRole, setSelectedRole] = useState('provider');
 
@@ -48,6 +54,10 @@ export default function ProfileScreen({ navigation }) {
 
   // Guest alert handler
   const guestAction = () => {
+    if (user) {
+      showSnackbar('This service is under development', 'warning');
+      return;
+    }
     Alert.alert(
       "Login Required",
       "You need to login to access this feature",
@@ -159,18 +169,10 @@ export default function ProfileScreen({ navigation }) {
 
             {/* Info Grid */}
             <View style={styles.infoGrid}>
-                <InfoBox iconName="phone" title="Contact" value={user?.phone || "N/A"} />
-                <InfoBox iconName="briefcase" title="Job Type" value={user?.jobType || "Full-Time"} />
-                <InfoBox
-                    iconName="map-pin"
-                    title="Location"
-                    value={
-                        Array.isArray(user?.location?.coordinates)
-                        ? user.location.coordinates.join(", ")
-                        : "Not Available"
-                    }
-                />
-                <InfoBox iconName="bar-chart-2" title="Level" value="Advanced" />
+                <InfoBox iconName="phone" title="Contact" value={user?.mobile || "98765 43210"} />
+                <InfoBox iconName="briefcase" title="Job Type" value={user?.jobType || "Full - Time"} />
+                <InfoBox iconName="briefcase" title="Working Model" value="Remote" />
+                <InfoBox iconName="trending-up" title="Level" value="Advanced" />
             </View>
 
             {/* Role Selection */}
@@ -223,7 +225,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.sectionContainer}>
                 <TouchableOpacity style={styles.paymentButton} onPress={guestAction}>
                 <Ionicons name="card-outline" size={24} color="#000" />
-                <Text style={styles.sectionTitle}>Payment Details</Text>
+                <Text style={styles.paymentText}>Payment Details</Text>
                 </TouchableOpacity>
             </View>
 
@@ -427,18 +429,22 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 15,
     marginBottom: 10,
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  infoIcon: {
-    marginBottom: 8,
+  infoIconContainer: {
+    marginRight: 12,
+  },
+  infoTextContainer: {
+    flex: 1,
   },
   infoTitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#777',
-    marginBottom: 3,
+    marginBottom: 2,
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#000',
   },
@@ -505,6 +511,12 @@ const styles = StyleSheet.create({
   paymentButton: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  paymentText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginLeft: 10,
   },
   logoutButton: {
     flexDirection: 'row',
