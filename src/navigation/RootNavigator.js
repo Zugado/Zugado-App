@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import i18n from '../i18n/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import SplashScreen from '../screens/SplashScreen';
 import LanguageSelectScreen from '../screens/LanguageSelectScreen';
 import OnboardingNavigator from './OnboardingNavigator';
@@ -10,11 +9,9 @@ import AppStackNavigator from './AppStackNavigator';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
 
 export default function RootNavigator() {
-  const { user, isGuest, loading } = useSelector(state => state.auth);
+  const { user, isGuest, loading, isNewUser } = useSelector(state => state.auth);
   const [showSplash, setShowSplash] = useState(true);
   const [appLanguage, setAppLanguage] = useState(null);
-
-setTimeout(() => console.log('Auth State in RootNavigator:', user?.isNewUser), 2000);
 
   useEffect(() => {
     const loadLanguage = async () => {
@@ -38,8 +35,12 @@ setTimeout(() => console.log('Auth State in RootNavigator:', user?.isNewUser), 2
 
   if (isGuest) return <AppStackNavigator />;
 
+  if (isNewUser) {
+    return  <RegisterScreen />;
+  }
+
   if (user) {
-    return user.isNewUser ? <AppStackNavigator /> : <RegisterScreen />;
+    return <AppStackNavigator /> ;
   }
 
   return <OnboardingNavigator />;

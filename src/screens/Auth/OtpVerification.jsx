@@ -9,13 +9,18 @@ import {
   Image,
   ScrollView,
   Keyboard,
+  Alert,
 } from 'react-native';
-import { verifyOtp } from '../../redux/slices/authSlice';
+
+import { sendOtp, verifyOtp} from '../../store/thunks/authThunk';
 import { useDispatch } from 'react-redux';
+import Snackbar from '../../components/Snackbar';
 
 export default function OtpVerification({ route, navigation }) {
   const { mobile, exposedOTP } = route.params;
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [currentExposedOTP, setCurrentExposedOTP] = useState(exposedOTP);
+  const [snackbar, setSnackbar] = useState({ visible: false, message: '', type: 'success' });
   const otpInputs = useRef([]);
 
   const dispatch = useDispatch();
@@ -41,15 +46,41 @@ export default function OtpVerification({ route, navigation }) {
     }
   };
 
-  const handleSubmit = () => {
-    Keyboard.dismiss();
-    console.log(otp);
-    dispatch(
-      verifyOtp({
-        mobileOrEmail: mobile,
-        otp: otp.join(''),
-      })
-    );
+  const handleSubmit = async () => {
+    const data = {
+      mobileOrEmail: mobile,
+      otp: otp.join(''),
+    };
+    
+    try {
+      const response = await dispatch(verifyOtp(data));
+
+      if (verifyOtp.fulfilled.match(response)) {
+        console.log("OTP Verification successful");
+        setSnackbar({ visible: true, message: response?.payload?.message || 'OTP verified successfully', type: 'success' });
+      } else {
+        setSnackbar({ visible: true, message: response?.payload?.message || 'OTP verification failed', type: 'error' });
+      }
+    } catch (error) {
+      setSnackbar({ visible: true, message: 'OTP verification failed', type: 'error' });
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      const response = await dispatch(sendOtp({ mobileOrEmail: mobile, method: 'sms' }));
+      
+      if (sendOtp.fulfilled.match(response)) {
+        const newExposedOTP = response?.payload?.data?.exposedOTP;
+        setCurrentExposedOTP(newExposedOTP);
+        setOtp(['', '', '', '', '', '']);
+        setSnackbar({ visible: true, message: 'New OTP sent successfully', type: 'success' });
+      } else {
+        setSnackbar({ visible: true, message: response?.payload?.message || 'Failed to resend OTP', type: 'error' });
+      }
+    } catch (error) {
+      setSnackbar({ visible: true, message: 'Failed to resend OTP', type: 'error' });
+    }
   };
 
   return (
@@ -70,7 +101,7 @@ export default function OtpVerification({ route, navigation }) {
           resizeMode="contain"
         />
 
-        <Text style={{color: 'green'}}>OTP is: {exposedOTP}</Text>
+        <Text style={{color: 'green'}}>OTP is: {currentExposedOTP}</Text>
 
         <View style={styles.textContainer}>
           <Text style={styles.title}>OTP Verification</Text>
@@ -100,7 +131,7 @@ export default function OtpVerification({ route, navigation }) {
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>OTP not received? </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleResendOtp}>
             <Text style={styles.resendLink}>RESEND</Text>
           </TouchableOpacity>
         </View>
@@ -112,6 +143,13 @@ export default function OtpVerification({ route, navigation }) {
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
       </View>
+      
+      <Snackbar
+        visible={snackbar.visible}
+        message={snackbar.message}
+        type={snackbar.type}
+        onHide={() => setSnackbar({ ...snackbar, visible: false })}
+      />
     </ScrollView>
   );
 }

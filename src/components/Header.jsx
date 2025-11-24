@@ -25,7 +25,7 @@ const Header = () => {
           </View>
         </View>
 
-        <Text style={styles.logo}>zugado</Text>
+        <Text style={styles.logo}>Zugado</Text>
 
         {/* --- ICONS ADDED HERE --- */}
         <View style={styles.iconsContainer}>

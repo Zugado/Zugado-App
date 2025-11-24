@@ -1,145 +1,133 @@
-// src/screens/Onboarding/Onboarding1.js
+
 import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ImageBackground,
+  Image,
   StatusBar,
-  Button,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import PaginationDots from '../../components/PaginationDots';
 
-// Replace with your own illustration for Screen 1
-import backgroundImage from '../../assets/logo.png';
+import illustration from '../../assets/onboarding1.png'; 
 
 export default function Onboarding1({ navigation }) {
+
+  const handleSkip = () => {
+    navigation.navigate('Auth', { screen: 'Login' });
+  };
+
+  const handleNext = () => {
+    navigation.navigate('Onboarding2'); 
+  };
+
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F4F7F9" />
 
-      <ImageBackground
-        source={backgroundImage}
-        resizeMode="cover"
-        style={styles.imageBackground}
-      >
-        {/* Semi-transparent overlay */}
-        <View style={styles.overlay} />
+      <View style={styles.skipContainer}>
+        <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
+      </View>
 
-        <View style={styles.contentContainer}>
-          <Button title="Change Language" onPress={() => { navigation.navigate('LanguageSelectScreen') }} />
-          {/* Title */}
-          <Text style={styles.title}>Welcome to Zugado</Text>
+      <View style={styles.contentContainer}>
+        <Image source={illustration} style={styles.illustration} resizeMode="contain" />
+        <Text style={styles.title}>Find Work. Find Help. All in One Place.</Text>
+        <Text style={styles.subtitle}>
+          Browse thousands of tasks or hire skilled professional instantly using our smart matching system
+        </Text>
 
-          {/* Subtitle */}
-          <Text style={styles.subtitle}>
-            Your ultimate app for services, products, and deliveries. Fast, reliable, and convenient.
-          </Text>
+        <PaginationDots currentIndex={0} />
+      </View>
 
-          {/* Pagination Dots */}
-          <View style={styles.paginationContainer}>
-            <View style={[styles.dot, styles.activeDot]} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-          </View>
-
-          {/* Next Button */}
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={() => navigation.navigate('Onboarding2')}
-          >
-            <Text style={styles.nextButtonText}>Next</Text>
-          </TouchableOpacity>
-
-          {/* Sign In Link */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Auth', { screen: 'Login' })}
-            style={{ marginTop: 15 }}
-          >
-            <Text style={styles.footerText}>
-              Already have an account?{' '}
-              <Text style={styles.signInLink}>Sign in</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ImageBackground>
-    </View>
+      <View style={styles.buttonWrapper}>
+        <TouchableOpacity
+          style={styles.getStartedButton}
+          onPress={handleNext}>
+          <Text style={styles.getStartedButtonText}>Next</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
-// -------------------- Styles --------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#F4F7F9',
   },
-  imageBackground: {
-    flex: 1,
-    justifyContent: 'flex-end',
+  skipContainer: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  skipButton: {
+    padding: 5,
+  },
+  skipText: {
+    fontSize: 16,
+    color: '#666666',
+    fontWeight: '500',
   },
   contentContainer: {
-    paddingHorizontal: 25,
-    paddingBottom: 50,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 30,
+    marginTop: -50,
+  },
+  illustration: {
+    width: '100%',
+    height: 250, 
+    marginBottom: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 5,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '700', 
+    color: '#333333',
     textAlign: 'center',
     marginBottom: 15,
+    lineHeight: 32,
   },
   subtitle: {
     fontSize: 16,
-    color: '#E0E0E0',
+    color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
     lineHeight: 24,
   },
   paginationContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    marginHorizontal: 5,
+  buttonWrapper: {
+    paddingHorizontal: 30,
+    paddingBottom: 30,
   },
-  activeDot: {
-    width: 20,
-    backgroundColor: '#FFA500',
-  },
-  nextButton: {
-    backgroundColor: '#156778',
-    paddingVertical: 16,
+  getStartedButton: {
+    backgroundColor: '#000000',
+    paddingVertical: 18,
     borderRadius: 30,
     alignItems: 'center',
     width: '100%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 8,
   },
-  nextButtonText: {
+  getStartedButtonText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontSize: 16,
-  },
-  footerText: {
-    color: '#E0E0E0',
-    fontSize: 15,
-  },
-  signInLink: {
-    color: '#FFA500',
-    fontWeight: 'bold',
   },
 });

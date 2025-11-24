@@ -1,7 +1,13 @@
 import React, { useEffect } from 'react';
 import { View, Image, StyleSheet, StatusBar } from 'react-native';
+import { loadUserFromStorage } from '../store/store';
 
 export default function SplashScreen() {
+  useEffect(() => {
+    StatusBar.setBarStyle('dark-content', true);
+    loadUserFromStorage();
+  }, []);
+  
   return (
     <View style={styles.container}>
       <Image 

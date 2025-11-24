@@ -1,4 +1,3 @@
-// ProfileScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -16,14 +15,19 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { logout } from '../redux/slices/authSlice';
+import { logout } from '../store/slices/authSlice';
+import { useSnackbar } from '../contexts/SnackbarContext';
 
 // Reusable InfoBox component
 const InfoBox = ({ iconName, title, value }) => (
   <View style={styles.infoBox}>
-    <Feather name={iconName} size={24} color="#333" style={styles.infoIcon} />
-    <Text style={styles.infoTitle}>{title}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
+    <View style={styles.infoIconContainer}>
+      <Feather name={iconName} size={20} color="#666" />
+    </View>
+    <View style={styles.infoTextContainer}>
+      <Text style={styles.infoTitle}>{title}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
   </View>
 );
 
@@ -42,11 +46,19 @@ const GuestFeature = ({ icon, title, desc }) => (
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const { user, isGuest } = useSelector((state) => state.auth);
-  console.log(user);
+  const { showSnackbar } = useSnackbar();
+  console.log("User = ",user); // Console log removed for cleaner output
   const [selectedRole, setSelectedRole] = useState('provider');
+  const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
+
+  console.log("ProfileScreen Render:", { user, isGuest });
 
   // Guest alert handler
   const guestAction = () => {
+    if (user) {
+      showSnackbar('This service is under development', 'warning');
+      return;
+    }
     Alert.alert(
       "Login Required",
       "You need to login to access this feature",
@@ -57,11 +69,24 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
+  // Logout handler
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Logout", style: "destructive", onPress: () => dispatch(logout()) },
+      ]
+    );
+  };
+
   // Guest UI
  if (isGuest) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#050505ff" />
+        {/* FIX: Ensure StatusBar is set for white background/dark text here */}
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         <View style={styles.guestContainer}>
           
           {/* Top Header */}
@@ -123,85 +148,115 @@ export default function ProfileScreen({ navigation }) {
 
   // Logged-in user UI
   return (
-    <ScrollView style={styles.container}>
-      {/* Profile Header */}
-      <View style={styles.profileHeader}>
-        <Image
-          source={require('../assets/profile.png')}
-          style={styles.profileImage}
-        />
-        <Text style={styles.profileName}>{user?.name || "User Name"}</Text>
-        <View style={styles.subHeader}>
-          <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
-          <View style={styles.ratingContainer}>
-            <FontAwesome name="star" size={14} color="#FF9529" />
-            <Text style={styles.ratingText}>4.5</Text>
-          </View>
-        </View>
-      </View>
+    // FIX: Wrap in a simple View to correctly handle the status bar background color
+    <View style={{ flex: 1, backgroundColor: '#fff' }}> 
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+            {/* Profile Header */}
+            <View style={styles.profileHeader}>
+                <Image
+                source={require('../assets/profile.png')}
+                style={styles.profileImage}
+                />
+                <Text style={styles.profileName}>{ `${user?.firstName} ${user?.middleName} ${user?.lastName}` || "User Name"}</Text>
+                <View style={styles.subHeader}>
+                <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
+                <View style={styles.ratingContainer}>
+                    <FontAwesome name="star" size={14} color="#FF9529" />
+                    <Text style={styles.ratingText}>4.5</Text>
+                </View>
+                </View>
+            </View>
 
-      {/* Info Grid */}
-      <View style={styles.infoGrid}>
-        <InfoBox iconName="phone" title="Contact" value={user?.phone || "N/A"} />
-        <InfoBox iconName="briefcase" title="Job Type" value={user?.jobType || "Full-Time"} />
-        <InfoBox iconName="map-pin" title="Working Model" value={user?.location?.coordinates || "Remote"} />
-        <InfoBox iconName="bar-chart-2" title="Level" value="Advanced" />
-      </View>
+            {/* Info Grid */}
+            <View style={styles.infoGrid}>
+                <InfoBox iconName="phone" title="Contact" value={user?.mobile || "98765 43210"} />
+                <InfoBox iconName="briefcase" title="Job Type" value={user?.jobType || "Full - Time"} />
+                <InfoBox iconName="briefcase" title="Working Model" value="Remote" />
+                <InfoBox iconName="trending-up" title="Level" value="Advanced" />
+            </View>
 
-      {/* Role Selection */}
-      <View style={styles.roleSelectionContainer}>
-        <TouchableOpacity
-          style={[styles.roleButton, selectedRole === 'provider' && styles.selectedRole]}
-          onPress={() => setSelectedRole('provider')}
-        >
-          <MaterialCommunityIcons
-            name="account-hard-hat"
-            size={30}
-            style={[styles.roleIcon, selectedRole === 'provider' && styles.selectedRoleText]}
-          />
-          <Text style={[styles.roleText, selectedRole === 'provider' && styles.selectedRoleText]}>
-            Job Provider
-          </Text>
-        </TouchableOpacity>
+            {/* Role Selection */}
+            <View style={styles.roleSelectionContainer}>
+                <TouchableOpacity
+                style={[styles.roleButton, selectedRole === 'provider' && styles.selectedRole]}
+                onPress={() => setSelectedRole('provider')}
+                >
+                <MaterialCommunityIcons
+                    name="briefcase-variant"
+                    size={30}
+                    style={[styles.roleIcon, selectedRole === 'provider' && styles.selectedRoleText]}
+                />
+                <Text style={[styles.roleText, selectedRole === 'provider' && styles.selectedRoleText]}>
+                    Job Provider
+                </Text>
+                </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.roleButton, selectedRole === 'seeker' && styles.selectedRole]}
-          onPress={() => setSelectedRole('seeker')}
-        >
-          <MaterialCommunityIcons
-            name="account-tie"
-            size={30}
-            style={[styles.roleIcon, selectedRole === 'seeker' && styles.selectedRoleText]}
-          />
-          <Text style={[styles.roleText, selectedRole === 'seeker' && styles.selectedRoleText]}>
-            Job Seeker
-          </Text>
-        </TouchableOpacity>
-      </View>
+                <TouchableOpacity
+                style={[styles.roleButton, selectedRole === 'seeker' && styles.selectedRole]}
+                onPress={() => setSelectedRole('seeker')}
+                >
+                <MaterialCommunityIcons
+                    name="account-search"
+                    size={30}
+                    style={[styles.roleIcon, selectedRole === 'seeker' && styles.selectedRoleText]}
+                />
+                <Text style={[styles.roleText, selectedRole === 'seeker' && styles.selectedRoleText]}>
+                    Job Seeker
+                </Text>
+                </TouchableOpacity>
+            </View>
 
-      {/* Verification Section */}
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Verification</Text>
-        <View style={styles.verificationItem}>
-          <Feather name="check-circle" size={20} color="green" />
-          <Text style={styles.verificationText}>Mobile Verification</Text>
-          <Text style={styles.pendingText}>Pending U2</Text>
-        </View>
-        <View style={styles.verificationItem}>
-          <Feather name="x-circle" size={20} color="red" />
-          <Text style={styles.verificationText}>ID Verification</Text>
-          <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
-        </View>
-      </View>
+            {/* Verification Section */}
+            <View style={styles.sectionContainer}>
+                <TouchableOpacity 
+                  style={styles.verificationButton} 
+                  onPress={() => setIsVerificationExpanded(!isVerificationExpanded)}
+                >
+                  <MaterialCommunityIcons name="shield-check-outline" size={24} color="#000" />
+                  <Text style={styles.verificationTitle}>Verification</Text>
+                  <View style={styles.verificationRight}>
+                    <Text style={styles.verificationStatus}>Pending 1/2</Text>
+                    <Feather 
+                      name={isVerificationExpanded ? "chevron-up" : "chevron-down"} 
+                      size={16} 
+                      color="#666" 
+                    />
+                  </View>
+                </TouchableOpacity>
+                {isVerificationExpanded && (
+                  <View style={styles.verificationDetails}>
+                    <View style={styles.verificationItem}>
+                      <Feather name="check-circle" size={20} color="green" />
+                      <Text style={styles.verificationText}>Mobile Verification</Text>
+                      <Text style={styles.completedText}>Completed</Text>
+                    </View>
+                    <View style={styles.verificationItem}>
+                      <Feather name="x-circle" size={20} color="red" />
+                      <Text style={styles.verificationText}>ID Verification</Text>
+                      <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
+                    </View>
+                  </View>
+                )}
+            </View>
 
-      {/* Payment Details */}
-      <View style={styles.sectionContainer}>
-        <TouchableOpacity style={styles.paymentButton} onPress={guestAction}>
-          <Ionicons name="card-outline" size={24} color="#000" />
-          <Text style={styles.sectionTitle}>Payment Details</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+            {/* Payment Details */}
+            <View style={styles.sectionContainer}>
+                <TouchableOpacity style={styles.paymentButton} onPress={guestAction}>
+                <Ionicons name="card-outline" size={24} color="#000" />
+                <Text style={styles.paymentText}>Payment Details</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Logout Section */}
+            <View style={styles.sectionContainer}>
+                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Feather name="log-out" size={24} color="#ff4444" />
+                <Text style={styles.logoutText}>Logout</Text>
+                </TouchableOpacity>
+            </View>
+        </ScrollView>
+    </View>
   );
 }
 
@@ -209,7 +264,7 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#000000ff',
   },
   // Header
   topNav: {
@@ -332,10 +387,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    borderTopLeftRadius: 20,
+    borderTopLeftRadius: 20, 
     borderTopRightRadius: 20,
     backgroundColor: '#fff',
     padding: 20,
+  },
+  scrollContent: {
+    paddingBottom: 100,
   },
   profileHeader: {
     marginTop: 40,
@@ -390,18 +448,22 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 15,
     marginBottom: 10,
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  infoIcon: {
-    marginBottom: 8,
+  infoIconContainer: {
+    marginRight: 12,
+  },
+  infoTextContainer: {
+    flex: 1,
   },
   infoTitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#777',
-    marginBottom: 3,
+    marginBottom: 2,
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#000',
   },
@@ -444,6 +506,31 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 15,
   },
+  verificationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  verificationTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginLeft: 10,
+    flex: 1,
+  },
+  verificationRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  verificationStatus: {
+    fontSize: 14,
+    color: 'red',
+    fontWeight: '500',
+    marginRight: 8,
+  },
+  verificationDetails: {
+    marginTop: 15,
+    paddingLeft: 34,
+  },
   verificationItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -455,10 +542,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     flex: 1,
   },
-  pendingText: {
+  completedText: {
     fontSize: 14,
-    color: 'red',
-    fontStyle: 'italic',
+    color: 'green',
+    fontWeight: '500',
   },
   clickText: {
     fontSize: 14,
@@ -469,40 +556,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-
-  // Guest UI styles
-  guestContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  guestAvatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 15,
-  },
-  guestTitle: {
-    fontSize: 22,
+  paymentText: {
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5,
+    color: '#000',
+    marginLeft: 10,
   },
-  guestSubtitle: {
-    fontSize: 15,
-    color: "#777",
-    marginBottom: 20,
-    textAlign: 'center',
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff5f5',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ffebee',
   },
-  guestBtn: {
-    backgroundColor: "#111",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  guestBtnText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+  logoutText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ff4444',
+    marginLeft: 10,
   },
 });

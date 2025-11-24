@@ -1,137 +1,128 @@
-// src/screens/Onboarding/Onboarding3.js
 import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ImageBackground,
+  Image,
   StatusBar,
 } from 'react-native';
-import image from '../../assets/logo.png';
-
-const backgroundImage = image;
+import { SafeAreaView } from 'react-native-safe-area-context';
+import PaginationDots from '../../components/PaginationDots';
+import illustration from '../../assets/onboarding3.png'; 
 
 export default function Onboarding3({ navigation }) {
-  const handleGetStarted = () => {
-    navigation.navigate('Auth', { screen: 'Login' }); // Or your main app screen, e.g., 'Home'
+  const handleNavigation = () => {
+    navigation.navigate('Auth', { screen: 'Login' }); 
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <ImageBackground
-        source={backgroundImage}
-        resizeMode="cover"
-        style={styles.imageBackground}>
-        {/* Semi-transparent overlay */}
-        <View style={styles.overlay} />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F4F7F9" />
 
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>Discover Zugado</Text>
-          <Text style={styles.subtitle}>
-            Explore the best services, deals, and experiences all in one place with Zugado.
-          </Text>
+      <View style={styles.skipContainer}>
+        <TouchableOpacity onPress={handleNavigation} style={styles.skipButton}>
+          <Text style={styles.skipText}>Skip</Text>
+        </TouchableOpacity>
+      </View>
 
-          {/* Pagination Dots */}
-          <View style={styles.paginationContainer}>
-            <View style={styles.dot} />
-            <View style={styles.dot} />
-            <View style={[styles.dot, styles.activeDot]} />
-          </View>
+      <View style={styles.contentContainer}>
+        <Image source={illustration} style={styles.illustration} resizeMode="contain" />
 
-          {/* Get Started Button */}
-          <TouchableOpacity
-            style={styles.getStartedButton}
-            onPress={handleGetStarted}>
-            <Text style={styles.getStartedButtonText}>Get Started</Text>
-          </TouchableOpacity>
+        <Text style={styles.title}>Stay Connected. Finish Tasks Faster.</Text>
+        
+        <Text style={styles.subtitle}>
+          Limited chat before acceptance, full chat after. manage tasks easily and track updates.
+        </Text>
 
-          {/* Sign In Link */}
-          <TouchableOpacity onPress={() => navigation.navigate('Auth', { screen: 'Login' })}>
-            <Text style={styles.footerText}>
-              Already have an account?{' '}
-              <Text style={styles.signInLink}>Sign in</Text>
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ImageBackground>
-    </View>
+          <PaginationDots currentIndex={2} />
+      </View>
+
+      <View style={styles.buttonWrapper}>
+        <TouchableOpacity
+          style={styles.getStartedButton}
+          onPress={handleNavigation}>
+          <Text style={styles.getStartedButtonText}>Get Started</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#F4F7F9',
   },
-  imageBackground: {
-    flex: 1,
-    justifyContent: 'flex-end',
+  skipContainer: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  skipButton: {
+    padding: 5,
+  },
+  skipText: {
+    fontSize: 16,
+    color: '#666666',
+    fontWeight: '500',
   },
   contentContainer: {
-    paddingHorizontal: 25,
-    paddingBottom: 40,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 30,
+    marginTop: -50,
+  },
+  illustration: {
+    width: '100%',
+    height: 250, 
+    marginBottom: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 5,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '700', 
+    color: '#333333',
     textAlign: 'center',
     marginBottom: 15,
+    lineHeight: 32,
   },
   subtitle: {
     fontSize: 16,
-    color: '#E0E0E0',
+    color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
     lineHeight: 24,
   },
   paginationContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    marginHorizontal: 5,
-  },
-  activeDot: {
-    backgroundColor: '#FFA500',
-    width: 20,
+  buttonWrapper: {
+    paddingHorizontal: 30,
+    paddingBottom: 30,
   },
   getStartedButton: {
-    backgroundColor: '#156778',
+    backgroundColor: '#000000',
     paddingVertical: 18,
     borderRadius: 30,
     alignItems: 'center',
     width: '100%',
-    marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 8,
   },
   getStartedButtonText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontSize: 16,
-  },
-  footerText: {
-    color: '#E0E0E0',
-    fontSize: 15,
-  },
-  signInLink: {
-    color: '#FFA500',
-    fontWeight: 'bold',
   },
 });

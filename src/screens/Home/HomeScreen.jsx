@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   StatusBar,
@@ -6,26 +6,27 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Button,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Header from '../../components/Header';
 import JobCard from './JobCard';
-// We still use SafeAreaView, but in a different way
-import { SafeAreaView } from 'react-native-safe-area-context'; 
-import Snackbar from '../../components/Snackbar';
-import { useState } from 'react';
+import JobCardSkeleton from '../../components/JobCardSkeleton';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
+  const [loading, setLoading] = useState(true);
   const tags = ['Tag-1', 'Tag-2', 'Tag-3', 'Tag-4'];
-  return (
-    // 1. This OUTER SafeAreaView sets the status bar background color
-    <SafeAreaView style={styles.safeAreaBlack}>
-      
-      {/* 2. This configures the text/icons to be WHITE */}
-      <StatusBar barStyle="light-content" backgroundColor="#050505ff" />
 
-      {/* 3. This View contains your ACTUAL app content */}
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
+  return (
+    <SafeAreaView style={styles.safeAreaBlack}>
+      <StatusBar barStyle="light-content" backgroundColor="#050505ff" />
       <View style={styles.appContainer}>
         <Header />
 
@@ -55,10 +56,21 @@ const HomeScreen = () => {
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}>
-          {/* Render multiple job cards */}
-          <JobCard />
-          <JobCard />
-          <JobCard />
+          {loading ? (
+            // Show skeleton loaders
+            <>
+              <JobCardSkeleton />
+              <JobCardSkeleton />
+              <JobCardSkeleton />
+            </>
+          ) : (
+            // Show actual job cards
+            <>
+              <JobCard />
+              <JobCard />
+              <JobCard />
+            </>
+          )}
         </ScrollView>
       </View>
 
@@ -67,21 +79,19 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  // NEW STYLE for the outer wrapper
   safeAreaBlack: {
     flex: 1,
-    backgroundColor: '#000000', // This makes the status bar area black on iOS
+    backgroundColor: '#000000',
   },
-  // RENAMED from 'safeArea' to 'appContainer'
   appContainer: {
     flex: 1,
-    backgroundColor: '#f4f4f4', // This is your app's light gray background
+    backgroundColor: '#f4f4f4',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80, // Ensure content isn't hidden by the FAB
+    paddingBottom: 80,
   },
 
   tagRow: {

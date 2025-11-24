@@ -11,7 +11,7 @@ export default function Snackbar({
   onHide,
   duration = 2000,
 }) {
-  const slideAnim = useRef(new Animated.Value(100)).current;
+const slideAnim = useRef(new Animated.Value(100)).current;
 
   const getStyle = () => {
     switch (type) {
