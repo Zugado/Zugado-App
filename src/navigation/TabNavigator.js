@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 
 import HomeScreen from '../screens/Home/HomeScreen';
@@ -25,15 +24,54 @@ const CustomTabBarButton = ({ children, onPress }) => (
   </TouchableOpacity>
 );
 
+// Import your PNGs
+const icons = {
+  home: {
+    active: require('../assets/Icons/HomeFill.png'),
+    inactive: require('../assets/Icons/Home.png'),
+  },
+  manageJob: {
+    active: require('../assets/Icons/ManageJobBlack.png'),
+    inactive: require('../assets/Icons/ManageJob.png'),
+  },
+  message: {
+    active: require('../assets/Icons/MessageBlack.png'),
+    inactive: require('../assets/Icons/Message.png'),
+  },
+  profile: {
+    active: require('../assets/Icons/ProfileBlack.png'),
+    inactive: require('../assets/Icons/Profile.png'),
+  },
+};
+
 export default function TabNavigator() {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleTabPress = () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    setTimeout(() => setIsLoading(false), 1000);
+  };
+
+  const renderTabIcon = (routeName, focused) => {
+    let icon;
+    switch (routeName) {
+      case t('Home'):
+        icon = focused ? icons.home.active : icons.home.inactive;
+        break;
+      case t('Manage Job'):
+        icon = focused ? icons.manageJob.active : icons.manageJob.inactive;
+        break;
+      case t('Message'):
+        icon = focused ? icons.message.active : icons.message.inactive;
+        break;
+      case t('Profile'):
+        icon = focused ? icons.profile.active : icons.profile.inactive;
+        break;
+      default:
+        icon = icons.home.inactive;
+    }
+    return <Image source={icon} style={{ width: 28, height: 28, resizeMode: 'contain' }} />;
   };
 
   return (
@@ -43,21 +81,9 @@ export default function TabNavigator() {
           headerShown: false,
           tabBarStyle: { position: 'absolute', height: 80, backgroundColor: '#fff', ...styles.shadow },
           tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginTop: 4 },
-          tabBarIcon: ({ focused }) => {
-            const iconColor = focused ? '#111' : '#888';
-            const iconSize = 28;
-            switch (route.name) {
-              case t('Home'): return <MaterialCommunityIcons name="home-variant-outline" size={iconSize} color={iconColor} />;
-              case t('Manage Job'): return <MaterialCommunityIcons name="briefcase-outline" size={iconSize} color={iconColor} />;
-              case t('Message'): return <MaterialCommunityIcons name="chat-outline" size={iconSize} color={iconColor} />;
-              case t('Profile'): return <MaterialCommunityIcons name="account-outline" size={iconSize} color={iconColor} />;
-              default: return <MaterialCommunityIcons name="circle-outline" size={iconSize} color={iconColor} />;
-            }
-          },
+          tabBarIcon: ({ focused }) => renderTabIcon(route.name, focused),
         })}
-        screenListeners={{
-          tabPress: handleTabPress,
-        }}
+        screenListeners={{ tabPress: handleTabPress }}
       >
         <Tab.Screen name={t('Home')} component={HomeScreen} />
         <Tab.Screen name={t('Manage Job')} component={ManageJobScreen} />
@@ -68,7 +94,7 @@ export default function TabNavigator() {
             tabBarStyle: { display: 'none' },
             tabBarButton: (props) => (
               <CustomTabBarButton {...props}>
-                <MaterialCommunityIcons name="plus" size={34} color="#fff" />
+                <Image source={require('../assets/Icons/PlusHome.png')} style={{ width: 34, height: 34 }} />
               </CustomTabBarButton>
             ),
           }}

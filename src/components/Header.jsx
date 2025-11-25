@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  Image,
   // ScrollView is not used, you can remove it
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -25,7 +26,7 @@ const Header = ({ showSearch = true }) => {
           </View>
         </View>
 
-        <Text style={styles.logo}>Zugado</Text>
+        <Image source={require('../assets/Icons/LogoSplash.png')} style={styles.logo} />
 
         {/* --- ICONS ADDED HERE --- */}
         <View style={styles.iconsContainer}>
@@ -98,10 +99,9 @@ const styles = StyleSheet.create({
   },
   logo: {
     flex: 1, // Takes up 1/3 of the space
-    textAlign: 'center',
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
+    resizeMode: 'contain',
+    height: 30,
+    marginTop: 6,
   },
 
   // --- NEW STYLES FOR ICONS ---
