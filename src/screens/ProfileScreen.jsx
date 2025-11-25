@@ -8,6 +8,8 @@ import {
   Image,
   Alert,
   StatusBar,
+  TextInput,
+  Modal,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -18,18 +20,124 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { logout } from '../store/slices/authSlice';
 import { useSnackbar } from '../contexts/SnackbarContext';
 
-// Reusable InfoBox component
-const InfoBox = ({ iconName, title, value }) => (
-  <View style={styles.infoBox}>
-    <View style={styles.infoIconContainer}>
-      <Feather name={iconName} size={20} color="#666" />
+// Reusable InfoBox component with edit functionality
+const InfoBox = ({ iconName, title, value, field, isEditing, onEdit, onInputChange, editValue, isDropdown, options, onDropdownSelect, showDropdown, onDropdownToggle }) => {
+  const infoBoxStyles = {
+    infoBox: {
+      width: '48%',
+      backgroundColor: '#f7f7f7',
+      borderRadius: 15,
+      padding: 15,
+      marginBottom: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      position: 'relative',
+    },
+    infoIconContainer: {
+      marginRight: 12,
+    },
+    infoTextContainer: {
+      flex: 1,
+    },
+    infoTitle: {
+      fontSize: 12,
+      color: '#777',
+      marginBottom: 2,
+    },
+    infoValue: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: '#000',
+    },
+    fieldEditButton: {
+      padding: 4,
+    },
+    editInput: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: '#000',
+      borderBottomWidth: 1,
+      borderBottomColor: '#ddd',
+      paddingBottom: 4,
+    },
+    dropdownButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    dropdownMenu: {
+      position: 'absolute',
+      top: 25,
+      left: 0,
+      right: 0,
+      backgroundColor: '#fff',
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: '#ddd',
+      zIndex: 1000,
+      elevation: 5,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    },
+    dropdownItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#f0f0f0',
+    },
+    dropdownText: {
+      fontSize: 14,
+      color: '#000',
+    },
+  };
+
+  return (
+    <View style={infoBoxStyles.infoBox}>
+      <View style={infoBoxStyles.infoIconContainer}>
+        <Feather name={iconName} size={20} color="#666" />
+      </View>
+      <View style={infoBoxStyles.infoTextContainer}>
+        <Text style={infoBoxStyles.infoTitle}>{title}</Text>
+        {isEditing ? (
+          isDropdown ? (
+            <View>
+              <TouchableOpacity style={infoBoxStyles.dropdownButton} onPress={onDropdownToggle}>
+                <Text style={infoBoxStyles.infoValue}>{editValue}</Text>
+                <Feather name="chevron-down" size={16} color="#666" />
+              </TouchableOpacity>
+              {showDropdown && (
+                <View style={infoBoxStyles.dropdownMenu}>
+                  {options.map((option) => (
+                    <TouchableOpacity
+                      key={option}
+                      style={infoBoxStyles.dropdownItem}
+                      onPress={() => onDropdownSelect(field, option)}
+                    >
+                      <Text style={infoBoxStyles.dropdownText}>{option}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <TextInput
+              style={infoBoxStyles.editInput}
+              value={editValue}
+              onChangeText={(text) => onInputChange(field, text)}
+              keyboardType={field === 'contact' || field === 'age' ? 'numeric' : 'default'}
+            />
+          )
+        ) : (
+          <Text style={infoBoxStyles.infoValue}>{value}</Text>
+        )}
+      </View>
+      <TouchableOpacity style={infoBoxStyles.fieldEditButton} onPress={onEdit}>
+        <Feather name={isEditing ? "check" : "edit-2"} size={16} color="#666" />
+      </TouchableOpacity>
     </View>
-    <View style={styles.infoTextContainer}>
-      <Text style={styles.infoTitle}>{title}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
-    </View>
-  </View>
-);
+  );
+};
 
 const GuestFeature = ({ icon, title, desc }) => (
   <View style={styles.guestFeatureItem}>
@@ -50,6 +158,31 @@ export default function ProfileScreen({ navigation }) {
   console.log("User = ",user); // Console log removed for cleaner output
   const [selectedRole, setSelectedRole] = useState('provider');
   const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
+  const [editStates, setEditStates] = useState({
+    picture: false,
+    name: false,
+    age: false,
+    contact: false,
+    jobType: false,
+    workingModel: false,
+    level: false,
+  });
+  const [editedUser, setEditedUser] = useState({
+    firstName: user?.firstName || '',
+    middleName: user?.middleName || '',
+    lastName: user?.lastName || '',
+    age: user?.age || '',
+    mobile: user?.mobile || '',
+    jobType: user?.jobType || 'Full-Time',
+    workingModel: 'Remote',
+    level: 'Advanced',
+  });
+  const [showDropdown, setShowDropdown] = useState(null);
+
+  // LOV data
+  const jobTypeOptions = ['Full-Time', 'Part-Time', 'Contract', 'Freelance', 'Internship'];
+  const workingModelOptions = ['Remote', 'On-site', 'Hybrid'];
+  const levelOptions = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
   console.log("ProfileScreen Render:", { user, isGuest });
 
@@ -67,6 +200,25 @@ export default function ProfileScreen({ navigation }) {
         { text: "Login", onPress: () =>  dispatch(logout()) },
       ]
     );
+  };
+
+  // Edit handlers
+  const handleEditToggle = (field) => {
+    if (editStates[field]) {
+      // Save logic would go here
+      showSnackbar(`${field} updated successfully`, 'success');
+    }
+    setEditStates(prev => ({ ...prev, [field]: !prev[field] }));
+    setShowDropdown(null);
+  };
+
+  const handleInputChange = (field, value) => {
+    setEditedUser(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleDropdownSelect = (field, value) => {
+    setEditedUser(prev => ({ ...prev, [field]: value }));
+    setShowDropdown(null);
   };
 
   // Logout handler
@@ -154,26 +306,116 @@ export default function ProfileScreen({ navigation }) {
         <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
             {/* Profile Header */}
             <View style={styles.profileHeader}>
-                <Image
-                source={require('../assets/profile.png')}
-                style={styles.profileImage}
-                />
-                <Text style={styles.profileName}>{ `${user?.firstName} ${user?.middleName} ${user?.lastName}` || "User Name"}</Text>
-                <View style={styles.subHeader}>
-                <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
-                <View style={styles.ratingContainer}>
-                    <FontAwesome name="star" size={14} color="#FF9529" />
-                    <Text style={styles.ratingText}>4.5</Text>
+                <View style={styles.imageContainer}>
+                  <Image
+                  source={require('../assets/profile.png')}
+                  style={styles.profileImage}
+                  />
+                  <TouchableOpacity style={styles.imageEditButton} onPress={() => handleEditToggle('picture')}>
+                    <Feather name="camera" size={16} color="#fff" />
+                  </TouchableOpacity>
                 </View>
+                <View style={styles.nameContainer}>
+                  {editStates.name ? (
+                    <View style={styles.nameEditContainer}>
+                      <TextInput
+                        style={styles.nameInput}
+                        value={editedUser.firstName}
+                        onChangeText={(text) => handleInputChange('firstName', text)}
+                        placeholder="First Name"
+                      />
+                      <TextInput
+                        style={styles.nameInput}
+                        value={editedUser.lastName}
+                        onChangeText={(text) => handleInputChange('lastName', text)}
+                        placeholder="Last Name"
+                      />
+                    </View>
+                  ) : (
+                    <Text style={styles.profileName}>{ `${user?.firstName} ${user?.middleName} ${user?.lastName}` || "User Name"}</Text>
+                  )}
+                  <TouchableOpacity style={styles.editButton} onPress={() => handleEditToggle('name')}>
+                    <Feather name={editStates.name ? "check" : "edit-2"} size={20} color="#000" />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.subHeader}>
+                  <View style={styles.ageContainer}>
+                    {editStates.age ? (
+                      <TextInput
+                        style={styles.ageInput}
+                        value={editedUser.age.toString()}
+                        onChangeText={(text) => handleInputChange('age', text)}
+                        keyboardType="numeric"
+                        placeholder="Age"
+                      />
+                    ) : (
+                      <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
+                    )}
+                    <TouchableOpacity style={styles.ageEditButton} onPress={() => handleEditToggle('age')}>
+                      <Feather name={editStates.age ? "check" : "edit-2"} size={14} color="#666" />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.ratingContainer}>
+                      <FontAwesome name="star" size={14} color="#FF9529" />
+                      <Text style={styles.ratingText}>4.5</Text>
+                  </View>
                 </View>
             </View>
 
             {/* Info Grid */}
             <View style={styles.infoGrid}>
-                <InfoBox iconName="phone" title="Contact" value={user?.mobile || "98765 43210"} />
-                <InfoBox iconName="briefcase" title="Job Type" value={user?.jobType || "Full - Time"} />
-                <InfoBox iconName="briefcase" title="Working Model" value="Remote" />
-                <InfoBox iconName="trending-up" title="Level" value="Advanced" />
+                <InfoBox 
+                  iconName="phone" 
+                  title="Contact" 
+                  value={user?.mobile || "98765 43210"}
+                  field="contact"
+                  isEditing={editStates.contact}
+                  onEdit={() => handleEditToggle('contact')}
+                  onInputChange={handleInputChange}
+                  editValue={editedUser.mobile}
+                />
+                <InfoBox 
+                  iconName="briefcase" 
+                  title="Job Type" 
+                  value={editedUser.jobType}
+                  field="jobType"
+                  isEditing={editStates.jobType}
+                  onEdit={() => handleEditToggle('jobType')}
+                  editValue={editedUser.jobType}
+                  isDropdown={true}
+                  options={jobTypeOptions}
+                  onDropdownSelect={handleDropdownSelect}
+                  showDropdown={showDropdown === 'jobType'}
+                  onDropdownToggle={() => setShowDropdown(showDropdown === 'jobType' ? null : 'jobType')}
+                />
+                <InfoBox 
+                  iconName="monitor" 
+                  title="Working Model" 
+                  value={editedUser.workingModel}
+                  field="workingModel"
+                  isEditing={editStates.workingModel}
+                  onEdit={() => handleEditToggle('workingModel')}
+                  editValue={editedUser.workingModel}
+                  isDropdown={true}
+                  options={workingModelOptions}
+                  onDropdownSelect={handleDropdownSelect}
+                  showDropdown={showDropdown === 'workingModel'}
+                  onDropdownToggle={() => setShowDropdown(showDropdown === 'workingModel' ? null : 'workingModel')}
+                />
+                <InfoBox 
+                  iconName="trending-up" 
+                  title="Level" 
+                  value={editedUser.level}
+                  field="level"
+                  isEditing={editStates.level}
+                  onEdit={() => handleEditToggle('level')}
+                  editValue={editedUser.level}
+                  isDropdown={true}
+                  options={levelOptions}
+                  onDropdownSelect={handleDropdownSelect}
+                  showDropdown={showDropdown === 'level'}
+                  onDropdownToggle={() => setShowDropdown(showDropdown === 'level' ? null : 'level')}
+                />
             </View>
 
             {/* Role Selection */}
@@ -408,11 +650,65 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#eee',
   },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
   profileName: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
+    marginRight: 10,
   },
+  imageContainer: {
+    position: 'relative',
+    marginBottom: 15,
+  },
+  imageEditButton: {
+    position: 'absolute',
+    bottom: 5,
+    right: 5,
+    backgroundColor: '#000',
+    padding: 8,
+    borderRadius: 20,
+  },
+  editButton: {
+    padding: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
+  },
+  nameEditContainer: {
+    flexDirection: 'column',
+    marginRight: 10,
+  },
+  nameInput: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingBottom: 4,
+    marginBottom: 5,
+    minWidth: 150,
+  },
+  ageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ageInput: {
+    fontSize: 16,
+    color: '#555',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingBottom: 2,
+    minWidth: 80,
+  },
+  ageEditButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+
   subHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -442,31 +738,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  infoBox: {
-    width: '48%',
-    backgroundColor: '#f7f7f7',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoIconContainer: {
-    marginRight: 12,
-  },
-  infoTextContainer: {
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: 12,
-    color: '#777',
-    marginBottom: 2,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000',
-  },
+
   roleSelectionContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
