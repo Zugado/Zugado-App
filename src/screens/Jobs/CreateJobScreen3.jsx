@@ -7,37 +7,38 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
-
-// Mock data for uploaded files
-const mockMediaFiles = [
-  { id: 1, type: 'image', description: 'Office image' },
-  { id: 2, type: 'video', description: 'Meeting video' },
-  { id: 3, type: 'image', description: 'Working on laptop' },
-];
+import MediaPicker from '../../components/MediaPicker';
 
 export default function CreateJobPageThree({ navigation, route }) {
   const { jobData } = route.params;
-  const [mediaFiles, setMediaFiles] = useState(mockMediaFiles);
+  const [mediaFiles, setMediaFiles] = useState([]);
+
+  console.log('Job Data from Previous Screens:', jobData);
 
   const handleRemoveMedia = (id) => {
-    setMediaFiles(prevFiles => prevFiles.filter(file => file.id !== id));
+    setMediaFiles(prev => prev.filter(file => file.id !== id));
   };
 
   const MediaThumbnail = ({ file }) => (
     <View style={styles.thumbnailContainer}>
-      <View style={styles.thumbnailPlaceholder}>
-        {/* Placeholder for the image/video */}
-        {/* Replace this View with an <Image> component using the actual file URI */}
-        <Text style={styles.placeholderText}>
-          {file.type === 'video' ? '' : ``}
-        </Text>
-      </View>
-      
-      {/* Remove Button (X) */}
-      <TouchableOpacity 
+      {/* Show Image or Video Placeholder */}
+      {file.type === 'image' ? (
+        <Image
+          source={{ uri: file.uri }}
+          style={{ width: '100%', height: '100%' }}
+        />
+      ) : (
+        <View style={styles.thumbnailPlaceholder}>
+          <Feather name="video" size={26} color="#777" />
+        </View>
+      )}
+
+      {/* Remove Button */}
+      <TouchableOpacity
         style={styles.removeButton}
         onPress={() => handleRemoveMedia(file.id)}
       >
@@ -59,29 +60,43 @@ export default function CreateJobPageThree({ navigation, route }) {
         >
           {/* --- Header --- */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => {navigation.goBack()}} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.goBack();
+              }}
+              style={styles.backButton}
+            >
               <Feather name="arrow-left" size={20} color="#000" />
             </TouchableOpacity>
+
             <View style={styles.progressContainer}>
-              {/* Progress set to 3/3 */}
               <View style={[styles.progressBar, { width: '100%' }]} />
             </View>
+
             <Text style={styles.progressText}>3/3</Text>
           </View>
 
           {/* --- Title --- */}
           <Text style={styles.title}>Add Media & Finalize Posting</Text>
 
-          {/* --- Upload Box --- */}
+          {/* --- Upload Section --- */}
           <View style={styles.uploadSection}>
             <Text style={styles.label}>Upload Images & Videos</Text>
-            <TouchableOpacity style={styles.uploadBox} onPress={() => console.log('Browse File Pressed')}>
-              <Feather name="upload-cloud" size={30} color="#000" />
-              <Text style={styles.browseFileText}>Browse File</Text>
-            </TouchableOpacity>
+
+            {/* Use Reusable Component */}
+            <MediaPicker
+              onSelect={(selected) => {
+                setMediaFiles(prev => [...prev, ...selected]);
+              }}
+            >
+              <View style={styles.uploadBox}>
+                <Feather name="upload-cloud" size={30} color="#000" />
+                <Text style={styles.browseFileText}>Browse File</Text>
+              </View>
+            </MediaPicker>
           </View>
-          
-          {/* --- Media Thumbnails --- */}
+
+          {/* --- Uploaded Media Thumbnails --- */}
           {mediaFiles.length > 0 && (
             <View style={styles.mediaContainer}>
               {mediaFiles.map(file => (
@@ -89,12 +104,11 @@ export default function CreateJobPageThree({ navigation, route }) {
               ))}
             </View>
           )}
-
         </ScrollView>
 
         {/* --- Submit Button --- */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.submitButton}
             onPress={() => console.log('Submit Job Posting')}
           >
@@ -107,28 +121,13 @@ export default function CreateJobPageThree({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  // --- General/Reused Styles ---
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 100, // Padding for the sticky button
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  backButton: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 20,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  scrollView: { flex: 1 },
+  scrollContent: { padding: 20, paddingBottom: 100 },
+
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
+  backButton: { backgroundColor: '#f0f0f0', padding: 10, borderRadius: 20 },
+
   progressContainer: {
     flex: 1,
     height: 8,
@@ -137,79 +136,46 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
   progressBar: {
-    // Width set inline in component for 3/3 (100%)
     height: '100%',
     backgroundColor: '#000',
     borderRadius: 4,
   },
-  progressText: {
-    fontSize: 14,
-    color: '#888',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 30,
-  },
-  label: {
-    fontSize: 16,
-    color: '#000',
-    marginBottom: 10,
-    fontWeight: '600',
-  },
-  
-  // --- Upload Section Styles ---
-  uploadSection: {
-    marginBottom: 30,
-  },
+  progressText: { fontSize: 14, color: '#888' },
+
+  title: { fontSize: 24, fontWeight: 'bold', color: '#000', marginBottom: 30 },
+  label: { fontSize: 16, color: '#000', marginBottom: 10, fontWeight: '600' },
+
+  uploadSection: { marginBottom: 30 },
   uploadBox: {
     borderWidth: 1,
     borderColor: '#ddd',
-    borderStyle: 'solid', // Using solid as a clean alternative to the subtle dashed line in the image
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
     minHeight: 150,
   },
-  browseFileText: {
-    fontSize: 16,
-    color: '#000',
-    marginTop: 10,
-    fontWeight: '600',
-  },
+  browseFileText: { fontSize: 16, color: '#000', marginTop: 10, fontWeight: '600' },
 
-  // --- Media Thumbnail Styles ---
-  mediaContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 15,
-  },
+  mediaContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 15 },
   thumbnailContainer: {
     position: 'relative',
-    width: 100, // Fixed width for thumbnails
-    height: 100, // Fixed height for thumbnails
+    width: 100,
+    height: 100,
     borderRadius: 10,
     overflow: 'hidden',
   },
   thumbnailPlaceholder: {
     flex: 1,
-    backgroundColor: '#f0f0f0', // Placeholder background color
+    backgroundColor: '#f0f0f0',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  placeholderText: {
-    fontSize: 10,
-    textAlign: 'center',
-    color: '#888',
-    padding: 5,
   },
   removeButton: {
     position: 'absolute',
     top: 5,
     right: 5,
-    backgroundColor: '#000000AA', // Black with some transparency
+    backgroundColor: '#000000AA',
     borderRadius: 10,
     width: 20,
     height: 20,
@@ -218,7 +184,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
-  // --- Button Styles ---
   buttonContainer: {
     position: 'absolute',
     bottom: 0,
@@ -235,9 +200,5 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     alignItems: 'center',
   },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  submitButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 });

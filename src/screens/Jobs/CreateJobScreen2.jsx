@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,35 +9,46 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Feather from 'react-native-vector-icons/Feather';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Feather from "react-native-vector-icons/Feather";
+import DateTimePickerField from "../../components/DateTimePickerField";
 
 export default function CreateJob({ navigation, route }) {
-  const {jobData} = route.params;
-  console.log("Job Data from Screen 1:", jobData);
-  // State for Location Type (On-site, Hybrid, Remote)
-  const [jobLocationType, setJobLocationType] = useState('On-site');
-  // State for Amount Disclosure
-  const [discloseAmount, setDiscloseAmount] = useState('Yes');
-  // State for Negotiable Switch
+  const { jobData } = route.params;
+
+  const [jobLocationType, setJobLocationType] = useState("On-site");
+
+  const [discloseAmount, setDiscloseAmount] = useState(true);
   const [isNegotiable, setIsNegotiable] = useState(true);
 
-  // --- Components for Radio Buttons used in the UI ---
+  const [timingType, setTimingType] = useState("fixed");
 
-  // 1. RadioButton for square radio buttons (On-site, Hybrid, Remote)
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [dailyHours, setDailyHours] = useState("");
+
+  const [deadline, setDeadline] = useState("");
+
+  const [estimatedHours, setEstimatedHours] = useState("");
+
+  const [amountMin, setAmountMin] = useState("");
+  const [amountMax, setAmountMax] = useState("");
+
+
   const SquareRadioButton = ({ label, selected, onPress }) => (
     <TouchableOpacity style={styles.squareOption} onPress={onPress}>
-      <View style={[styles.squareRadio, selected && styles.squareRadioSelected]}>
-        {/* No inner circle/square needed, as the background color changes for selection */}
-      </View>
+      <View style={[styles.squareRadio, selected && styles.squareRadioSelected]} />
       <Text style={[styles.squareOptionText, selected && styles.squareOptionTextSelected]}>
         {label}
       </Text>
     </TouchableOpacity>
   );
 
-  // 2. RadioButton for round radio buttons (Yes/No disclosure)
   const RoundRadioButton = ({ label, selected, onPress }) => (
     <TouchableOpacity style={styles.roundOption} onPress={onPress}>
       <View style={styles.roundRadio}>
@@ -47,13 +58,25 @@ export default function CreateJob({ navigation, route }) {
     </TouchableOpacity>
   );
 
-  // --- Main Render Function ---
+  const getTimingDetails = () => {
+    switch (timingType) {
+      case "fixed":
+        return { date, startTime, endTime };
+      case "multiday":
+        return { startDate, endDate, dailyHours };
+      case "deadline":
+        return { deadline };
+      case "flexible":
+        return { estimatedHours };
+      default:
+        return {};
+    }
+  };
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : -200} // Adjust as needed
+      style={{ flex: 1, backgroundColor: "#fff" }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <SafeAreaView style={styles.container}>
         <ScrollView
@@ -61,154 +84,237 @@ export default function CreateJob({ navigation, route }) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* --- Header --- */}
+          {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => {navigation.goBack()}} style={styles.backButton}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Feather name="arrow-left" size={20} color="#000" />
             </TouchableOpacity>
+
             <View style={styles.progressContainer}>
-              {/* Progress bar is now 2/3rds complete */}
-              <View style={[styles.progressBar, { width: '66.66%' }]} />
+              <View style={[styles.progressBar, { width: "66.66%" }]} />
             </View>
+
             <Text style={styles.progressText}>2/3</Text>
           </View>
 
-          {/* --- Title --- */}
           <Text style={styles.title}>Define Location & Payment Information</Text>
 
-          {/* --- Form --- */}
           <View style={styles.form}>
-            {/* Job Location Type */}
+            {/* Job Location */}
             <Text style={styles.label}>Job Location</Text>
+
             <View style={styles.locationOptionsContainer}>
               <SquareRadioButton
                 label="On-site"
-                selected={jobLocationType === 'On-site'}
-                onPress={() => setJobLocationType('On-site')}
+                selected={jobLocationType === "On-site"}
+                onPress={() => setJobLocationType("On-site")}
               />
               <SquareRadioButton
                 label="Hybrid"
-                selected={jobLocationType === 'Hybrid'}
-                onPress={() => setJobLocationType('Hybrid')}
+                selected={jobLocationType === "Hybrid"}
+                onPress={() => setJobLocationType("Hybrid")}
               />
               <SquareRadioButton
                 label="Remote"
-                selected={jobLocationType === 'Remote'}
-                onPress={() => setJobLocationType('Remote')}
+                selected={jobLocationType === "Remote"}
+                onPress={() => setJobLocationType("Remote")}
               />
             </View>
 
-            {/* Choose Address */}
+            {/* Address picker placeholder */}
             <TouchableOpacity style={styles.textInputWithIcon}>
               <TextInput
                 style={styles.textInputFlex}
                 placeholder="Choose Address"
                 placeholderTextColor="#888"
-                editable={false} // Typically opens a map/picker
+                editable={false}
               />
               <Feather name="map-pin" size={20} color="#000" />
             </TouchableOpacity>
 
-            {/* Timings */}
+            {/* Timing Type */}
             <Text style={styles.label}>Timing Type</Text>
-            <TouchableOpacity style={styles.textInputWithIcon}>
-              <TextInput
-                style={styles.textInputFlex}
-                placeholder="Select Timing"
-                placeholderTextColor="#888"
-                editable={false} // Typically opens a dropdown/modal
-              />
-              <Feather name="chevron-down" size={20} color="#000" />
-            </TouchableOpacity>
 
-            {/* Date & Time */}
-            <Text style={styles.label}>Date & Time</Text>
-            <TouchableOpacity style={styles.textInputWithIcon}>
-              <TextInput
-                style={styles.textInputFlex}
-                placeholder="Choose Date & Time"
-                placeholderTextColor="#888"
-                editable={false} // Typically opens a date picker
-              />
-              <Feather name="calendar" size={20} color="#000" />
-            </TouchableOpacity>
-
-            {/* Would you like to disclose the amount? */}
-            <Text style={[styles.label, { marginTop: 15 }]}>Would you like to disclose the amount ?</Text>
-            <View style={styles.disclosureOptionsContainer}>
+            <View style={{ marginBottom: 20 }}>
               <RoundRadioButton
-                label="Yes"
-                selected={discloseAmount === 'Yes'}
-                onPress={() => setDiscloseAmount('Yes')}
+                label="Fixed"
+                selected={timingType === "fixed"}
+                onPress={() => setTimingType("fixed")}
               />
               <RoundRadioButton
-                label="No"
-                selected={discloseAmount === 'No'}
-                onPress={() => setDiscloseAmount('No')}
+                label="Multi-day"
+                selected={timingType === "multiday"}
+                onPress={() => setTimingType("multiday")}
+              />
+              <RoundRadioButton
+                label="Deadline"
+                selected={timingType === "deadline"}
+                onPress={() => setTimingType("deadline")}
+              />
+              <RoundRadioButton
+                label="Flexible"
+                selected={timingType === "flexible"}
+                onPress={() => setTimingType("flexible")}
               />
             </View>
 
-            {/* Amount / Amount Range Section */}
-            {discloseAmount === 'Yes' ? (
+            {/* Input forms based on timing type */}
+            {timingType === "fixed" && (
               <>
-                {/* Amount and Negotiable Switch */}
-                <Text style={styles.label}>Amount</Text>
-                <View style={styles.amountInputContainer}>
-                  <TextInput
-                    style={[styles.textInputFlex, styles.amountInput]}
-                    placeholder="Enter Amount"
-                    placeholderTextColor="#888"
-                    keyboardType="numeric"
-                  />
-                  <View style={styles.negotiableSwitchContainer}>
-                    <Text style={styles.negotiableText}>Negotiable</Text>
-                    <Switch
-                      trackColor={{ false: '#767577', true: '#5CB85C' }} // Green for ON
-                      thumbColor={isNegotiable ? '#fff' : '#f4f3f4'}
-                      onValueChange={setIsNegotiable}
-                      value={isNegotiable}
-                      style={styles.negotiableSwitch}
-                    />
-                  </View>
-                </View>
+                <DateTimePickerField
+                  label="Date"
+                  value={date}
+                  mode="date"
+                  onChange={setDate}
+                />
 
-                {/* Amount Range */}
-                <Text style={styles.label}>Amount Range</Text>
-                <View style={styles.amountRangeContainer}>
-                  <TextInput
-                    style={styles.rangeInput}
-                    placeholder="Min Amount"
-                    placeholderTextColor="#888"
-                    keyboardType="numeric"
-                  />
-                  <TextInput
-                    style={styles.rangeInput}
-                    placeholder="Max Amount"
-                    placeholderTextColor="#888"
-                    keyboardType="numeric"
-                  />
-                </View>
+                <DateTimePickerField
+                  label="Start Time"
+                  mode="time"
+                  value={startTime}
+                  onChange={setStartTime}
+                />
+
+                <DateTimePickerField
+                  label="End Time"
+                  mode="time"
+                  value={endTime}
+                  onChange={setEndTime}
+                />
               </>
-            ) : (
-              // If discloseAmount is 'No', you might show a different UI or nothing.
-              <View style={{ height: 20 }} />
             )}
 
+            {timingType === "multiday" && (
+              <>
+                <DateTimePickerField
+                  label="Start Date"
+                  mode="date"
+                  value={startDate}
+                  onChange={setStartDate}
+                />
+
+                <DateTimePickerField
+                  label="End Date"
+                  mode="date"
+                  value={endDate}
+                  onChange={setEndDate}
+                />
+
+                <TextInput
+                  style={styles.textInputWithIcon}
+                  placeholder="Daily Hours"
+                  keyboardType="numeric"
+                  value={dailyHours}
+                  onChangeText={setDailyHours}
+                />
+              </>
+            )}
+
+            {timingType === "deadline" && (
+              <DateTimePickerField
+                label="Deadline"
+                mode="datetime"
+                value={deadline}
+                onChange={setDeadline}
+              />
+            )}
+
+            {timingType === "flexible" && (
+              <TextInput
+                style={styles.textInputWithIcon}
+                placeholder="Estimated Hours"
+                keyboardType="numeric"
+                value={estimatedHours}
+                onChangeText={setEstimatedHours}
+              />
+            )}
+
+            {/* Amount Disclosure */}
+            <Text style={[styles.label, { marginTop: 15 }]}>
+              Would you like to disclose the amount?
+            </Text>
+
+            <View style={styles.disclosureOptionsContainer}>
+              <RoundRadioButton
+                label="Yes"
+                selected={discloseAmount === true}
+                onPress={() => setDiscloseAmount(true)}
+              />
+              <RoundRadioButton
+                label="No"
+                selected={discloseAmount === false}
+                onPress={() => setDiscloseAmount(false)}
+              />
+            </View>
+
+            <>
+              {/* Amount */}
+              <Text style={styles.label}>Amount</Text>
+              <View style={styles.amountInputContainer}>
+                <TextInput
+                  style={[styles.textInputFlex, styles.amountInput]}
+                  placeholder="Enter Amount"
+                  placeholderTextColor="#888"
+                  keyboardType="numeric"
+                />
+
+                <View style={styles.negotiableSwitchContainer}>
+                  <Text style={styles.negotiableText}>Negotiable</Text>
+                  <Switch
+                    trackColor={{ false: "#767577", true: "#5CB85C" }}
+                    thumbColor={isNegotiable ? "#fff" : "#f4f3f4"}
+                    onValueChange={setIsNegotiable}
+                    value={isNegotiable}
+                    style={styles.negotiableSwitch}
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.label}>Amount Range</Text>
+              <View style={styles.amountRangeContainer}>
+                <TextInput
+                  style={styles.rangeInput}
+                  placeholder="Min Amount"
+                  placeholderTextColor="#888"
+                  keyboardType="numeric"
+                  value={amountMin}
+                  onChangeText={setAmountMin}
+                />
+                <TextInput
+                  style={styles.rangeInput}
+                  placeholder="Max Amount"
+                  placeholderTextColor="#888"
+                  keyboardType="numeric"
+                  value={amountMax}
+                  onChangeText={setAmountMax}
+                />
+              </View>
+
+            </>
           </View>
         </ScrollView>
 
-        {/* --- Next Button --- */}
+        {/* NEXT BUTTON */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.nextButton} onPress={() => navigation.navigate('CreateJobScreen3',
-            {
-              jobData: {
-                ...jobData,
-                jobLocationType,
-                discloseAmount,
-                isNegotiable,
-              }
+          <TouchableOpacity
+            style={styles.nextButton}
+            onPress={() =>
+              navigation.navigate("CreateJobScreen3", {
+                jobData: {
+                  ...jobData,
+                  locationType: jobLocationType,
+                  // isNegotiable,
+                  timingType,
+                  timingDetails: getTimingDetails(),
+                  amount: {
+                    min: Number(amountMin),
+                    max: Number(amountMax),
+                    disclose: discloseAmount,
+                  }
+                },
+              })
             }
-          )}>
+          >
             <Text style={styles.nextButtonText}>Next</Text>
           </TouchableOpacity>
         </View>
@@ -217,222 +323,147 @@ export default function CreateJob({ navigation, route }) {
   );
 }
 
+/* ========== STYLES HERE ========== */
 const styles = StyleSheet.create({
-  // --- General/Reused Styles ---
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 100, // Reduced from 120, check spacing
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  backButton: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 20,
-  },
+  container: { flex: 1, backgroundColor: "#fff" },
+  scrollView: { flex: 1 },
+  scrollContent: { padding: 20, paddingBottom: 100 },
+  header: { flexDirection: "row", alignItems: "center", marginBottom: 30 },
+  backButton: { backgroundColor: "#f0f0f0", padding: 10, borderRadius: 20 },
   progressContainer: {
     flex: 1,
     height: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     borderRadius: 4,
     marginHorizontal: 15,
   },
-  progressBar: {
-    // Width set inline in component for 2/3
-    height: '100%',
-    backgroundColor: '#000',
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: 14,
-    color: '#888',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 30,
-  },
-  form: {
-    width: '100%',
-  },
-  label: {
-    fontSize: 16,
-    color: '#000',
-    marginBottom: 8,
-    fontWeight: '600', // Added for better visual match
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0', // Optional separator line
-  },
-  nextButton: {
-    backgroundColor: '#000',
-    borderRadius: 30,
-    paddingVertical: 18,
-    alignItems: 'center',
-  },
-  nextButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-
-  // --- New Styles for Page 2 UI ---
-
-  // Text Input with Icon (Address, Timings, Date & Time)
+  progressBar: { height: "100%", backgroundColor: "#000", borderRadius: 4 },
+  progressText: { fontSize: 14, color: "#888" },
+  title: { fontSize: 24, fontWeight: "bold", color: "#000", marginBottom: 30 },
+  form: { width: "100%" },
+  label: { fontSize: 16, color: "#000", marginBottom: 8, fontWeight: "600" },
   textInputWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 10,
-    paddingVertical: Platform.OS === 'ios' ? 12 : 5, // Adjusted for better alignment
+    paddingVertical: Platform.OS === "ios" ? 12 : 6,
     paddingHorizontal: 15,
     marginBottom: 20,
   },
-  textInputFlex: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-    padding: 0, // Reset default padding
-  },
+  textInputFlex: { flex: 1, fontSize: 16, color: "#000", padding: 0 },
 
-  // Location Radio Buttons (Square/Box Style)
   locationOptionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 30, // Increased spacing after the location radios
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 30,
   },
   squareOption: {
     flex: 1,
     marginHorizontal: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center', // Center text and radio
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   squareRadio: {
     width: 20,
     height: 20,
     borderWidth: 1,
-    borderColor: '#888',
+    borderColor: "#888",
     borderRadius: 5,
     marginRight: 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
-  squareRadioSelected: {
-    backgroundColor: '#000',
-    borderColor: '#000',
-  },
-  squareOptionText: {
-    fontSize: 15,
-    color: '#000',
-  },
+  squareRadioSelected: { backgroundColor: "#000", borderColor: "#000" },
+  squareOptionText: { fontSize: 15, color: "#000" },
+  squareOptionTextSelected: { fontWeight: "bold" },
 
-  // Amount Disclosure Radio Buttons (Round Style - copied from original file)
-  disclosureOptionsContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  roundOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 30,
-  },
+  // Round Radios
+  disclosureOptionsContainer: { flexDirection: "row", marginBottom: 20 },
+  roundOption: { flexDirection: "row", alignItems: "center", marginVertical: 6, marginRight: 30 },
   roundRadio: {
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#000',
-    borderRadius: 10, // Round
+    borderColor: "#000",
+    borderRadius: 10,
     marginRight: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   roundRadioSelected: {
     width: 10,
     height: 10,
-    backgroundColor: '#000',
-    borderRadius: 5, // Inner round
+    backgroundColor: "#000",
+    borderRadius: 5,
   },
-  roundOptionText: {
-    fontSize: 16,
-    color: '#000',
-  },
+  roundOptionText: { fontSize: 16, color: "#000" },
 
-  // Amount Input and Negotiable Switch
+  // Amount input
   amountInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 10,
     marginBottom: 20,
   },
-  amountInput: {
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-  },
+  amountInput: { paddingVertical: 12, paddingHorizontal: 15 },
   negotiableSwitchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingRight: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
     borderLeftWidth: 1,
-    borderLeftColor: '#ddd',
-    height: '100%',
-    backgroundColor: 'rgba(92, 184, 92, 0.1)', // Light green background like in the image
-    borderRadius: 10,
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
+    borderLeftColor: "#ddd",
+    height: "100%",
+    backgroundColor: "rgba(92, 184, 92, 0.1)",
   },
   negotiableText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#5CB85C',
+    fontWeight: "bold",
+    color: "#5CB85C",
     marginRight: 5,
   },
-  negotiableSwitch: {
-    // Styles for the switch itself
-    transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
-  },
+  negotiableSwitch: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
 
-  // Amount Range
   amountRangeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
   rangeInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 15,
     fontSize: 16,
-    color: '#000',
+    color: "#000",
     marginHorizontal: 5,
   },
+
+  buttonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  nextButton: {
+    backgroundColor: "#000",
+    borderRadius: 30,
+    paddingVertical: 18,
+    alignItems: "center",
+  },
+  nextButtonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
 });
