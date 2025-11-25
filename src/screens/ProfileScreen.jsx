@@ -19,6 +19,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { logout } from '../store/slices/authSlice';
 import { useSnackbar } from '../contexts/SnackbarContext';
+import Header from '../components/Header';
 
 // Reusable InfoBox component with edit functionality
 const InfoBox = ({ iconName, title, value, field, isEditing, onEdit, onInputChange, editValue, isDropdown, options, onDropdownSelect, showDropdown, onDropdownToggle }) => {
@@ -302,8 +303,15 @@ export default function ProfileScreen({ navigation }) {
   return (
     // FIX: Wrap in a simple View to correctly handle the status bar background color
     <View style={{ flex: 1, backgroundColor: '#fff' }}> 
+    
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+
+        <View style={styles.header}>
+        <Header showSearch={false} />
+        </View>
+        
         <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+          
             {/* Profile Header */}
             <View style={styles.profileHeader}>
                 <View style={styles.imageContainer}>
@@ -627,6 +635,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginRight: 10,
   },
+   header:{
+    paddingTop:50,
+    paddingBottom: 120, 
+    backgroundColor: '#000000ff',
+  },
   container: {
     flex: 1,
     borderTopLeftRadius: 20, 
@@ -638,7 +651,6 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   profileHeader: {
-    marginTop: 40,
     alignItems: 'center',
     marginBottom: 30,
   },

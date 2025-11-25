@@ -12,7 +12,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo'; // For the 'flash' icon
 
-const Header = () => {
+const Header = ({ showSearch = true }) => {
   return (
     <View style={styles.headerContainer}>
       {/* Row 1: Location & Logo */}
@@ -44,21 +44,23 @@ const Header = () => {
 
       </View>
 
-      {/* Row 2: Search & Job Button */}
-      <View style={styles.searchWrapper}>
-        <View style={styles.searchSection}>
-          <Feather name="search" style={styles.searchIcon} />
-          <TextInput
-            placeholder="Search Here..."
-            placeholderTextColor="#888"
-            style={styles.searchInput}
-          />
+       {/* Row 2: only show if prop is true */}
+      {showSearch && (
+        <View style={styles.searchWrapper}>
+          <View style={styles.searchSection}>
+            <Feather name="search" style={styles.searchIcon} />
+            <TextInput
+              placeholder="Search Here..."
+              placeholderTextColor="#888"
+              style={styles.searchInput}
+            />
+          </View>
+          <TouchableOpacity style={styles.jobButton}>
+            <Entypo name="flash" style={styles.jobIcon} />
+            <Text style={styles.jobText}>Job</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.jobButton}>
-          <Entypo name="flash" style={styles.jobIcon} />
-          <Text style={styles.jobText}>Job</Text>
-        </TouchableOpacity>
-      </View>
+      )}
     </View>
   );
 };
