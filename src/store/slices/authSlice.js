@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sendOtp, verifyOtp, register } from '../thunks/authThunk';
+import {updateProfilePic} from '../thunks/userThunk';
 
 const authSlice = createSlice({
   name: 'auth',
@@ -110,7 +111,23 @@ const authSlice = createSlice({
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
+      
+      .addCase(updateProfilePic.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProfilePic.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload?.data || null;
+        
+      })
+      .addCase(updateProfilePic.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      ;
   }
 });
 

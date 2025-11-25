@@ -294,6 +294,13 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
+          <ImagePickerSheet
+        visible={pickerSheetVisible}
+        onClose={() => setPickerSheetVisible(false)}
+        onCamera={() => pickImage('camera')}
+        onGallery={() => pickImage('gallery')}
+      />
+
         </View>
       </SafeAreaView>
     );
