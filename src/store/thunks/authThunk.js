@@ -1,6 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { sendOtpAPI, verifyOtpAPI, registerAPI } from '../api/authApi';
 import { handleAxiosError } from '../../utils/handleAxiosError';
+
 // Thunk for sending OTP
 export const sendOtp = createAsyncThunk(
   "auth/sendOtp",
