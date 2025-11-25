@@ -5,11 +5,13 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
+import { useNavigation } from '@react-navigation/native';
 
 const JobCard = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   return (
-    <TouchableOpacity style={styles.cardContainer}>
+    <TouchableOpacity style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen')}>
       {/* Image */}
       <Image
         source={require('../../assets/jobCard.png')} 
