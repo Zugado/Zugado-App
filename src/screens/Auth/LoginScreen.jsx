@@ -10,6 +10,7 @@ import {
   StatusBar,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,9 +22,11 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth);
 
   const [mobile, setMobile] = useState('');
   const [agreed, setAgreed] = useState(false);
+  const [loadingButton, setLoadingButton] = useState(null);
   const { showSnackbar } = useSnackbar();
 
   const handleToggleAgreement = () => {
@@ -41,6 +44,7 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
+    setLoadingButton(method);
     try {
       const response = await dispatch(sendOtp({ mobileOrEmail: mobile, method }));
       
@@ -54,6 +58,8 @@ export default function LoginScreen({ navigation }) {
       }
     } catch (error) {
       showSnackbar('Failed to send OTP', 'error');
+    } finally {
+      setLoadingButton(null);
     }
   };
 
@@ -121,10 +127,16 @@ export default function LoginScreen({ navigation }) {
             styles.buttonBlack, 
           ]}
           onPress={handleGetOtpText}
+          disabled={loadingButton !== null}
+          activeOpacity={0.7}
         >
-          <Text style={[styles.buttonText, styles.buttonTextWhite]}>
-            {t('get_otp_text')}
-          </Text>
+          {loadingButton === 'sms' ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={[styles.buttonText, styles.buttonTextWhite]}>
+              {t('get_otp_text')}
+            </Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -133,14 +145,20 @@ export default function LoginScreen({ navigation }) {
             styles.buttonGreen,
           ]}
           onPress={handleGetOtpWhatsapp}
+          disabled={loadingButton !== null}
+          activeOpacity={1}
         >
-          <Text style={[styles.buttonText, styles.buttonTextWhite]}>
-            {t('get_otp_whatsapp')}
-          </Text>
+          {loadingButton === 'whatsapp' ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={[styles.buttonText, styles.buttonTextWhite]}>
+              {t('get_otp_whatsapp')}
+            </Text>
+          )}
         </TouchableOpacity>
 
         {/* Skip Button */}
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+        <TouchableOpacity style={styles.skipButton} onPress={handleSkip} activeOpacity={0.7}>
           <Text style={styles.skipText}>{t('skip')}</Text>
         </TouchableOpacity>
       </ScrollView>

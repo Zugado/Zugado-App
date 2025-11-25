@@ -10,10 +10,11 @@ import {
   ScrollView,
   Keyboard,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 import { sendOtp, verifyOtp} from '../../store/thunks/authThunk';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Snackbar from '../../components/Snackbar';
 
 export default function OtpVerification({ route, navigation }) {
@@ -24,6 +25,7 @@ export default function OtpVerification({ route, navigation }) {
   const otpInputs = useRef([]);
 
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth);
 
   const handleOtpChange = (text, index) => {
     const newOtp = [...otp];
@@ -59,9 +61,12 @@ export default function OtpVerification({ route, navigation }) {
         console.log("OTP Verification successful");
         setSnackbar({ visible: true, message: response?.payload?.message || 'OTP verified successfully', type: 'success' });
       } else {
+        console.log("in  try = ", response );
         setSnackbar({ visible: true, message: response?.payload?.message || 'OTP verification failed', type: 'error' });
       }
     } catch (error) {
+              console.log("in catch = OTP Verification failed");
+
       setSnackbar({ visible: true, message: 'OTP verification failed', type: 'error' });
     }
   };
@@ -131,16 +136,22 @@ export default function OtpVerification({ route, navigation }) {
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>OTP not received? </Text>
-          <TouchableOpacity onPress={handleResendOtp}>
-            <Text style={styles.resendLink}>RESEND</Text>
+          <TouchableOpacity onPress={handleResendOtp} disabled={loading}>
+            <Text style={[styles.resendLink, loading && { opacity: 0.5 }]}>RESEND</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity 
           style={styles.submitButton} 
           onPress={handleSubmit}
+          disabled={loading}
+          activeOpacity={1}
         >
-          <Text style={styles.submitButtonText}>Submit</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.submitButtonText}>Submit</Text>
+          )}
         </TouchableOpacity>
       </View>
       
