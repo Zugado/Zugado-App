@@ -103,7 +103,6 @@ const styles = StyleSheet.create({
     height: 30,
     marginTop: 6,
   },
-
   // --- NEW STYLES FOR ICONS ---
   iconsContainer: {
     flex: 1, // Takes up 1/3 of the space
