@@ -48,7 +48,6 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(sendOtp.fulfilled, (state) => {
-        // We don't need to store the message here, just clear loading/error
         state.loading = false;
         state.error = null;
       })
@@ -56,7 +55,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
       .addCase(verifyOtp.pending, (state) => {
         state.loading = true;
         state.error = null;

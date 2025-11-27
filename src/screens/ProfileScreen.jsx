@@ -21,9 +21,9 @@ import { logout } from '../store/slices/authSlice';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { useImagePicker } from '../utils/useImagePicker';
 import { updateProfilePicAPI } from '../store/api/userApi';
+import { updateUserDetails } from '../store/thunks/userThunk';
 import Header from '../components/Header';
 
-// Reusable InfoBox component (Refactored for two-level editing)
 const InfoBox = ({ 
   iconName, 
   title, 
@@ -31,7 +31,7 @@ const InfoBox = ({
   field, 
   isEditingProfile, 
   activeEditField,
-  onEditFieldToggle, // New handler for individual field edit
+  onEditFieldToggle,
   onInputChange, 
   editValue, 
   isDropdown, 
@@ -41,10 +41,8 @@ const InfoBox = ({
   onDropdownToggle 
 }) => {
   
-  // Determine if this specific InfoBox is currently in edit mode
   const isFieldEditing = isEditingProfile && activeEditField === field;
   
-  // Custom styles for InfoBox
   const infoBoxStyles = {
     infoBox: {
       width: '48%',
@@ -174,7 +172,6 @@ const InfoBox = ({
   );
 };
 
-// ... GuestFeature component remains the same ...
 const GuestFeature = ({ icon, title, desc }) => (
   <View style={styles.guestFeatureItem}>
     <View style={styles.guestFeatureIconBg}>
@@ -305,7 +302,7 @@ export default function ProfileScreen({ navigation }) {
       setActiveEditField(null);
       setShowDropdown(null);
       // 2. Perform global save logic here (e.g., dispatch(updateUserProfileAPI(editedUser)));
-      showSnackbar('Profile edit mode exited. Global save logic would run.', 'success');
+      showSnackbar('Profile edit mode exited.', 'success');
     }
     // Toggle the overall editing state
     setIsEditingProfile(prev => !prev);

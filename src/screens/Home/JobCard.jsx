@@ -69,257 +69,132 @@ const JobCard = () => {
   );
 };
 
-// const styles = StyleSheet.create({
-//   cardContainer: {
-//     backgroundColor: '#fff',
-//     borderRadius: 15,
-//     marginHorizontal: 15,
-//     marginVertical: 10,
-//     elevation: 3,
-//     shadowColor: '#000',
-//     shadowOffset: {width: 0, height: 1},
-//     shadowOpacity: 0.2,
-//     shadowRadius: 1.41,
-//   },
-//   cardImage: {
-//     width: '100%',
-//     height: 200,
-//     borderTopLeftRadius: 15,
-//     borderTopRightRadius: 15,
-//   },
-//   urgentTag: {
-//     position: 'absolute',
-//     top: 10,
-//     right: 10,
-//     backgroundColor: '#ff6600',
-//     paddingHorizontal: 10,
-//     paddingVertical: 3,
-//     borderRadius: 7,
-//   },
-//   urgentText: {
-//     color: '#fff',
-//     fontWeight: 'bold',
-//     fontSize: 12,
-//   },
-//   contentContainer: {
-//     padding: 15,
-//   },
-//   row: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//     marginBottom: 10,
-//   },
-//   title: {
-//     fontSize: 18,
-//     fontWeight: 'bold',
-//     color: '#333',
-//   },
-//   price: {
-//     fontSize: 18,
-//     fontWeight: 'bold',
-//     color: '#333',
-//   },
-//   description: {
-//     color: '#666',
-//     fontSize: 14,
-//     marginBottom: 10,
-//   },
-//   locationRow: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     marginBottom: 10,
-//   },
-//   locationIcon: {
-//     color: '#888',
-//     fontSize: 16,
-//     marginRight: 5,
-//   },
-//   locationText: {
-//     color: '#888',
-//     fontSize: 14,
-//   },
-//   vendorName: {
-//     fontSize: 16,
-//     fontWeight: 'bold',
-//     color: '#333',
-//   },
-//   ratingContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//   },
-//   starIcon: {
-//     color: '#FFD700',
-//     fontSize: 16,
-//     marginRight: 5,
-//   },
-//   ratingText: {
-//     color: '#666',
-//     fontSize: 14,
-//   },
-//   buttonRow: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     marginTop: 15,
-//   },
-//   bidButton: {
-//     flex: 1,
-//     backgroundColor: '#111',
-//     borderRadius: 25,
-//     paddingVertical: 12,
-//     alignItems: 'center',
-//     marginRight: 10,
-//   },
-//   bidButtonText: {
-//     color: '#fff',
-//     fontWeight: 'bold',
-//     fontSize: 16,
-//   },
-//   chatButton: {
-//     flex: 1,
-//     borderWidth: 1.5,
-//     borderColor: '#111',
-//     borderRadius: 25,
-//     paddingVertical: 12,
-//     alignItems: 'center',
-//     marginLeft: 10,
-//   },
-//   chatButtonText: {
-//     color: '#111',
-//     fontWeight: 'bold',
-//     fontSize: 16,
-//   },
-// });
-
-// components/JobCard.js - Updated Styles
 const styles = StyleSheet.create({
-  cardContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    marginHorizontal: 15,
-    marginVertical: 7,
-    // Android shadow
-    elevation: 3,
-    // iOS shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  cardImage: {
-    // *** KEY CHANGE: Reduced Image Height from 200 to 120-130 ***
-    width: '100%',
-    height: 120, // Adjusted from 200
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-  },
-  urgentTag: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#ff6600',
-    paddingHorizontal: 8, // Reduced padding
-    paddingVertical: 2,   // Reduced padding
-    borderRadius: 7,
-  },
-  urgentText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 10, // Reduced font size slightly
-  },
-  contentContainer: {
-    // Reduced padding from 15 to 10
-    padding: 10, 
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    // Reduced bottom margin
-    marginBottom: 5, 
-  },
-  title: {
-    fontSize: 16, // Reduced font size
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  price: {
-    fontSize: 16, // Reduced font size
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  description: {
-    color: '#666',
-    fontSize: 13, // Reduced font size
-    // Reduced bottom margin
-    marginBottom: 5, 
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    // Reduced bottom margin
-    marginBottom: 5, 
-  },
-  locationIcon: {
-    color: '#888',
-    fontSize: 14, // Reduced icon size
-    marginRight: 5,
-  },
-  locationText: {
-    color: '#888',
-    fontSize: 13, // Reduced font size
-  },
-  vendorName: {
-    fontSize: 14, // Reduced font size
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  starIcon: {
-    color: '#FFD700',
-    fontSize: 14, // Reduced icon size
-    marginRight: 5,
-  },
-  ratingText: {
-    color: '#666',
-    fontSize: 13, // Reduced font size
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    // Reduced top margin
-    marginTop: 10, 
-  },
-  bidButton: {
-    flex: 1,
-    backgroundColor: '#111',
-    borderRadius: 20, // Reduced border radius slightly
-    paddingVertical: 8, // Reduced padding
-    alignItems: 'center',
-    marginRight: 8, // Reduced margin
-  },
-  bidButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14, // Reduced font size
-  },
-  chatButton: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: '#111',
-    borderRadius: 20, // Reduced border radius slightly
-    paddingVertical: 8, // Reduced padding
-    alignItems: 'center',
-    marginLeft: 8, // Reduced margin
-  },
-  chatButtonText: {
-    color: '#111',
-    fontWeight: 'bold',
-    fontSize: 14, // Reduced font size
-  },
+  cardContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12, 
+    marginHorizontal: 15,
+    marginVertical: 8,
+    elevation: 5, 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+  },
+  cardImage: {
+    width: '100%',
+    height: 120, 
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  urgentTag: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: '#d9534f', 
+    paddingHorizontal: 8, 
+    paddingVertical: 2, 
+    borderRadius: 5, 
+  },
+  urgentText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 10, 
+  },
+  contentContainer: {
+    padding: 12, 
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6, 
+  },
+  title: {
+    fontSize: 17, 
+    fontWeight: '700', 
+    color: '#1a1a1a', 
+  },
+  price: {
+    fontSize: 17, 
+    fontWeight: '700',
+    color: '#1a1a1a', 
+  },
+  description: {
+    color: '#555', 
+    fontSize: 13, 
+    marginBottom: 6, 
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6, 
+  },
+  locationIcon: {
+    color: '#888',
+    fontSize: 14, 
+    marginRight: 5,
+  },
+  locationText: {
+    color: '#888',
+    fontSize: 13, 
+  },
+  vendorName: {
+    fontSize: 14, 
+    fontWeight: '600', 
+    color: '#333',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  starIcon: {
+    color: '#FFD700',
+    fontSize: 14, 
+    marginRight: 4, 
+  },
+  ratingText: {
+    color: '#666',
+    fontSize: 13, 
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12, 
+  },
+  bidButton: {
+    flex: 1,
+    backgroundColor: '#000000ff', 
+    borderRadius: 25, 
+    paddingVertical: 10, 
+    alignItems: 'center',
+    marginRight: 8, 
+    shadowColor: '#007aff', 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  bidButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15, 
+  },
+  chatButton: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: '#ccc', 
+    borderRadius: 25, 
+    paddingVertical: 10, 
+    alignItems: 'center',
+    marginLeft: 8, 
+    backgroundColor: '#fff',
+  },
+  chatButtonText: {
+    color: '#444', 
+    fontWeight: '700',
+    fontSize: 15, 
+  },
 });
 
 export default JobCard;

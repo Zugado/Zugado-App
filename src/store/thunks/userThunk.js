@@ -30,8 +30,8 @@ export const getUserProfile = createAsyncThunk(
 );
 
 //Update user details thunk
-export const updateUseDetails = createAsyncThunk(
-  "user/updateUseDetails",
+export const updateUserDetails = createAsyncThunk(
+  "user/updateUserDetails",
   async (data, thunkAPI) => {
     try {
       const response = await updateUserDetailsAPI(data);
