@@ -17,10 +17,11 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logout } from '../store/slices/authSlice';
 import { useSnackbar } from '../contexts/SnackbarContext';
-import Header from '../components/Header';
-
+import { useImagePicker } from '../utils/useImagePicker';
+import { updateProfilePicAPI } from '../store/api/userApi';
 // Reusable InfoBox component with edit functionality
 const InfoBox = ({ iconName, title, value, field, isEditing, onEdit, onInputChange, editValue, isDropdown, options, onDropdownSelect, showDropdown, onDropdownToggle }) => {
   const infoBoxStyles = {
@@ -156,9 +157,15 @@ export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const { user, isGuest } = useSelector((state) => state.auth);
   const { showSnackbar } = useSnackbar();
-  console.log("User = ",user); // Console log removed for cleaner output
+  const { openCamera, openGallery } = useImagePicker();
+
+  console.log("User = ", user); // Console log removed for cleaner output
   const [selectedRole, setSelectedRole] = useState('provider');
   const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
+
+  const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const [editStates, setEditStates] = useState({
     picture: false,
     name: false,
@@ -179,7 +186,6 @@ export default function ProfileScreen({ navigation }) {
     level: 'Advanced',
   });
   const [showDropdown, setShowDropdown] = useState(null);
-
   // LOV data
   const jobTypeOptions = ['Full-Time', 'Part-Time', 'Contract', 'Freelance', 'Internship'];
   const workingModelOptions = ['Remote', 'On-site', 'Hybrid'];
@@ -198,13 +204,87 @@ export default function ProfileScreen({ navigation }) {
       "You need to login to access this feature",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Login", onPress: () =>  dispatch(logout()) },
+        { text: "Login", onPress: () => dispatch(logout()) },
       ]
     );
   };
 
+
+
+  const pickImage = async source => {
+    try {
+      console.log('Picking image from:', source);
+      let result = null;
+
+      if (source === 'camera') {
+        result = await openCamera("1:1", 0.7);
+      } else {
+        result = await openGallery("1:1", 0.7);
+      }
+
+      console.log('Image picker result:', result);
+
+      if (result?.uri) {
+        console.log('Image selected, uploading...');
+        await uploadProfilePicture(result);
+      } else {
+        console.log('No image selected or cancelled');
+      }
+    } catch (error) {
+      console.log('Error picking image:', error);
+      if (error.message?.includes('permission')) {
+        Alert.alert(
+          'Permission Required',
+          'Camera permission is required to take photos. Please enable camera permission in your device settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Try Gallery', onPress: () => pickImage('gallery') }
+          ]
+        );
+      } else {
+        showSnackbar(`Error: ${error.message || 'Failed to pick image'}`, 'error');
+      }
+    } finally {
+      setPickerSheetVisible(false);
+    }
+  };
+
+  const uploadProfilePicture = async (imageData) => {
+    setLoading(true);
+    try {
+      // Get the extension from imageData.fileName
+      const extension = imageData.fileName
+        ? imageData.fileName.substring(imageData.fileName.lastIndexOf('.') + 1)
+        : 'jpg'; // fallback if no extension
+
+      // Compose new name
+      const data = {
+        uri: imageData.uri,
+        type: imageData.type,
+        name: `avatar.${extension}`
+      };
+
+      const response = await updateProfilePicAPI(data);
+
+      if (response.success) {
+        showSnackbar('Profile picture updated successfully!', 'success');
+      } else {
+        showSnackbar(response?.message || 'Failed to update profile picture', 'error');
+      }
+    } catch (error) {
+      showSnackbar('Error uploading image', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   // Edit handlers
   const handleEditToggle = (field) => {
+    if (field === 'picture') {
+      setPickerSheetVisible(true);
+      return;
+    }
     if (editStates[field]) {
       // Save logic would go here
       showSnackbar(`${field} updated successfully`, 'success');
@@ -235,13 +315,13 @@ export default function ProfileScreen({ navigation }) {
   };
 
   // Guest UI
- if (isGuest) {
+  if (isGuest) {
     return (
       <SafeAreaView style={styles.safeArea}>
         {/* FIX: Ensure StatusBar is set for white background/dark text here */}
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         <View style={styles.guestContainer}>
-          
+
           {/* Top Header */}
           <View style={styles.topNav}>
             <Text style={styles.screenTitle}>Profile</Text>
@@ -250,9 +330,9 @@ export default function ProfileScreen({ navigation }) {
           {/* Hero Section */}
           <View style={styles.guestHero}>
             <View style={styles.guestImageWrapper}>
-              <Image 
-                source={{ uri: "https://cdn-icons-png.flaticon.com/512/747/747376.png" }} 
-                style={styles.guestAvatar} 
+              <Image
+                source={{ uri: "https://cdn-icons-png.flaticon.com/512/747/747376.png" }}
+                style={styles.guestAvatar}
               />
               <View style={styles.lockBadge}>
                 <Feather name="lock" size={16} color="#fff" />
@@ -266,20 +346,20 @@ export default function ProfileScreen({ navigation }) {
 
           {/* Features List */}
           <View style={styles.guestFeaturesContainer}>
-            <GuestFeature 
-              icon="briefcase" 
-              title="Job Management" 
-              desc="Apply to jobs or post new openings." 
+            <GuestFeature
+              icon="briefcase"
+              title="Job Management"
+              desc="Apply to jobs or post new openings."
             />
-            <GuestFeature 
-              icon="shield" 
-              title="Verified Badge" 
-              desc="Build trust with ID verification." 
+            <GuestFeature
+              icon="shield"
+              title="Verified Badge"
+              desc="Build trust with ID verification."
             />
-            <GuestFeature 
-              icon="bell" 
-              title="Instant Alerts" 
-              desc="Never miss a new opportunity." 
+            <GuestFeature
+              icon="bell"
+              title="Instant Alerts"
+              desc="Never miss a new opportunity."
             />
           </View>
 
@@ -294,12 +374,6 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <ImagePickerSheet
-        visible={pickerSheetVisible}
-        onClose={() => setPickerSheetVisible(false)}
-        onCamera={() => pickImage('camera')}
-        onGallery={() => pickImage('gallery')}
-      />
 
         </View>
       </SafeAreaView>
@@ -309,210 +383,245 @@ export default function ProfileScreen({ navigation }) {
   // Logged-in user UI
   return (
     // FIX: Wrap in a simple View to correctly handle the status bar background color
-    <View style={{ flex: 1, backgroundColor: '#fff' }}> 
-    
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
 
-        <View style={styles.header}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+
+      {/* <View style={styles.header}>
         <Header showSearch={false} />
         </View>
-        
-        <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-          
-            {/* Profile Header */}
-            <View style={styles.profileHeader}>
-                <View style={styles.imageContainer}>
-                  <Image
-                  source={require('../assets/profile.png')}
-                  style={styles.profileImage}
-                  />
-                  <TouchableOpacity style={styles.imageEditButton} onPress={() => handleEditToggle('picture')}>
-                    <Feather name="camera" size={16} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.nameContainer}>
-                  {editStates.name ? (
-                    <View style={styles.nameEditContainer}>
-                      <TextInput
-                        style={styles.nameInput}
-                        value={editedUser.firstName}
-                        onChangeText={(text) => handleInputChange('firstName', text)}
-                        placeholder="First Name"
-                      />
-                      <TextInput
-                        style={styles.nameInput}
-                        value={editedUser.lastName}
-                        onChangeText={(text) => handleInputChange('lastName', text)}
-                        placeholder="Last Name"
-                      />
-                    </View>
-                  ) : (
-                    <Text style={styles.profileName}>{ `${user?.firstName} ${user?.middleName} ${user?.lastName}` || "User Name"}</Text>
-                  )}
-                  <TouchableOpacity style={styles.editButton} onPress={() => handleEditToggle('name')}>
-                    <Feather name={editStates.name ? "check" : "edit-2"} size={20} color="#000" />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.subHeader}>
-                  <View style={styles.ageContainer}>
-                    {editStates.age ? (
-                      <TextInput
-                        style={styles.ageInput}
-                        value={editedUser.age.toString()}
-                        onChangeText={(text) => handleInputChange('age', text)}
-                        keyboardType="numeric"
-                        placeholder="Age"
-                      />
-                    ) : (
-                      <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
-                    )}
-                    <TouchableOpacity style={styles.ageEditButton} onPress={() => handleEditToggle('age')}>
-                      <Feather name={editStates.age ? "check" : "edit-2"} size={14} color="#666" />
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.ratingContainer}>
-                      <FontAwesome name="star" size={14} color="#FF9529" />
-                      <Text style={styles.ratingText}>4.5</Text>
-                  </View>
-                </View>
-            </View>
+         */}
+      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
 
-            {/* Info Grid */}
-            <View style={styles.infoGrid}>
-                <InfoBox 
-                  iconName="phone" 
-                  title="Contact" 
-                  value={user?.mobile || "98765 43210"}
-                  field="contact"
-                  isEditing={editStates.contact}
-                  onEdit={() => handleEditToggle('contact')}
-                  onInputChange={handleInputChange}
-                  editValue={editedUser.mobile}
+        {/* Profile Header */}
+        <View style={styles.profileHeader}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={require('../assets/profile.png')}
+              style={styles.profileImage}
+            />
+            <TouchableOpacity style={styles.imageEditButton} onPress={() => setPickerSheetVisible(true)}>
+              <Feather name="camera" size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.nameContainer}>
+            {editStates.name ? (
+              <View style={styles.nameEditContainer}>
+                <TextInput
+                  style={styles.nameInput}
+                  value={editedUser.firstName}
+                  onChangeText={(text) => handleInputChange('firstName', text)}
+                  placeholder="First Name"
                 />
-                <InfoBox 
-                  iconName="briefcase" 
-                  title="Job Type" 
-                  value={editedUser.jobType}
-                  field="jobType"
-                  isEditing={editStates.jobType}
-                  onEdit={() => handleEditToggle('jobType')}
-                  editValue={editedUser.jobType}
-                  isDropdown={true}
-                  options={jobTypeOptions}
-                  onDropdownSelect={handleDropdownSelect}
-                  showDropdown={showDropdown === 'jobType'}
-                  onDropdownToggle={() => setShowDropdown(showDropdown === 'jobType' ? null : 'jobType')}
+                <TextInput
+                  style={styles.nameInput}
+                  value={editedUser.lastName}
+                  onChangeText={(text) => handleInputChange('lastName', text)}
+                  placeholder="Last Name"
                 />
-                <InfoBox 
-                  iconName="monitor" 
-                  title="Working Model" 
-                  value={editedUser.workingModel}
-                  field="workingModel"
-                  isEditing={editStates.workingModel}
-                  onEdit={() => handleEditToggle('workingModel')}
-                  editValue={editedUser.workingModel}
-                  isDropdown={true}
-                  options={workingModelOptions}
-                  onDropdownSelect={handleDropdownSelect}
-                  showDropdown={showDropdown === 'workingModel'}
-                  onDropdownToggle={() => setShowDropdown(showDropdown === 'workingModel' ? null : 'workingModel')}
+              </View>
+            ) : (
+              <Text style={styles.profileName}>{`${user?.firstName} ${user?.middleName} ${user?.lastName}` || "User Name"}</Text>
+            )}
+            <TouchableOpacity style={styles.editButton} onPress={() => handleEditToggle('name')}>
+              <Feather name={editStates.name ? "check" : "edit-2"} size={20} color="#000" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.subHeader}>
+            <View style={styles.ageContainer}>
+              {editStates.age ? (
+                <TextInput
+                  style={styles.ageInput}
+                  value={editedUser.age.toString()}
+                  onChangeText={(text) => handleInputChange('age', text)}
+                  keyboardType="numeric"
+                  placeholder="Age"
                 />
-                <InfoBox 
-                  iconName="trending-up" 
-                  title="Level" 
-                  value={editedUser.level}
-                  field="level"
-                  isEditing={editStates.level}
-                  onEdit={() => handleEditToggle('level')}
-                  editValue={editedUser.level}
-                  isDropdown={true}
-                  options={levelOptions}
-                  onDropdownSelect={handleDropdownSelect}
-                  showDropdown={showDropdown === 'level'}
-                  onDropdownToggle={() => setShowDropdown(showDropdown === 'level' ? null : 'level')}
-                />
+              ) : (
+                <Text style={styles.ageText}>{user?.age ? `Age - ${user.age} Yrs` : "Age N/A"}</Text>
+              )}
+              <TouchableOpacity style={styles.ageEditButton} onPress={() => handleEditToggle('age')}>
+                <Feather name={editStates.age ? "check" : "edit-2"} size={14} color="#666" />
+              </TouchableOpacity>
             </View>
-
-            {/* Role Selection */}
-            <View style={styles.roleSelectionContainer}>
-                <TouchableOpacity
-                style={[styles.roleButton, selectedRole === 'provider' && styles.selectedRole]}
-                onPress={() => setSelectedRole('provider')}
-                >
-                <MaterialCommunityIcons
-                    name="briefcase-variant"
-                    size={30}
-                    style={[styles.roleIcon, selectedRole === 'provider' && styles.selectedRoleText]}
-                />
-                <Text style={[styles.roleText, selectedRole === 'provider' && styles.selectedRoleText]}>
-                    Job Provider
-                </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                style={[styles.roleButton, selectedRole === 'seeker' && styles.selectedRole]}
-                onPress={() => setSelectedRole('seeker')}
-                >
-                <MaterialCommunityIcons
-                    name="account-search"
-                    size={30}
-                    style={[styles.roleIcon, selectedRole === 'seeker' && styles.selectedRoleText]}
-                />
-                <Text style={[styles.roleText, selectedRole === 'seeker' && styles.selectedRoleText]}>
-                    Job Seeker
-                </Text>
-                </TouchableOpacity>
+            <View style={styles.ratingContainer}>
+              <FontAwesome name="star" size={14} color="#FF9529" />
+              <Text style={styles.ratingText}>4.5</Text>
             </View>
+          </View>
+        </View>
 
-            {/* Verification Section */}
-            <View style={styles.sectionContainer}>
-                <TouchableOpacity 
-                  style={styles.verificationButton} 
-                  onPress={() => setIsVerificationExpanded(!isVerificationExpanded)}
-                >
-                  <MaterialCommunityIcons name="shield-check-outline" size={24} color="#000" />
-                  <Text style={styles.verificationTitle}>Verification</Text>
-                  <View style={styles.verificationRight}>
-                    <Text style={styles.verificationStatus}>Pending 1/2</Text>
-                    <Feather 
-                      name={isVerificationExpanded ? "chevron-up" : "chevron-down"} 
-                      size={16} 
-                      color="#666" 
-                    />
-                  </View>
-                </TouchableOpacity>
-                {isVerificationExpanded && (
-                  <View style={styles.verificationDetails}>
-                    <View style={styles.verificationItem}>
-                      <Feather name="check-circle" size={20} color="green" />
-                      <Text style={styles.verificationText}>Mobile Verification</Text>
-                      <Text style={styles.completedText}>Completed</Text>
-                    </View>
-                    <View style={styles.verificationItem}>
-                      <Feather name="x-circle" size={20} color="red" />
-                      <Text style={styles.verificationText}>ID Verification</Text>
-                      <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
-                    </View>
-                  </View>
-                )}
-            </View>
+        {/* Info Grid */}
+        <View style={styles.infoGrid}>
+          <InfoBox
+            iconName="phone"
+            title="Contact"
+            value={user?.mobile || "98765 43210"}
+            field="contact"
+            isEditing={editStates.contact}
+            onEdit={() => handleEditToggle('contact')}
+            onInputChange={handleInputChange}
+            editValue={editedUser.mobile}
+          />
+          <InfoBox
+            iconName="briefcase"
+            title="Job Type"
+            value={editedUser.jobType}
+            field="jobType"
+            isEditing={editStates.jobType}
+            onEdit={() => handleEditToggle('jobType')}
+            editValue={editedUser.jobType}
+            isDropdown={true}
+            options={jobTypeOptions}
+            onDropdownSelect={handleDropdownSelect}
+            showDropdown={showDropdown === 'jobType'}
+            onDropdownToggle={() => setShowDropdown(showDropdown === 'jobType' ? null : 'jobType')}
+          />
+          <InfoBox
+            iconName="monitor"
+            title="Working Model"
+            value={editedUser.workingModel}
+            field="workingModel"
+            isEditing={editStates.workingModel}
+            onEdit={() => handleEditToggle('workingModel')}
+            editValue={editedUser.workingModel}
+            isDropdown={true}
+            options={workingModelOptions}
+            onDropdownSelect={handleDropdownSelect}
+            showDropdown={showDropdown === 'workingModel'}
+            onDropdownToggle={() => setShowDropdown(showDropdown === 'workingModel' ? null : 'workingModel')}
+          />
+          <InfoBox
+            iconName="trending-up"
+            title="Level"
+            value={editedUser.level}
+            field="level"
+            isEditing={editStates.level}
+            onEdit={() => handleEditToggle('level')}
+            editValue={editedUser.level}
+            isDropdown={true}
+            options={levelOptions}
+            onDropdownSelect={handleDropdownSelect}
+            showDropdown={showDropdown === 'level'}
+            onDropdownToggle={() => setShowDropdown(showDropdown === 'level' ? null : 'level')}
+          />
+        </View>
 
-            {/* Payment Details */}
-            <View style={styles.sectionContainer}>
-                <TouchableOpacity style={styles.paymentButton} onPress={guestAction}>
-                <Ionicons name="card-outline" size={24} color="#000" />
-                <Text style={styles.paymentText}>Payment Details</Text>
-                </TouchableOpacity>
-            </View>
+        {/* Role Selection */}
+        <View style={styles.roleSelectionContainer}>
+          <TouchableOpacity
+            style={[styles.roleButton, selectedRole === 'provider' && styles.selectedRole]}
+            onPress={() => setSelectedRole('provider')}
+          >
+            <MaterialCommunityIcons
+              name="briefcase-variant"
+              size={30}
+              style={[styles.roleIcon, selectedRole === 'provider' && styles.selectedRoleText]}
+            />
+            <Text style={[styles.roleText, selectedRole === 'provider' && styles.selectedRoleText]}>
+              Job Provider
+            </Text>
+          </TouchableOpacity>
 
-            {/* Logout Section */}
-            <View style={styles.sectionContainer}>
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Feather name="log-out" size={24} color="#ff4444" />
-                <Text style={styles.logoutText}>Logout</Text>
-                </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.roleButton, selectedRole === 'seeker' && styles.selectedRole]}
+            onPress={() => setSelectedRole('seeker')}
+          >
+            <MaterialCommunityIcons
+              name="account-search"
+              size={30}
+              style={[styles.roleIcon, selectedRole === 'seeker' && styles.selectedRoleText]}
+            />
+            <Text style={[styles.roleText, selectedRole === 'seeker' && styles.selectedRoleText]}>
+              Job Seeker
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Verification Section */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity
+            style={styles.verificationButton}
+            onPress={() => setIsVerificationExpanded(!isVerificationExpanded)}
+          >
+            <MaterialCommunityIcons name="shield-check-outline" size={24} color="#000" />
+            <Text style={styles.verificationTitle}>Verification</Text>
+            <View style={styles.verificationRight}>
+              <Text style={styles.verificationStatus}>Pending 1/2</Text>
+              <Feather
+                name={isVerificationExpanded ? "chevron-up" : "chevron-down"}
+                size={16}
+                color="#666"
+              />
             </View>
-        </ScrollView>
+          </TouchableOpacity>
+          {isVerificationExpanded && (
+            <View style={styles.verificationDetails}>
+              <View style={styles.verificationItem}>
+                <Feather name="check-circle" size={20} color="green" />
+                <Text style={styles.verificationText}>Mobile Verification</Text>
+                <Text style={styles.completedText}>Completed</Text>
+              </View>
+              <View style={styles.verificationItem}>
+                <Feather name="x-circle" size={20} color="red" />
+                <Text style={styles.verificationText}>ID Verification</Text>
+                <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Payment Details */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity style={styles.paymentButton} onPress={guestAction}>
+            <Ionicons name="card-outline" size={24} color="#000" />
+            <Text style={styles.paymentText}>Payment Details</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Logout Section */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Feather name="log-out" size={24} color="#ff4444" />
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+
+      {/* Image Picker Modal */}
+      <Modal
+        visible={pickerSheetVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setPickerSheetVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Image</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => pickImage('camera')}
+            >
+              <Feather name="camera" size={20} color="#000" />
+              <Text style={styles.modalButtonText}>Camera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => pickImage('gallery')}
+            >
+              <Feather name="image" size={20} color="#000" />
+              <Text style={styles.modalButtonText}>Gallery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={() => setPickerSheetVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -581,7 +690,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-  
+
   // Feature List
   guestFeaturesContainer: {
     paddingHorizontal: 25,
@@ -642,14 +751,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginRight: 10,
   },
-   header:{
-    paddingTop:50,
-    paddingBottom: 120, 
+  header: {
+    paddingTop: 50,
+    paddingBottom: 120,
     backgroundColor: '#000000ff',
   },
   container: {
     flex: 1,
-    borderTopLeftRadius: 20, 
+    borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     backgroundColor: '#fff',
     padding: 20,
@@ -867,5 +976,44 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ff4444',
     marginLeft: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: '#f0f0f0',
+    marginBottom: 10,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: '#000',
+  },
+  cancelButton: {
+    backgroundColor: '#ff4444',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: '#fff',
+    textAlign: 'center',
+    flex: 1,
   },
 });
