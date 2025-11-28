@@ -54,12 +54,12 @@ const JobCard = () => {
         {/* Buttons */}
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.bidButton}
-           onPress={() => dispatch(logout())}
+           onPress={() => console.log('Bid button pressed')}
           >
             <Text style={styles.bidButtonText}>Bid</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.chatButton}
-          onPress={() => dispatch(logout())}
+          onPress={() => console.log('Chat button pressed')}
           >
             <Text style={styles.chatButtonText}>Chat</Text>
           </TouchableOpacity>

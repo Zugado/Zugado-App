@@ -69,6 +69,13 @@ const HomeScreen = () => {
               <JobCard />
               <JobCard />
               <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
             </>
           )}
         </ScrollView>

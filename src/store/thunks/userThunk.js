@@ -1,4 +1,4 @@
-import { getUserProfileAPI, updateProfilePicAPI } from "../api/userApi";
+import { getUserProfileAPI, updateProfilePicAPI, updateUserDetailsAPI } from "../api/userApi";
 
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { handleAxiosError } from '../../utils/handleAxiosError';

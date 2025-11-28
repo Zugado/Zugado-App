@@ -11,7 +11,9 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useSelector, useDispatch } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -53,6 +55,16 @@ const InfoBox = ({
       flexDirection: 'row',
       alignItems: 'center',
       position: 'relative',
+      zIndex: showDropdown ? 10000 : 1,
+      elevation: showDropdown ? 15 : 4,
+      overflow: 'visible',
+
+      // iOS shadow
+shadowColor: '#000',
+shadowOffset: { width: 0, height: 2 },
+shadowOpacity: 0.15,
+shadowRadius: 4,
+
     },
     infoIconContainer: {
       marginRight: 12,
@@ -71,7 +83,12 @@ const InfoBox = ({
       color: '#000',
     },
     fieldEditButton: {
-      padding: 4,
+      padding: 6,
+      borderRadius: 12,
+      backgroundColor: '#f0f0f0',
+    },
+    activeFieldEditButton: {
+      backgroundColor: '#000',
     },
     editInput: {
       fontSize: 14,
@@ -95,12 +112,13 @@ const InfoBox = ({
       borderRadius: 8,
       borderWidth: 1,
       borderColor: '#ddd',
-      zIndex: 1000,
-      elevation: 5,
+      zIndex: 9999,
+      elevation: 10,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
+      maxHeight: 150,
     },
     dropdownItem: {
       padding: 12,
@@ -158,13 +176,16 @@ const InfoBox = ({
       {/* Individual Edit Toggle Button */}
       {isEditingProfile && (
         <TouchableOpacity 
-          style={infoBoxStyles.fieldEditButton} 
+          style={[
+            infoBoxStyles.fieldEditButton,
+            isFieldEditing && infoBoxStyles.activeFieldEditButton
+          ]} 
           onPress={() => onEditFieldToggle(field)}
         >
           <Feather 
             name={isFieldEditing ? "check" : "edit-2"} 
             size={16} 
-            color={isFieldEditing ? "#000" : "#666"} 
+            color={isFieldEditing ? "#fff" : "#666"} 
           />
         </TouchableOpacity>
       )}
@@ -191,9 +212,25 @@ export default function ProfileScreen({ navigation }) {
   const { showSnackbar } = useSnackbar();
   const { openCamera, openGallery } = useImagePicker();
 
+  // Set status bar when screen comes into focus - MUST be at top
+  useFocusEffect(
+    React.useCallback(() => {
+      StatusBar.setBarStyle(isGuest ? 'dark-content' : 'light-content');
+      StatusBar.setBackgroundColor(isGuest ? '#ffffff' : '#000000');
+    }, [isGuest])
+  );
+
   const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
   const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [verificationModalVisible, setVerificationModalVisible] = useState(false);
+  const [verificationData, setVerificationData] = useState({
+    documentType: '',
+    documentNumber: '',
+    documentImage: null
+  });
+  const [showDocumentDropdown, setShowDocumentDropdown] = useState(false);
 
   // Global Edit State (Header Button)
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -217,8 +254,9 @@ export default function ProfileScreen({ navigation }) {
   const jobTypeOptions = ['Full-Time', 'Part-Time', 'Contract', 'Freelance', 'Internship'];
   const workingModelOptions = ['Remote', 'On-site', 'Hybrid'];
   const levelOptions = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+  const documentTypeOptions = ['Aadhaar Card', 'PAN Card', 'Driving License', 'Passport', 'Voter ID'];
 
-  // ... (guestAction, pickImage, uploadProfilePicture functions remain the same) ...
+  console.log("USER:", user);
   const guestAction = () => {
     if (user) {
       showSnackbar('This service is under development', 'warning');
@@ -234,17 +272,22 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
-  const pickImage = async source => {
+  const pickImage = async (source, isVerification = false) => {
     try {
       let result = null;
       if (source === 'camera') {
-        result = await openCamera("1:1", 0.7);
+        result = await openCamera(isVerification ? "freeform" : "1:1", 0.7);
       } else {
-        result = await openGallery("1:1", 0.7);
+        result = await openGallery(isVerification ? "freeform" : "1:1", 0.7);
       }
 
       if (result?.uri) {
-        await uploadProfilePicture(result);
+        if (isVerification) {
+          setVerificationData(prev => ({ ...prev, documentImage: result }));
+          showSnackbar('Document image selected', 'success');
+        } else {
+          await uploadProfilePicture(result);
+        }
       }
     } catch (error) {
       if (error.message?.includes('permission')) {
@@ -253,7 +296,7 @@ export default function ProfileScreen({ navigation }) {
           'Camera permission is required to take photos. Please enable camera permission in your device settings.',
           [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Try Gallery', onPress: () => pickImage('gallery') }
+            { text: 'Try Gallery', onPress: () => pickImage('gallery', isVerification) }
           ]
         );
       } else {
@@ -262,6 +305,18 @@ export default function ProfileScreen({ navigation }) {
     } finally {
       setPickerSheetVisible(false);
     }
+  };
+
+  const handleVerificationSubmit = () => {
+    if (!verificationData.documentType || !verificationData.documentNumber || !verificationData.documentImage) {
+      showSnackbar('Please fill all fields and select document image', 'error');
+      return;
+    }
+    
+    // API call logic here
+    showSnackbar('Verification submitted successfully', 'success');
+    setVerificationModalVisible(false);
+    setVerificationData({ documentType: '', documentNumber: '', documentImage: null });
   };
 
   const uploadProfilePicture = async (imageData) => {
@@ -309,24 +364,69 @@ export default function ProfileScreen({ navigation }) {
   };
   
   // Individual Field Edit Handler (Pencil Button)
-  const handleFieldEditToggle = (field) => {
+  const handleFieldEditToggle = async (field) => {
     if (activeEditField === field) {
       // If the field is currently active (pressing CHECK)
-      // 1. Perform individual field save logic here
-      showSnackbar(`${field} saved.`, 'success');
-      // 2. Clear the active field
-      setActiveEditField(null);
+      try {
+        setLoading(true);
+        
+        // Prepare data based on field type
+        let updateData = {};
+        
+        if (field === 'name') {
+          updateData = {
+            firstName: editedUser.firstName,
+            middleName: editedUser.middleName,
+            lastName: editedUser.lastName
+          };
+        } else if (field === 'age') {
+          updateData = {
+            dateOfBirth: editedUser.dateOfBirth
+          };
+        } else {
+          updateData = { [field]: editedUser[field] };
+        }
+        
+        const response = await dispatch(updateUserDetails(updateData));
+        
+        if (updateUserDetails.fulfilled.match(response)) {
+          showSnackbar(`${field} updated successfully`, 'success');
+          setActiveEditField(null);
+        } else {
+          showSnackbar(response?.payload?.message || `Failed to update ${field}`, 'error');
+        }
+      } catch (error) {
+        showSnackbar(`Error updating ${field}`, 'error');
+      } finally {
+        setLoading(false);
+      }
     } else {
       // If pressing the pencil icon
-      // 1. Clear any current active field/dropdown
       setActiveEditField(null);
       setShowDropdown(null);
-      // 2. Set the new active field
       setActiveEditField(field);
     }
   };
 
   // Edit handlers
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const handleDateSelect = (date) => {
+    const age = calculateAge(date);
+    setEditedUser(prev => ({ ...prev, age, dateOfBirth: date }));
+    setShowDatePicker(false);
+  };
+
   const handleInputChange = (field, value) => {
     setEditedUser(prev => ({ ...prev, [field]: value }));
   };
@@ -359,7 +459,6 @@ export default function ProfileScreen({ navigation }) {
   if (isGuest) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         <View style={styles.guestContainer}>
           <View style={styles.topNav}>
             <Text style={styles.screenTitle}>Profile</Text>
@@ -412,8 +511,7 @@ export default function ProfileScreen({ navigation }) {
 
   // Logged-in user UI
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
 
       {/* Header and Global Edit Button */}
       <View style={styles.header}>
@@ -422,7 +520,7 @@ export default function ProfileScreen({ navigation }) {
         {/* Profile Image and Edit Camera */}
         <View style={styles.imageContainer}>
           <Image
-            source={require('../assets/profile.png')}
+            source={user?.avatar ? { uri: user.avatar } : require('../assets/profile.png')}
             style={styles.profileImage}
           />
           {isEditingProfile && (
@@ -433,11 +531,15 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </View>
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
 
           {/* Global edit button */}
            <TouchableOpacity style={styles.globalEditButton} onPress={handleGlobalEditToggle}>
-          <Feather
+            <Feather
             name={isEditingProfile ? "check" : "edit-2"}
             size={20}
             color="#000000ff"
@@ -456,6 +558,12 @@ export default function ProfileScreen({ navigation }) {
                 />
                 <TextInput
                   style={styles.nameInput}
+                  value={editedUser.middleName}
+                  onChangeText={(text) => handleInputChange('middleName', text)}
+                  placeholder="Middle Name"
+                />
+                <TextInput
+                  style={styles.nameInput}
                   value={editedUser.lastName}
                   onChangeText={(text) => handleInputChange('lastName', text)}
                   placeholder="Last Name"
@@ -467,8 +575,15 @@ export default function ProfileScreen({ navigation }) {
             
             {/* Name Edit Toggle */}
             {isEditingProfile && (
-              <TouchableOpacity style={styles.editButton} onPress={() => handleFieldEditToggle('name')}>
-                <Feather name={activeEditField === 'name' ? "check" : "edit-2"} size={20} color="#000" />
+              <TouchableOpacity 
+                style={[styles.editButton, activeEditField === 'name' && styles.activeEditButton]} 
+                onPress={() => handleFieldEditToggle('name')}
+              >
+                <Feather 
+                  name={activeEditField === 'name' ? "check" : "edit-2"} 
+                  size={18} 
+                  color={activeEditField === 'name' ? "#fff" : "#000"} 
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -476,28 +591,39 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.subHeader}>
             <View style={styles.ageContainer}>
               {isEditingProfile && activeEditField === 'age' ? (
-                <TextInput
-                  style={styles.ageInput}
-                  value={editedUser.age.toString()}
-                  onChangeText={(text) => handleInputChange('age', text)}
-                  keyboardType="numeric"
-                  placeholder="Age"
-                />
+                <TouchableOpacity
+                  style={styles.datePickerButton}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Text style={styles.datePickerText}>
+                    {editedUser.dateOfBirth 
+                      ? new Date(editedUser.dateOfBirth).toLocaleDateString()
+                      : 'Select Date of Birth'
+                    }
+                  </Text>
+                </TouchableOpacity>
               ) : (
                 <Text style={styles.ageText}>{editedUser.age ? `Age - ${editedUser.age} Yrs` : "Age N/A"}</Text>
               )}
               
               {/* Age Edit Toggle */}
               {isEditingProfile && (
-                <TouchableOpacity style={styles.ageEditButton} onPress={() => handleFieldEditToggle('age')}>
-                  <Feather name={activeEditField === 'age' ? "check" : "edit-2"} size={14} color="#666" />
+                <TouchableOpacity 
+                  style={[styles.ageEditButton, activeEditField === 'age' && styles.activeAgeEditButton]} 
+                  onPress={() => handleFieldEditToggle('age')}
+                >
+                  <Feather 
+                    name={activeEditField === 'age' ? "check" : "edit-2"} 
+                    size={14} 
+                    color={activeEditField === 'age' ? "#fff" : "#666"} 
+                  />
                 </TouchableOpacity>
               )}
             </View>
 
             <View style={styles.ratingContainer}>
               <FontAwesome name="star" size={14} color="#FF9529" />
-              <Text style={styles.ratingText}>4.5</Text>
+              <Text style={styles.ratingText}>{user?.ratings?.averageRating || '0.0'}</Text>
             </View>
           </View>
         </View>
@@ -623,16 +749,34 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.verificationItem}>
                 <Feather name="x-circle" size={20} color="red" />
                 <Text style={styles.verificationText}>ID Verification</Text>
-                <Text style={styles.clickText} onPress={guestAction}>Click to verify</Text>
+                <TouchableOpacity onPress={() => setVerificationModalVisible(true)}>
+                  <Text style={styles.clickText}>Click to verify</Text>
+                </TouchableOpacity>
               </View>
             </View>
           )}
         </View>
 
+        {/* Settings Section */}
         <View style={styles.sectionContainer}>
-          <TouchableOpacity style={styles.paymentButton} onPress={guestAction} disabled={isEditingProfile}>
-            <Ionicons name="card-outline" size={24} color="#000" />
-            <Text style={styles.paymentText}>Payment Details</Text>
+          <Text style={styles.sectionTitle}>Settings</Text>
+          
+          <TouchableOpacity style={styles.settingItem} onPress={guestAction} disabled={isEditingProfile}>
+            <Feather name="user" size={20} color="#000" />
+            <Text style={styles.settingText}>Account Settings</Text>
+            <Feather name="chevron-right" size={16} color="#666" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.settingItem} onPress={guestAction} disabled={isEditingProfile}>
+            <Ionicons name="card-outline" size={20} color="#000" />
+            <Text style={styles.settingText}>Payment Details</Text>
+            <Feather name="chevron-right" size={16} color="#666" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.settingItem} onPress={guestAction} disabled={isEditingProfile}>
+            <Feather name="globe" size={20} color="#000" />
+            <Text style={styles.settingText}>Language</Text>
+            <Feather name="chevron-right" size={16} color="#666" />
           </TouchableOpacity>
         </View>
 
@@ -657,14 +801,14 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.modalTitle}>Select Image</Text>
             <TouchableOpacity
               style={styles.modalButton}
-              onPress={() => pickImage('camera')}
+              onPress={() => pickImage('camera', verificationModalVisible)}
             >
               <Feather name="camera" size={20} color="#000" />
               <Text style={styles.modalButtonText}>Camera</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.modalButton}
-              onPress={() => pickImage('gallery')}
+              onPress={() => pickImage('gallery', verificationModalVisible)}
             >
               <Feather name="image" size={20} color="#000" />
               <Text style={styles.modalButtonText}>Gallery</Text>
@@ -678,7 +822,127 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </View>
+
+      {/* Date Picker Modal */}
+      <DateTimePickerModal
+        isVisible={showDatePicker}
+        mode="date"
+        onConfirm={handleDateSelect}
+        onCancel={() => setShowDatePicker(false)}
+        maximumDate={new Date()}
+        date={editedUser.dateOfBirth ? new Date(editedUser.dateOfBirth) : new Date()}
+      />
+
+      {/* Verification Modal */}
+      <Modal
+        visible={verificationModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setVerificationModalVisible(false)}
+      >
+        <View style={styles.verificationModalOverlay}>
+          <View style={styles.verificationModalContent}>
+            <View style={styles.verificationModalHeader}>
+              <MaterialCommunityIcons name="shield-check" size={32} color="#4CAF50" />
+              <Text style={styles.verificationModalTitle}>ID Verification</Text>
+              <Text style={styles.verificationModalSubtitle}>Please provide your document details</Text>
+            </View>
+
+            <ScrollView style={styles.verificationForm} showsVerticalScrollIndicator={false}>
+              {/* Document Type Dropdown */}
+              <View style={styles.verificationField}>
+                <Text style={styles.verificationLabel}>Document Type</Text>
+                <TouchableOpacity 
+                  style={styles.verificationDropdown}
+                  onPress={() => setShowDocumentDropdown(!showDocumentDropdown)}
+                >
+                  <Text style={styles.verificationDropdownText}>
+                    {verificationData.documentType || 'Select Document Type'}
+                  </Text>
+                  <Feather name="chevron-down" size={20} color="#666" />
+                </TouchableOpacity>
+                
+                {showDocumentDropdown && (
+                  <View style={styles.verificationDropdownMenu}>
+                    {documentTypeOptions.map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        style={styles.verificationDropdownItem}
+                        onPress={() => {
+                          setVerificationData(prev => ({ ...prev, documentType: type }));
+                          setShowDocumentDropdown(false);
+                        }}
+                      >
+                        <Text style={styles.verificationDropdownItemText}>{type}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* Document Number */}
+              <View style={styles.verificationField}>
+                <Text style={styles.verificationLabel}>Document Number</Text>
+                <TextInput
+                  style={styles.verificationInput}
+                  value={verificationData.documentNumber}
+                  onChangeText={(text) => setVerificationData(prev => ({ ...prev, documentNumber: text }))}
+                  placeholder="Enter document number"
+                  placeholderTextColor="#999"
+                />
+              </View>
+
+              {/* Document Image */}
+              <View style={styles.verificationField}>
+                <Text style={styles.verificationLabel}>Document Image</Text>
+                {verificationData.documentImage ? (
+                  <View style={styles.selectedImageContainer}>
+                    <Image 
+                      source={{ uri: verificationData.documentImage.uri }} 
+                      style={styles.selectedImage}
+                    />
+                    <TouchableOpacity 
+                      style={styles.changeImageButton}
+                      onPress={() => setPickerSheetVisible(true)}
+                    >
+                      <Text style={styles.changeImageText}>Change Image</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity 
+                    style={styles.selectImageButton}
+                    onPress={() => setPickerSheetVisible(true)}
+                  >
+                    <Feather name="camera" size={24} color="#666" />
+                    <Text style={styles.selectImageText}>Select Document Image</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </ScrollView>
+
+            <View style={styles.verificationModalActions}>
+              <TouchableOpacity 
+                style={styles.verificationCancelButton}
+                onPress={() => {
+                  setVerificationModalVisible(false);
+                  setVerificationData({ documentType: '', documentNumber: '', documentImage: null });
+                  setShowDocumentDropdown(false);
+                }}
+              >
+                <Text style={styles.verificationCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.verificationSubmitButton}
+                onPress={handleVerificationSubmit}
+              >
+                <Text style={styles.verificationSubmitText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
@@ -804,29 +1068,36 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   header: {
-    paddingTop: 40,
-    backgroundColor: '#000000ff',
+    paddingTop: 0,
+    backgroundColor: '#000',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    paddingBottom: 100,
   },
   globalEditButton: {
     position: 'absolute',
     top: -40,
     right: -10,
     zIndex: 10,
-    padding: 4,
+    padding: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
     // borderWidth: 2,
     // borderColor: '#000000ff',
     // borderRadius: 50,
   },
   container: {
     flex: 1,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
     backgroundColor: '#fff',
+    marginTop: -140,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 80,
+    marginBottom: 50
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   profileHeader: {
     alignItems: 'center',
@@ -854,7 +1125,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 999,
     alignSelf: 'center',
-    top: 55,
+    top: 20,
   },
   imageEditButton: {
     position: 'absolute',
@@ -869,6 +1140,9 @@ const styles = StyleSheet.create({
     padding: 8,
     backgroundColor: '#f0f0f0',
     borderRadius: 20,
+  },
+  activeEditButton: {
+    backgroundColor: '#000',
   },
   nameEditContainer: {
     flexDirection: 'column',
@@ -901,8 +1175,13 @@ const styles = StyleSheet.create({
   },
   // Re-used for Age edit pencil
   ageEditButton: {
-    padding: 4,
+    padding: 6,
     marginLeft: 8,
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0',
+  },
+  activeAgeEditButton: {
+    backgroundColor: '#000',
   },
   subHeader: {
     flexDirection: 'row',
@@ -933,6 +1212,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
     zIndex: 1,
+    overflow: 'visible',
   },
   roleSelectionContainer: {
     flexDirection: 'row',
@@ -958,7 +1238,28 @@ const styles = StyleSheet.create({
   },
   sectionContainer: {
     width: '100%',
-    marginBottom: 10,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 15,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  settingText: {
+    fontSize: 16,
+    color: '#000',
+    marginLeft: 15,
+    flex: 1,
   },
   verificationButton: {
     flexDirection: 'row',
@@ -1069,5 +1370,176 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     flex: 1,
+  },
+  datePickerButton: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingBottom: 4,
+    minWidth: 120,
+  },
+  datePickerText: {
+    fontSize: 16,
+    color: '#555',
+  },
+  // Verification Modal Styles
+  verificationModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  verificationModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: '100%',
+    maxHeight: '85%',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  verificationModalHeader: {
+    alignItems: 'center',
+    padding: 25,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  verificationModalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#000',
+    marginTop: 10,
+  },
+  verificationModalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+    textAlign: 'center',
+  },
+  verificationForm: {
+    padding: 20,
+  },
+  verificationField: {
+    marginBottom: 20,
+  },
+  verificationLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  verificationDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 12,
+    padding: 15,
+    backgroundColor: '#f9f9f9',
+  },
+  verificationDropdownText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  verificationDropdownMenu: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    zIndex: 1000,
+    elevation: 5,
+    maxHeight: 300,
+  },
+  verificationDropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  verificationDropdownItemText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  verificationInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 12,
+    padding: 15,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+    color: '#000',
+  },
+  selectImageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#ddd',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    padding: 20,
+    backgroundColor: '#f9f9f9',
+  },
+  selectImageText: {
+    fontSize: 16,
+    color: '#666',
+    marginLeft: 10,
+  },
+  selectedImageContainer: {
+    alignItems: 'center',
+  },
+  selectedImage: {
+    width: 120,
+    height: 80,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  changeImageButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
+  },
+  changeImageText: {
+    fontSize: 14,
+    color: '#000',
+  },
+  verificationModalActions: {
+    flexDirection: 'row',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  verificationCancelButton: {
+    flex: 1,
+    paddingVertical: 15,
+    marginRight: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  verificationCancelText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '600',
+  },
+  verificationSubmitButton: {
+    flex: 1,
+    paddingVertical: 15,
+    marginLeft: 10,
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  verificationSubmitText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '600',
   },
 });

@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sendOtp, verifyOtp, register } from '../thunks/authThunk';
-import {getUserProfile, updateProfilePic} from '../thunks/userThunk';
+import {getUserProfile, updateUserDetails, updateProfilePic} from '../thunks/userThunk';
 
 const authSlice = createSlice({
   name: 'auth',
@@ -108,7 +108,7 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message;
       })
       
       .addCase(updateProfilePic.pending, (state) => {
@@ -122,7 +122,7 @@ const authSlice = createSlice({
       })
       .addCase(updateProfilePic.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message;
       })
       
       .addCase(getUserProfile.pending, (state) => {
@@ -142,7 +142,28 @@ const authSlice = createSlice({
       })
       .addCase(getUserProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message;
+      })
+
+      //Update user details
+      .addCase(updateUserDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action?.payload?.data || null;
+        state.isNewUser = false;
+
+        if (state.user && action?.payload?.data) {
+          AsyncStorage.setItem('user', JSON.stringify(action.payload.data));
+        }
+
+        state.error = null;
+      })
+      .addCase(updateUserDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message;
       })
       ;
   }
