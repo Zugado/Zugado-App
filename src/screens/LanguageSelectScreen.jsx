@@ -4,7 +4,7 @@ import i18n from "../i18n/i18n";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
 
-export default function LanguageSelectScreen({ navigation, onComplete }) {
+export default function LanguageSelectScreen({ navigation, onComplete }) {  
   const { t } = useTranslation();
 
   const languages = [

@@ -15,14 +15,36 @@ const Tab = createBottomTabNavigator();
 // Custom FAB Button
 const CustomTabBarButton = ({ children, onPress }) => (
   <TouchableOpacity
-    style={{ top: -25, justifyContent: 'center', alignItems: 'center', ...styles.shadow }}
+    style={{
+      top: -30,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
     onPress={onPress}
   >
-    <View style={{ width: 70, height: 70, borderRadius: 35, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: '#111',
+        justifyContent: 'center',
+        alignItems: 'center',
+
+        // LIGHTER 360° SHADOW
+        shadowColor: '#000000ff', // Lighter, pinkish shadow color
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.35, // Lighter shadow
+        shadowRadius: 8,
+
+        elevation: 20, // Android lighter shadow
+      }}
+    >
       {children}
     </View>
   </TouchableOpacity>
 );
+
 
 // Import your PNGs
 const icons = {

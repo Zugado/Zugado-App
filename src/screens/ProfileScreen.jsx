@@ -50,7 +50,7 @@ const InfoBox = ({
       width: '48%',
       backgroundColor: '#f7f7f7',
       borderRadius: 15,
-      padding: 15,
+      padding: 12,
       marginBottom: 10,
       flexDirection: 'row',
       alignItems: 'center',
@@ -105,7 +105,7 @@ shadowRadius: 4,
     },
     dropdownMenu: {
       position: 'absolute',
-      top: 50,
+      top: 40,
       left: 0,
       right: 0,
       backgroundColor: '#fff',
@@ -121,12 +121,12 @@ shadowRadius: 4,
       maxHeight: 150,
     },
     dropdownItem: {
-      padding: 12,
+      padding: 10,
       borderBottomWidth: 1,
       borderBottomColor: '#f0f0f0',
     },
     dropdownText: {
-      fontSize: 14,
+      fontSize: 12,
       color: '#000',
     },
   };
@@ -184,7 +184,7 @@ shadowRadius: 4,
         >
           <Feather 
             name={isFieldEditing ? "check" : "edit-2"} 
-            size={16} 
+            size={14} 
             color={isFieldEditing ? "#fff" : "#666"} 
           />
         </TouchableOpacity>
@@ -603,7 +603,7 @@ export default function ProfileScreen({ navigation }) {
                   </Text>
                 </TouchableOpacity>
               ) : (
-                <Text style={styles.ageText}>{editedUser.age ? `Age - ${editedUser.age} Yrs` : "Age N/A"}</Text>
+                <Text style={styles.ageText}>{editedUser.age ? `Age - ${editedUser.age} Yrs` : "Age 0"}</Text>
               )}
               
               {/* Age Edit Toggle */}
@@ -635,7 +635,7 @@ export default function ProfileScreen({ navigation }) {
             title="Contact"
             value={editedUser.mobile || "98765 43210"}
             field="mobile"
-            isEditingProfile={isEditingProfile}
+            // isEditingProfile={isEditingProfile}
             activeEditField={activeEditField}
             onEditFieldToggle={handleFieldEditToggle}
             onInputChange={handleInputChange}
@@ -829,7 +829,8 @@ export default function ProfileScreen({ navigation }) {
         mode="date"
         onConfirm={handleDateSelect}
         onCancel={() => setShowDatePicker(false)}
-        maximumDate={new Date()}
+        // maximumDate={new Date()}
+        maximumDate={new Date(2006, 11, 31)} // Users must be at least 18 years old
         date={editedUser.dateOfBirth ? new Date(editedUser.dateOfBirth) : new Date()}
       />
 

@@ -6,6 +6,7 @@ import TabNavigator from './TabNavigator';
 import CreateJobScreen2 from '../screens/Jobs/CreateJobScreen2';
 import CreateJobScreen3 from '../screens/Jobs/CreateJobScreen3';
 import JobDetailedScreen from '../screens/Jobs/JobDetailedScreen';
+import LanguageSelectScreen from '../screens/LanguageSelectScreen';
 
 const Stack = createStackNavigator();
 
@@ -17,6 +18,7 @@ export default function AppStackNavigator() {
       <Stack.Screen name="CreateJobScreen2" component={CreateJobScreen2} />
       <Stack.Screen name="CreateJobScreen3" component={CreateJobScreen3} />
       <Stack.Screen name="JobDetailedScreen" component={JobDetailedScreen} />
+      <Stack.Screen name="LanguageSelectScreen" component={LanguageSelectScreen} />
     </Stack.Navigator>
   );
 }

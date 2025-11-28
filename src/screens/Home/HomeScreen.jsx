@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
-  const tags = ['Tag-1', 'Tag-2', 'Tag-3', 'Tag-4'];
+  const tags = ['Tag-1', 'Tag-2', 'Tag-3', 'Tag-4', 'Tag-5', 'Tag-6', 'Tag-7', 'Tag-8', 'Tag-9', 'Tag-10'];
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -102,10 +102,16 @@ const styles = StyleSheet.create({
   },
 
   tagRow: {
-    margin: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  padding: 6,
+  flexDirection: 'row',
+  alignItems: 'center',
+
+  backgroundColor: '#fff',
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+  shadowRadius: 5,
+  elevation: 3,
+},
   tagScroll: {
     flex: 1,
     marginRight: 10,
