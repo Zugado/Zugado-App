@@ -96,7 +96,7 @@ export default function OtpVerification({ route, navigation }) {
     >
       <View style={styles.container}>
         <Image
-          source={require('../../assets/otpImage.png')}
+          source={require('../../assets/Icons/OtpGraphic.png')}
           style={styles.mainGraphicImage}
         />
 

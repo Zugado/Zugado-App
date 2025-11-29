@@ -7,45 +7,52 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
-  // ScrollView is not used, you can remove it
 } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
-import Entypo from 'react-native-vector-icons/Entypo'; // For the 'flash' icon
+import Entypo from 'react-native-vector-icons/Entypo';
 
 const Header = ({ showSearch = true }) => {
   return (
     <View style={styles.headerContainer}>
-      {/* Row 1: Location & Logo */}
+      {/* Row 1: Location, Logo & Icons */}
       <View style={styles.topRow}>
         <View style={styles.locationContainer}>
-          <MaterialIcons name="location-on" style={styles.locationIcon} />
+          <Image
+            source={require('../assets/Icons/Location2.png')}
+            style={styles.icon}
+          />
           <View>
             <Text style={styles.locationText}>Noida</Text>
             <Text style={styles.pincodeText}>201301</Text>
           </View>
         </View>
 
-        <Image source={require('../assets/Icons/LogoSplash.png')} style={styles.logo} />
+        <Image
+          source={require('../assets/Icons/LogoSplash.png')}
+          style={styles.logo}
+        />
 
-        {/* --- ICONS ADDED HERE --- */}
         <View style={styles.iconsContainer}>
           <TouchableOpacity>
-            <Feather name="bookmark" style={styles.icon} />
+            <Image
+              source={require('../assets/Icons/Saved.png')}
+              style={styles.icon}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.bellIconContainer}>
-            <Feather name="bell" style={styles.icon} />
+            <Image
+              source={require('../assets/Icons/Notification.png')}
+              style={styles.icon}
+            />
             <View style={styles.badgeContainer}>
               <Text style={styles.badgeText}>12</Text>
             </View>
           </TouchableOpacity>
         </View>
-        {/* --- End of icons --- */}
-
       </View>
 
-       {/* Row 2: only show if prop is true */}
+      {/* Row 2: Search bar + Job button */}
       {showSearch && (
         <View style={styles.searchWrapper}>
           <View style={styles.searchSection}>
@@ -68,9 +75,9 @@ const Header = ({ showSearch = true }) => {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: '#000000',
+    backgroundColor: '#000',
     paddingHorizontal: 15,
-    paddingVertical: 1,
+    paddingVertical: 4,
   },
   topRow: {
     flexDirection: 'row',
@@ -79,14 +86,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   locationContainer: {
-    flex: 1, // Takes up 1/3 of the space
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  locationIcon: {
-    color: '#fff',
-    fontSize: 22,
-    marginRight: 5,
+    gap: 4,
   },
   locationText: {
     color: '#fff',
@@ -98,34 +101,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   logo: {
-    flex: 1, // Takes up 1/3 of the space
+    flex: 1,
     resizeMode: 'contain',
     height: 30,
     marginTop: 6,
   },
-  // --- NEW STYLES FOR ICONS ---
   iconsContainer: {
-    flex: 1, // Takes up 1/3 of the space
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
   icon: {
-    color: '#fff',
-    fontSize: 24,
+    width: 22,  // unified icon size
+    height: 22,
+    resizeMode: 'contain',
   },
   bellIconContainer: {
-    marginLeft: 20, // Space between bookmark and bell
-    position: 'relative', // Needed for the badge
+    marginLeft: 18,
+    position: 'relative',
   },
   badgeContainer: {
     position: 'absolute',
-    top: -8,
-    right: -10,
+    top: -5,
+    right: -8,
     backgroundColor: 'red',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+    borderRadius: 12,
+    width: 18,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -133,18 +136,14 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#fff',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
   },
-  // --- END OF NEW STYLES ---
-
-  // Styles for Search Bar (from previous step)
   searchWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 30,
-    marginBottom: 15, // Adjusted from 15 to 0 as it's the last item
     overflow: 'hidden',
   },
   searchSection: {
