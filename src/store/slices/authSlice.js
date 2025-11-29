@@ -54,6 +54,7 @@ const authSlice = createSlice({
       .addCase(sendOtp.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        // Don't reset user/token on sendOtp failure
       })
       .addCase(verifyOtp.pending, (state) => {
         state.loading = true;

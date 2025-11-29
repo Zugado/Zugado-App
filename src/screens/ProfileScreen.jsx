@@ -10,6 +10,8 @@ import {
   StatusBar,
   TextInput,
   Modal,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useSelector, useDispatch } from 'react-redux';
@@ -23,7 +25,7 @@ import { logout } from '../store/slices/authSlice';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { useImagePicker } from '../utils/useImagePicker';
 import { updateProfilePicAPI } from '../store/api/userApi';
-import { updateUserDetails } from '../store/thunks/userThunk';
+import { updateUserDetails, getUserProfile, updateProfilePic } from '../store/thunks/userThunk';
 import Header from '../components/Header';
 
 const InfoBox = ({ 
@@ -231,6 +233,40 @@ export default function ProfileScreen({ navigation }) {
     documentImage: null
   });
   const [showDocumentDropdown, setShowDocumentDropdown] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Mapping functions for backend API - MUST be before useState
+  const mapToBackend = (field, value) => {
+    const mappings = {
+      jobType: { 'Full-Time': 'fulltime', 'Part-Time': 'parttime', 'Casually': 'casually' },
+      workingModel: { 'Remote': 'remote', 'On-site': 'onsite', 'Hybrid': 'hybrid' },
+      level: { 'Beginner': 'beginner', 'Intermediate': 'intermediate', 'Advanced': 'advanced', 'Expert': 'pro' }
+    };
+    return mappings[field]?.[value] || value;
+  };
+
+  const mapFromBackend = (field, value) => {
+    const mappings = {
+      jobType: { 'fulltime': 'Full-Time', 'parttime': 'Part-Time', 'casually': 'Casually' },
+      workingModel: { 'remote': 'Remote', 'onsite': 'On-site', 'hybrid': 'Hybrid' },
+      level: { 'beginner': 'Beginner', 'intermediate': 'Intermediate', 'advanced': 'Advanced', 'pro': 'Expert' }
+    };
+    return mappings[field]?.[value] || value;
+  };
+
+  // Edit handlers
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   // Global Edit State (Header Button)
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -242,16 +278,30 @@ export default function ProfileScreen({ navigation }) {
     firstName: user?.firstName || '',
     middleName: user?.middleName || '',
     lastName: user?.lastName || '',
-    age: user?.age || '',
+    age: user?.dateOfBirth ? calculateAge(user.dateOfBirth) : (user?.age || ''),
     mobile: user?.mobile || '',
-    jobType: user?.jobType || 'Full-Time',
-    workingModel: 'Remote',
-    level: 'Advanced',
+    jobType: mapFromBackend('jobType', user?.jobType) || 'Full-Time',
+    workingModel: mapFromBackend('workingModel', user?.workingModel) || 'Remote',
+    level: mapFromBackend('level', user?.level) || 'Advanced',
+    dateOfBirth: user?.dateOfBirth || null,
   });
   const [showDropdown, setShowDropdown] = useState(null);
 
+  // Field name formatting
+  const formatFieldName = (field) => {
+    const fieldNames = {
+      name: 'Name',
+      age: 'Age',
+      mobile: 'Contact',
+      jobType: 'Job Type',
+      workingModel: 'Working Model',
+      level: 'Level'
+    };
+    return fieldNames[field] || field;
+  };
+
   // LOV data
-  const jobTypeOptions = ['Full-Time', 'Part-Time', 'Contract', 'Freelance', 'Internship'];
+  const jobTypeOptions = ['Full-Time', 'Part-Time', 'Casually'];
   const workingModelOptions = ['Remote', 'On-site', 'Hybrid'];
   const levelOptions = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
   const documentTypeOptions = ['Aadhaar Card', 'PAN Card', 'Driving License', 'Passport', 'Voter ID'];
@@ -332,15 +382,15 @@ export default function ProfileScreen({ navigation }) {
         name: `avatar.${extension}`
       };
 
-      // Mock API call for update
-      // const response = await updateProfilePicAPI(data);
-
-      // if (response.success) {
-      //   showSnackbar('Profile picture updated successfully!', 'success');
-      // } else {
-      //   showSnackbar(response?.message || 'Failed to update profile picture', 'error');
-      // }
-       showSnackbar('Profile picture update logic initiated (mocked success)', 'success');
+      const response = await dispatch(updateProfilePic(data));
+      
+      if (updateProfilePic.fulfilled.match(response)) {
+        showSnackbar('Profile picture updated successfully!', 'success');
+        // Refresh profile to get updated image
+        await dispatch(getUserProfile());
+      } else {
+        showSnackbar(response?.payload?.message || 'Failed to update profile picture', 'error');
+      }
     } catch (error) {
       showSnackbar('Error uploading image', 'error');
     } finally {
@@ -348,6 +398,19 @@ export default function ProfileScreen({ navigation }) {
     }
   };
   // ------------------------------------------------------------------
+
+  // Pull to refresh handler
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await dispatch(getUserProfile());
+      showSnackbar('Profile refreshed successfully', 'success');
+    } catch (error) {
+      showSnackbar('Failed to refresh profile', 'error');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Global Edit Handler (Header Button)
   const handleGlobalEditToggle = () => {
@@ -357,7 +420,10 @@ export default function ProfileScreen({ navigation }) {
       setActiveEditField(null);
       setShowDropdown(null);
       // 2. Perform global save logic here (e.g., dispatch(updateUserProfileAPI(editedUser)));
-      showSnackbar('Profile edit mode exited.', 'success');
+      showSnackbar('Profile edit mode turned off.', 'success');
+    }else{
+      showSnackbar('Profile edit mode turned on.', 'warning');
+
     }
     // Toggle the overall editing state
     setIsEditingProfile(prev => !prev);
@@ -384,19 +450,23 @@ export default function ProfileScreen({ navigation }) {
             dateOfBirth: editedUser.dateOfBirth
           };
         } else {
-          updateData = { [field]: editedUser[field] };
+          const backendValue = mapToBackend(field, editedUser[field]);
+          updateData = { [field]: backendValue };
         }
         
         const response = await dispatch(updateUserDetails(updateData));
         
         if (updateUserDetails.fulfilled.match(response)) {
-          showSnackbar(`${field} updated successfully`, 'success');
+          const fieldName = formatFieldName(field);
+          showSnackbar(`${fieldName} updated successfully`, 'success');
           setActiveEditField(null);
         } else {
-          showSnackbar(response?.payload?.message || `Failed to update ${field}`, 'error');
+          const fieldName = formatFieldName(field);
+          showSnackbar(response?.payload?.message || `Failed to update ${fieldName}`, 'error');
         }
       } catch (error) {
-        showSnackbar(`Error updating ${field}`, 'error');
+        const fieldName = formatFieldName(field);
+        showSnackbar(`Error updating ${fieldName}`, 'error');
       } finally {
         setLoading(false);
       }
@@ -408,18 +478,7 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // Edit handlers
-  const calculateAge = (birthDate) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
+  
 
   const handleDateSelect = (date) => {
     const age = calculateAge(date);
@@ -445,14 +504,7 @@ export default function ProfileScreen({ navigation }) {
 
   // Logout handler
   const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Logout", style: "destructive", onPress: () => dispatch(logout()) },
-      ]
-    );
+    setShowLogoutModal(true);
   };
 
   // Guest UI remains the same
@@ -513,7 +565,7 @@ export default function ProfileScreen({ navigation }) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
 
-      {/* Header and Global Edit Button */}
+      {/* Header */}
       <View style={styles.header}>
         <Header showSearch={false} />
 
@@ -535,6 +587,16 @@ export default function ProfileScreen({ navigation }) {
         style={styles.container} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#666"
+            colors={['#666', '#999']}
+            progressBackgroundColor="#fff"
+            progressViewOffset={20}
+          />
+        }
       >
 
           {/* Global edit button */}
@@ -636,7 +698,7 @@ export default function ProfileScreen({ navigation }) {
             value={editedUser.mobile || "98765 43210"}
             field="mobile"
             // isEditingProfile={isEditingProfile}
-            activeEditField={activeEditField}
+            // activeEditField={activeEditField}
             onEditFieldToggle={handleFieldEditToggle}
             onInputChange={handleInputChange}
             editValue={editedUser.mobile}
@@ -943,6 +1005,55 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      {/* Custom Logout Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.logoutModalOverlay}>
+          <View style={styles.logoutModalContainer}>
+            <View style={styles.logoutModalHeader}>
+              <View style={styles.logoutIconContainer}>
+                <Feather name="log-out" size={24} color="#ff6b6b" />
+              </View>
+              <Text style={styles.logoutModalTitle}>Logout</Text>
+              <Text style={styles.logoutModalMessage}>Are you sure you want to logout from your account?</Text>
+            </View>
+            
+            <View style={styles.logoutModalActions}>
+              <TouchableOpacity 
+                style={styles.logoutCancelButton}
+                onPress={() => setShowLogoutModal(false)}
+              >
+                <Text style={styles.logoutCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.logoutConfirmButton}
+                onPress={() => {
+                  setShowLogoutModal(false);
+                  dispatch(logout());
+                }}
+              >
+                <Text style={styles.logoutConfirmButtonText}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Loading Overlay */}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#000" />
+            <Text style={styles.loadingText}>Updating...</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -1542,5 +1653,99 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     fontWeight: '600',
+  },
+  logoutModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  logoutModalContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 320,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  logoutModalHeader: {
+    alignItems: 'center',
+    padding: 30,
+    paddingBottom: 20,
+  },
+  logoutIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fff5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  logoutModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  logoutModalMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  logoutModalActions: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  logoutCancelButton: {
+    flex: 1,
+    paddingVertical: 18,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#f0f0f0',
+  },
+  logoutCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  logoutConfirmButton: {
+    flex: 1,
+    paddingVertical: 18,
+    alignItems: 'center',
+  },
+  logoutConfirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ff6b6b',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  loadingContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#000',
+    marginTop: 10,
   },
 });

@@ -83,11 +83,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   },
   text: {
     color: '#fff',
     fontSize: 14,
     textAlign: 'center',
+    flex: 1,
+    flexWrap: 'wrap',
   },
 });
