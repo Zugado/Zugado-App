@@ -8,9 +8,10 @@ import {
   StatusBar,
   FlatList,
   BackHandler,
-  Alert,
+  Modal,
   useWindowDimensions,
 } from 'react-native';
+import Feather from 'react-native-vector-icons/Feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PaginationDots from '../../components/PaginationDots';
 import { useFocusEffect } from '@react-navigation/native';
@@ -56,6 +57,7 @@ const Slide = ({ item, width, styles }) => (
 export default function OnboardingScreen({ navigation }) {
   const { width } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showExitModal, setShowExitModal] = useState(false);
   const flatListRef = useRef(null);
 
   const totalScreens = onboardingData.length;
@@ -65,6 +67,25 @@ export default function OnboardingScreen({ navigation }) {
     navigation.navigate('Auth', { screen: 'Login' });
   };
 
+   useFocusEffect(
+  React.useCallback(() => {
+    const backAction = () => {
+      if (currentIndex === 0) {
+        setShowExitModal(true);
+        return true;
+      } else {
+        const prevIndex = currentIndex - 1;
+        scrollToIndex(prevIndex);
+        setCurrentIndex(prevIndex);
+        return true;
+      }
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [currentIndex]));
+  
   const scrollToIndex = (index) => {
     try {
       flatListRef.current?.scrollToIndex({
@@ -87,27 +108,7 @@ export default function OnboardingScreen({ navigation }) {
     }
   };
   
-  useFocusEffect(
-  React.useCallback(() => {
-    const backAction = () => {
-      if (currentIndex === 0) {
-        Alert.alert('Exit App', 'Do you want to exit?', [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Yes', onPress: () => BackHandler.exitApp() },
-        ]);
-        return true;
-      } else {
-        const prevIndex = currentIndex - 1;
-        scrollToIndex(prevIndex);
-        setCurrentIndex(prevIndex);
-        return true;
-      }
-    };
-
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-    return () => backHandler.remove(); // ✅ Proper cleanup on blur
-  }, [currentIndex]));
+ 
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems.length > 0) setCurrentIndex(viewableItems[0].index);
@@ -158,6 +159,45 @@ export default function OnboardingScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Custom Exit Modal */}
+      <Modal
+        visible={showExitModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowExitModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.iconContainer}>
+                <Feather name="log-out" size={24} color="#ff6b6b" />
+              </View>
+              <Text style={styles.modalTitle}>Exit App</Text>
+              <Text style={styles.modalMessage}>Are you sure you want to exit the app?</Text>
+            </View>
+            
+            <View style={styles.modalActions}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => setShowExitModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.exitButton}
+                onPress={() => {
+                  setShowExitModal(false);
+                  BackHandler.exitApp();
+                }}
+              >
+                <Text style={styles.exitButtonText}>Exit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -176,4 +216,76 @@ const styles = StyleSheet.create({
   buttonWrapper: { paddingHorizontal: 30, paddingBottom: 30 },
   getStartedButton: { backgroundColor: '#000', paddingVertical: 18, borderRadius: 30, alignItems: 'center', width: '100%', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 5, elevation: 8 },
   getStartedButtonText: { color: '#FFF', fontWeight: '600', fontSize: 16 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 320,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    padding: 30,
+    paddingBottom: 20,
+  },
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#fff5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 18,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#f0f0f0',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  exitButton: {
+    flex: 1,
+    paddingVertical: 18,
+    alignItems: 'center',
+  },
+  exitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ff6b6b',
+  },
 });

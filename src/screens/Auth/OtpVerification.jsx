@@ -8,6 +8,7 @@ import {
   Platform,
   Image,
   ScrollView,
+  KeyboardAvoidingView,
   Keyboard,
   Alert,
   ActivityIndicator,
@@ -89,12 +90,18 @@ export default function OtpVerification({ route, navigation }) {
   };
 
   return (
-    <ScrollView 
-      contentContainerStyle={styles.scrollContainer}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
-      <View style={styles.container}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+      >
+        <View style={styles.container}>
         <Image
           source={require('../../assets/otpImage.png')}
           style={styles.mainGraphicImage}
@@ -153,15 +160,16 @@ export default function OtpVerification({ route, navigation }) {
             <Text style={styles.submitButtonText}>Submit</Text>
           )}
         </TouchableOpacity>
-      </View>
-      
-      <Snackbar
-        visible={snackbar.visible}
-        message={snackbar.message}
-        type={snackbar.type}
-        onHide={() => setSnackbar({ ...snackbar, visible: false })}
-      />
-    </ScrollView>
+        </View>
+        
+        <Snackbar
+          visible={snackbar.visible}
+          message={snackbar.message}
+          type={snackbar.type}
+          onHide={() => setSnackbar({ ...snackbar, visible: false })}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

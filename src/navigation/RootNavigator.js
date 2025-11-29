@@ -9,7 +9,8 @@ import AppStackNavigator from './AppStackNavigator';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
 
 export default function RootNavigator() {
-  const { user, isGuest, loading, isNewUser } = useSelector(state => state.auth);
+  const { user, isGuest, isNewUser } = useSelector(state => state.auth);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const [appLanguage, setAppLanguage] = useState(null);
 
@@ -23,11 +24,14 @@ export default function RootNavigator() {
     };
     loadLanguage();
 
-    const timer = setTimeout(() => setShowSplash(false), 1000);
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+      setInitialLoading(false);
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
-  if (showSplash) return <SplashScreen />;
+  if (showSplash || initialLoading) return <SplashScreen />;
 
   if (!appLanguage) {
     return <LanguageSelectScreen onComplete={(lang) => setAppLanguage(lang)} />;
