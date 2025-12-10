@@ -15,12 +15,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
-  const tags = ['Tag-1', 'Tag-2', 'Tag-3', 'Tag-4'];
+  const tags = ['Tag-1', 'Tag-2', 'Tag-3', 'Tag-4', 'Tag-5', 'Tag-6', 'Tag-7', 'Tag-8', 'Tag-9', 'Tag-10'];
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 5000);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -69,6 +69,13 @@ const HomeScreen = () => {
               <JobCard />
               <JobCard />
               <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
+              <JobCard />
             </>
           )}
         </ScrollView>
@@ -95,34 +102,45 @@ const styles = StyleSheet.create({
   },
 
   tagRow: {
-    margin: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  padding: 6,
+  flexDirection: 'row',
+  alignItems: 'center',
+
+  backgroundColor: '#fff',
+  shadowColor: '#000',
+  shadowOpacity: 0.1,
+  shadowRadius: 5,
+  elevation: 3,
+},
   tagScroll: {
     flex: 1,
     marginRight: 10,
   },
   tag: {
-    borderWidth: 2,
-    borderColor: '#222',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    marginRight: 10,
-  },
-  tagText: {
-    color: '#222',
-    fontWeight: 'bold',
-  },
-  sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sortText: {
-    color: '#222',
-    fontWeight: 'bold',
-  },
+    borderWidth: 1, // Reduced border thickness
+    borderColor: '#ddd', // Softer border color
+    borderRadius: 8, // Reduced border radius for a slightly sharper look
+    paddingHorizontal: 12, // Reduced padding
+    paddingVertical: 4,  // Reduced padding
+    marginRight: 8,
+    backgroundColor: '#fff', // Added background for better contrast
+  },
+  tagText: {
+    color: '#666', // Softer text color
+    fontWeight: '500', // Adjusted font weight
+    fontSize: 13,
+  },
+ sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 5, // Added padding for better hit area
+    borderRadius: 5,
+  },
+  sortText: {
+    color: '#444', // Slightly darker for better visibility
+    fontWeight: '600',
+    fontSize: 14,
+  },
 });
 
 export default HomeScreen;
