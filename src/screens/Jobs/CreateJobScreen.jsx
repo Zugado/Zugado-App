@@ -13,25 +13,28 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import MyStatusBar from '../../components/MyStatusbar';
-
+import { TypeSelectorButtons } from '../../components/CommonComponents';
 export default function CreateJob({ navigation }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [skill, setSkill] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [skill, setSkill] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('Intermediate');
 
   // Job For
-  const [jobFor, setJobFor] = useState("Select");
+  const [jobFor, setJobFor] = useState('Select');
   const [showJobForModal, setShowJobForModal] = useState(false);
+  const jobForOptions = [
+    { label: 'Person', value: 'Person' },
+    { label: 'Thing', value: 'Thing' },
+  ];
 
   // Job Type
-  const [jobType, setJobType] = useState("Select");
+  const [jobType, setJobType] = useState('Select');
   const [showJobTypeModal, setShowJobTypeModal] = useState(false);
-
   // --- NEW TAG STATE & LOGIC ---
   const [tags, setTags] = useState([
-    { tag: "web", subTag: "frontend" },
-    { tag: "react", subTag: "development" },
+    { tag: 'web', subTag: 'frontend' },
+    { tag: 'react', subTag: 'development' },
   ]);
 
   const [showTagModal, setShowTagModal] = useState(false);
@@ -41,20 +44,20 @@ export default function CreateJob({ navigation }) {
   // Define your available Tag/SubTag structure
   const availableTags = [
     {
-      name: "web",
-      subTags: ["frontend", "backend", "fullstack"],
+      name: 'web',
+      subTags: ['frontend', 'backend', 'fullstack'],
     },
     {
-      name: "react",
-      subTags: ["development", "native", "testing"],
+      name: 'react',
+      subTags: ['development', 'native', 'testing'],
     },
     {
-      name: "design",
-      subTags: ["ui/ux", "graphic", "motion"],
+      name: 'design',
+      subTags: ['ui/ux', 'graphic', 'motion'],
     },
     {
-      name: "marketing",
-      subTags: ["seo", "content", "social media"],
+      name: 'marketing',
+      subTags: ['seo', 'content', 'social media'],
     },
   ];
 
@@ -73,7 +76,7 @@ export default function CreateJob({ navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <SafeAreaView style={styles.container}>
-         <MyStatusBar/>
+        <MyStatusBar />
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -81,7 +84,10 @@ export default function CreateJob({ navigation }) {
         >
           {/* --- Header --- */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+            >
               <Feather name="arrow-left" size={20} color="#000" />
             </TouchableOpacity>
             <View style={styles.progressContainer}>
@@ -91,34 +97,13 @@ export default function CreateJob({ navigation }) {
           </View>
 
           {/* --- Title --- */}
-          <Text style={styles.title}>Create and Customize Your Job Posting</Text>
+          <Text style={styles.title}>
+            Create and Customize Your Job Posting
+          </Text>
 
           {/* --- Form --- */}
           <View style={styles.form}>
-
-            {/* Job For */}
-            <Text style={styles.label}>Job For</Text>
-            <TouchableOpacity
-              style={styles.textInput}
-              onPress={() => setShowJobForModal(true)}
-            >
-              <Text style={{ color: jobFor === "Select" ? "#888" : "#000" }}>
-                {jobFor}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Job Type */}
-            <Text style={styles.label}>Job Type</Text>
-            <TouchableOpacity
-              style={styles.textInput}
-              onPress={() => setShowJobTypeModal(true)}
-            >
-              <Text style={{ color: jobType === "Select" ? "#888" : "#000" }}>
-                {jobType}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Job Title */}
+             {/* Job Title */}
             <Text style={styles.label}>Job Title</Text>
             <TextInput
               style={styles.textInput}
@@ -127,11 +112,35 @@ export default function CreateJob({ navigation }) {
               value={title}
               onChangeText={setTitle}
             />
+            {/* Job For */}
+            <Text style={styles.label}>Job For</Text>
+            <TypeSelectorButtons
+              type={jobFor}
+              setType={setJobFor}
+              options={jobForOptions}
+            />
+           
+
+            {/* Job Type */}
+            <Text style={styles.label}>Job Type</Text>
+            <TouchableOpacity
+              style={[styles.textInput,{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
+              onPress={() => setShowJobTypeModal(true)}
+            >
+              <Text style={{ color: jobType === 'Select' ? '#888' : '#000' , fontSize: 12 }}>
+                {jobType}
+              </Text>
+              <Feather name="chevron-down" size={20} color="#888" />
+            </TouchableOpacity>
+
+           
 
             {/* Job Category - UPDATED SECTION */}
             <Text style={styles.label}>Job Category</Text>
             <View style={styles.categoryBox}>
-              <Text style={styles.categoryPlaceholder}>Selected Categories:</Text>
+              <Text style={styles.categoryPlaceholder}>
+                Selected Categories:
+              </Text>
               <View style={styles.tagsContainer}>
                 {tags.map((item, index) => (
                   <View key={index} style={styles.tag}>
@@ -140,15 +149,22 @@ export default function CreateJob({ navigation }) {
                     </Text>
                     <TouchableOpacity
                       onPress={() =>
-                        setTags((prevTags) => prevTags.filter((t, i) => i !== index))
+                        setTags(prevTags =>
+                          prevTags.filter((t, i) => i !== index),
+                        )
                       }
                     >
-                      <Feather name="x" size={14} color="#555" style={styles.tagClose} />
+                      <Feather
+                        name="x"
+                        size={14}
+                        color="#555"
+                        style={styles.tagClose}
+                      />
                     </TouchableOpacity>
                   </View>
                 ))}
-                <TouchableOpacity 
-                  style={styles.addTagButton} 
+                <TouchableOpacity
+                  style={styles.addTagButton}
                   onPress={() => setShowTagModal(true)}
                 >
                   <Feather name="plus" size={16} color="#000" />
@@ -206,7 +222,7 @@ export default function CreateJob({ navigation }) {
           <TouchableOpacity
             style={styles.nextButton}
             onPress={() =>
-              navigation.navigate("CreateJobScreen2", {
+              navigation.navigate('CreateJobScreen2', {
                 jobData: {
                   jobFor,
                   jobType,
@@ -215,7 +231,7 @@ export default function CreateJob({ navigation }) {
                   tags,
                   requirements: skill,
                   experienceLevel,
-                }
+                },
               })
             }
           >
@@ -232,7 +248,7 @@ export default function CreateJob({ navigation }) {
               <TouchableOpacity
                 style={styles.modalOption}
                 onPress={() => {
-                  setJobFor("Person");
+                  setJobFor('Person');
                   setShowJobForModal(false);
                 }}
               >
@@ -242,7 +258,7 @@ export default function CreateJob({ navigation }) {
               <TouchableOpacity
                 style={styles.modalOption}
                 onPress={() => {
-                  setJobFor("Thing");
+                  setJobFor('Thing');
                   setShowJobForModal(false);
                 }}
               >
@@ -268,7 +284,7 @@ export default function CreateJob({ navigation }) {
               <TouchableOpacity
                 style={styles.modalOption}
                 onPress={() => {
-                  setJobType("Quick");
+                  setJobType('Quick');
                   setShowJobTypeModal(false);
                 }}
               >
@@ -278,7 +294,7 @@ export default function CreateJob({ navigation }) {
               <TouchableOpacity
                 style={styles.modalOption}
                 onPress={() => {
-                  setJobType("Standard");
+                  setJobType('Standard');
                   setShowJobTypeModal(false);
                 }}
               >
@@ -294,24 +310,26 @@ export default function CreateJob({ navigation }) {
             </View>
           </View>
         )}
-        
+
         {/* --- NEW MODAL: Select Main Tag --- */}
         {showTagModal && (
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <Text style={styles.modalTitle}>Select Main Tag</Text>
               <ScrollView style={styles.modalScrollView}>
-                {availableTags.map((item) => (
+                {availableTags.map(item => (
                   <TouchableOpacity
                     key={item.name}
                     style={styles.modalOption}
                     onPress={() => {
-                      setCurrentSelectedTag(item); 
-                      setShowTagModal(false); 
-                      setShowSubTagModal(true); 
+                      setCurrentSelectedTag(item);
+                      setShowTagModal(false);
+                      setShowSubTagModal(true);
                     }}
                   >
-                    <Text style={styles.modalOptionText}>{item.name.toUpperCase()}</Text>
+                    <Text style={styles.modalOptionText}>
+                      {item.name.toUpperCase()}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -330,19 +348,21 @@ export default function CreateJob({ navigation }) {
         {showSubTagModal && currentSelectedTag && (
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>Select Sub-Tag for: **{currentSelectedTag.name.toUpperCase()}**</Text>
+              <Text style={styles.modalTitle}>
+                Select Sub-Tag for: **{currentSelectedTag.name.toUpperCase()}**
+              </Text>
               <ScrollView style={styles.modalScrollView}>
-                {currentSelectedTag.subTags.map((subTag) => (
+                {currentSelectedTag.subTags.map(subTag => (
                   <TouchableOpacity
                     key={subTag}
                     style={styles.modalOption}
                     onPress={() => {
-                      setTags((prevTags) => [
+                      setTags(prevTags => [
                         ...prevTags,
                         { tag: currentSelectedTag.name, subTag: subTag },
                       ]);
-                      setCurrentSelectedTag(null); 
-                      setShowSubTagModal(false); 
+                      setCurrentSelectedTag(null);
+                      setShowSubTagModal(false);
                     }}
                   >
                     <Text style={styles.modalOptionText}>{subTag}</Text>
@@ -362,7 +382,6 @@ export default function CreateJob({ navigation }) {
             </View>
           </View>
         )}
-
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -382,20 +401,25 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginHorizontal: 15,
   },
-  progressBar: { width: '33.33%', height: '100%', backgroundColor: '#000', borderRadius: 4 },
+  progressBar: {
+    width: '33.33%',
+    height: '100%',
+    backgroundColor: '#000',
+    borderRadius: 4,
+  },
   progressText: { fontSize: 14, color: '#888' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#000', marginBottom: 30 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#000', marginBottom: 30 ,textAlign:'center' },
   form: { width: '100%' },
-  label: { fontSize: 16, color: '#000', marginBottom: 8, fontWeight: '500' },
+  label: { fontSize: 14, color: '#000', marginBottom: 8, fontWeight: '500' },
   textInput: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 15,
-    fontSize: 16,
+    fontSize: 12,
     color: '#000',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   descriptionInput: { height: 120, textAlignVertical: 'top' },
   categoryBox: {
@@ -406,7 +430,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     minHeight: 100,
   },
-  categoryPlaceholder: { color: '#000', fontSize: 16, fontWeight: '500' },
+  categoryPlaceholder: { color: '#000', fontSize: 14, fontWeight: '500' },
   tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
   tag: {
     flexDirection: 'row',
@@ -418,7 +442,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
     marginBottom: 10,
   },
-  tagText: { fontSize: 14, color: '#000' },
+  tagText: { fontSize: 12, color: '#000' },
   tagClose: { marginLeft: 5 },
 
   // NEW STYLES
@@ -435,7 +459,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   addTagText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#000',
     marginLeft: 5,
   },
@@ -458,11 +482,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  radioSelected: { width: 14, height: 14, backgroundColor: '#000', borderRadius: 7 },
+  radioSelected: {
+    width: 14,
+    height: 14,
+    backgroundColor: '#000',
+    borderRadius: 7,
+  },
   optionText: { fontSize: 16, color: '#000' },
   buttonContainer: {
     position: 'absolute',
-    bottom: 0, left: 0, right: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
     padding: 20,
     backgroundColor: '#fff',
     borderTopWidth: 1,
@@ -479,27 +510,30 @@ const styles = StyleSheet.create({
   // MODAL
   modalOverlay: {
     position: 'absolute',
-    top: 0, right: 0, bottom: 0, left: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalBox: {
-    width: "80%",
-    backgroundColor: "#fff",
+    width: '80%',
+    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 20 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 20 },
   modalScrollView: { maxHeight: 250, width: '100%' }, // Added for scrollable options
   modalOption: {
-    width: "100%",
+    width: '100%',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: '#eee',
   },
-  modalOptionText: { fontSize: 16, textAlign: "center", color: "#000" },
+  modalOptionText: { fontSize: 16, textAlign: 'center', color: '#000' },
   modalCancelBtn: { marginTop: 15 },
-  modalCancelText: { fontSize: 16, color: "red" },
+  modalCancelText: { fontSize: 16, color: 'red' },
 });
