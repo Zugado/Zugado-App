@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/Ionicons'; // For Arrow and Bell
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons'; // For the central plus button
 import { SafeAreaView } from 'react-native-safe-area-context';
 import JobCard from '../screens/Home/JobCard';
+import MyStatusBar from '../components/MyStatusbar';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -76,8 +77,8 @@ const ManageJobScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <View style={styles.container}>
+        <MyStatusBar/> 
+         <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <Icon name="arrow-back" size={24} color="#000" />

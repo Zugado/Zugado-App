@@ -27,6 +27,7 @@ import { useImagePicker } from '../utils/useImagePicker';
 import { updateProfilePicAPI } from '../store/api/userApi';
 import { updateUserDetails, getUserProfile, updateProfilePic } from '../store/thunks/userThunk';
 import Header from '../components/Header';
+import MyStatusBar from '../components/MyStatusbar';
 
 const InfoBox = ({ 
   iconName, 
@@ -511,6 +512,7 @@ export default function ProfileScreen({ navigation }) {
   if (isGuest) {
     return (
       <SafeAreaView style={styles.safeArea}>
+           <MyStatusBar/>
         <View style={styles.guestContainer}>
           <View style={styles.topNav}>
             <Text style={styles.screenTitle}>Profile</Text>

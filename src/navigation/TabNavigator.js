@@ -24,13 +24,17 @@ const CustomTabBarButton = ({ children, onPress }) => (
   >
     <View
       style={{
-        width: 70,
-        height: 70,
+        width: 60,
+        height: 60,
         borderRadius: 35,
         backgroundColor: '#111',
         justifyContent: 'center',
         alignItems: 'center',
-
+        borderColor: '#fff',
+        borderWidth: 1,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.5,
         // LIGHTER 360° SHADOW
         shadowColor: '#000000ff', // Lighter, pinkish shadow color
         shadowOffset: { width: 0, height: 0 },

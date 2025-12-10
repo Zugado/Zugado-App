@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
+import MyStatusBar from '../../components/MyStatusbar';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Header from '../../components/Header';
 import JobCard from './JobCard';
@@ -26,10 +27,9 @@ const HomeScreen = () => {
   }, []);
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
-      <StatusBar barStyle="light-content" backgroundColor="#050505ff" />
-      <View style={styles.appContainer}>
+       <MyStatusBar/>
+       <View style={styles.appContainer}>
         <Header />
-
         {/* Row 3: Tags & Sort */}
         <View style={styles.tagRow}>
           <ScrollView

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PaginationDots from '../../components/PaginationDots';
 
 import illustration from '../../assets/onboarding1.png'; 
+import MyStatusBar from '../../components/MyStatusbar';
 
 export default function Onboarding1({ navigation }) {
 
@@ -25,8 +26,7 @@ export default function Onboarding1({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F7F9" />
-
+        <MyStatusBar/>
       <View style={styles.skipContainer}>
         <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
           <Text style={styles.skipText}>Skip</Text>

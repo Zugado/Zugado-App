@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
+import MyStatusBar from '../../components/MyStatusbar';
 
 export default function CreateJob({ navigation }) {
   const [title, setTitle] = useState("");
@@ -72,7 +73,7 @@ export default function CreateJob({ navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+         <MyStatusBar/>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}

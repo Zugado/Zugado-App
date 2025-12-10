@@ -11,7 +11,7 @@ const JobCard = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   return (
-    <TouchableOpacity style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen')}>
+    <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen')}>
       {/* Image */}
       <Image
         source={require('../../assets/jobCard.png')} 
