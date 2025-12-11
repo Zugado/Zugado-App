@@ -66,17 +66,18 @@ const HomeScreen = () => {
           ) : (
             // Show actual job cards
             <>
+             
+              <JobCard urgent={true} />
+               <JobCard saved={false} urgent={true}/>
+              <JobCard />
+              <JobCard />
+               <JobCard saved={false}/>
               <JobCard />
               <JobCard />
               <JobCard />
               <JobCard />
               <JobCard />
-              <JobCard />
-              <JobCard />
-              <JobCard />
-              <JobCard />
-              <JobCard />
-            </>
+               </>
           )}
         </ScrollView>
       </View>

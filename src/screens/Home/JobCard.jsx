@@ -7,22 +7,42 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import { useNavigation } from '@react-navigation/native';
 
-const JobCard = () => {
+const JobCard = ({saved=true ,urgent=false}) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   return (
     <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen')}>
       {/* Image */}
-      <Image
+      {saved?(<Image
         source={require('../../assets/jobCard.png')} 
         style={styles.cardImage}
         resizeMode='cover'
-      />
+      />):(
+      <View style={styles.empltyImage}></View>)}
       {/* Urgent Tag */}
       <View style={styles.urgentTag}>
-        <Text style={styles.urgentText}>Urgent</Text>
+        {urgent ? (
+          <Image
+            source={require('../../assets/Icons/ToggleYes.png')} 
+            style={styles.urgentTagImage}
+            resizeMode='cover'
+          />
+        ) : (
+          <Image
+            source={require('../../assets/Icons/ToggleNo.png')} 
+            style={styles.urgentTagImage}
+            resizeMode='cover'
+          />
+        )}
       </View>
-
+       <View style={styles.saveTag}>
+        <Image
+          source={require('../../assets/Icons/SavedGolden.png')} 
+          style={styles.saveTagImage}
+          resizeMode='cover'
+        />
+      </View>
+       
       {/* Content */}
       <View style={styles.contentContainer}>
         {/* Title & Price */}
@@ -72,7 +92,7 @@ const JobCard = () => {
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: '#fff',
-    borderRadius: 12, 
+    borderRadius: 24, 
     marginHorizontal: 15,
     marginVertical: 8,
     elevation: 5, 
@@ -87,20 +107,36 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
+  empltyImage:{
+    width: '100%',
+    height: 30,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    // backgroundColor: '#f2f2f2',
+  },
+ saveTagImage: {
+    width:20,
+    height: 23,
+  
+  },
+urgentTagImage: {
+    width:60,
+    height: 23,
+  
+  },
   urgentTag: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#d9534f', 
-    paddingHorizontal: 8, 
-    paddingVertical: 2, 
-    borderRadius: 5, 
+    top: 12,
+    right: 0,
+  
   },
-  urgentText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 10, 
+  saveTag: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+   
   },
+  
   contentContainer: {
     padding: 12, 
   },
@@ -111,18 +147,18 @@ const styles = StyleSheet.create({
     marginBottom: 6, 
   },
   title: {
-    fontSize: 17, 
+    fontSize: 14, 
     fontWeight: '700', 
     color: '#1a1a1a', 
   },
   price: {
-    fontSize: 17, 
+    fontSize: 14, 
     fontWeight: '700',
     color: '#1a1a1a', 
   },
   description: {
     color: '#555', 
-    fontSize: 13, 
+    fontSize: 12, 
     marginBottom: 6, 
   },
   locationRow: {
@@ -132,15 +168,15 @@ const styles = StyleSheet.create({
   },
   locationIcon: {
     color: '#888',
-    fontSize: 14, 
+    fontSize: 12, 
     marginRight: 5,
   },
   locationText: {
     color: '#888',
-    fontSize: 13, 
+    fontSize: 12, 
   },
   vendorName: {
-    fontSize: 14, 
+    fontSize: 12, 
     fontWeight: '600', 
     color: '#333',
   },
@@ -150,12 +186,12 @@ const styles = StyleSheet.create({
   },
   starIcon: {
     color: '#FFD700',
-    fontSize: 14, 
+    fontSize: 12, 
     marginRight: 4, 
   },
   ratingText: {
     color: '#666',
-    fontSize: 13, 
+    fontSize: 12, 
   },
   buttonRow: {
     flexDirection: 'row',
@@ -166,10 +202,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000ff', 
     borderRadius: 25, 
-    paddingVertical: 10, 
+    paddingVertical: 8, 
     alignItems: 'center',
     marginRight: 8, 
-    shadowColor: '#007aff', 
+    shadowColor: '#000000ff', 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
@@ -178,14 +214,14 @@ const styles = StyleSheet.create({
   bidButtonText: {
     color: '#fff',
     fontWeight: '700',
-    fontSize: 15, 
+    fontSize: 14, 
   },
   chatButton: {
     flex: 1,
     borderWidth: 1.5,
     borderColor: '#ccc', 
     borderRadius: 25, 
-    paddingVertical: 10, 
+    paddingVertical: 8, 
     alignItems: 'center',
     marginLeft: 8, 
     backgroundColor: '#fff',
@@ -193,7 +229,7 @@ const styles = StyleSheet.create({
   chatButtonText: {
     color: '#444', 
     fontWeight: '700',
-    fontSize: 15, 
+    fontSize: 14, 
   },
 });
 
