@@ -4,13 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../styles/commonStyles';
 const MyStatusBar = () => {
   return (
-    <SafeAreaView style={{backgroundColor: Colors.primary}}>
+    //  <SafeAreaView style={{backgroundColor: Colors.primary}}>
       <StatusBar
         translucent={false}
         backgroundColor={Colors.primary}
         barStyle={'light-content'}
       />
-    </SafeAreaView>
+    // </SafeAreaView>
   );
 };
 

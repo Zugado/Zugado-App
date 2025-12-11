@@ -104,14 +104,14 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: 120, 
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   empltyImage:{
     width: '100%',
     height: 30,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     // backgroundColor: '#f2f2f2',
   },
  saveTagImage: {
