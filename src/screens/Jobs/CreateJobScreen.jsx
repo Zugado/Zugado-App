@@ -18,7 +18,7 @@ export default function CreateJob({ navigation }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [skill, setSkill] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState('Intermediate');
+  const [experienceLevel, setExperienceLevel] = useState([]);
 
   // Job For
   const [jobFor, setJobFor] = useState('Select');
@@ -61,14 +61,22 @@ export default function CreateJob({ navigation }) {
     },
   ];
 
-  const RadioButton = ({ label, selected, onPress }) => (
-    <TouchableOpacity style={styles.option} onPress={onPress}>
-      <View style={styles.radio}>
-        {selected && <View style={styles.radioSelected} />}
+  const CheckboxButton = ({ label, selected, onPress }) => (
+    <TouchableOpacity activeOpacity={0.8} style={styles.option} onPress={onPress}>
+      <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
+        {selected && <Feather name="check" size={12} color="#fff" />}
       </View>
       <Text style={styles.optionText}>{label}</Text>
     </TouchableOpacity>
   );
+
+  const toggleExperienceLevel = (level) => {
+    setExperienceLevel(prev => 
+      prev.includes(level) 
+        ? prev.filter(item => item !== level)
+        : [...prev, level]
+    );
+  };
 
   return (
     <KeyboardAvoidingView
@@ -132,8 +140,27 @@ export default function CreateJob({ navigation }) {
               </Text>
               <Feather name="chevron-down" size={20} color="#888" />
             </TouchableOpacity>
-
+   {/* Job Description */}
+            <Text style={styles.label}>Job Description</Text>
+            <TextInput
+              style={[styles.textInput, styles.descriptionInput]}
+              placeholder="Enter Description"
+              placeholderTextColor="#888"
+              multiline
+              numberOfLines={4}
+              value={description}
+              onChangeText={setDescription}
+            />
            
+            {/* Skill Required */}
+            <Text style={styles.label}>Skill Required</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Enter Skill (e.g., React, Redux)"
+              placeholderTextColor="#888"
+              value={skill}
+              onChangeText={setSkill}
+            />
 
             {/* Job Category - UPDATED SECTION */}
             <Text style={styles.label}>Job Category</Text>
@@ -173,45 +200,26 @@ export default function CreateJob({ navigation }) {
               </View>
             </View>
 
-            {/* Job Description */}
-            <Text style={styles.label}>Job Description</Text>
-            <TextInput
-              style={[styles.textInput, styles.descriptionInput]}
-              placeholder="Enter Description"
-              placeholderTextColor="#888"
-              multiline
-              numberOfLines={4}
-              value={description}
-              onChangeText={setDescription}
-            />
+         
 
-            {/* Skill Required */}
-            <Text style={styles.label}>Skill Required</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Enter Skill (e.g., React, Redux)"
-              placeholderTextColor="#888"
-              value={skill}
-              onChangeText={setSkill}
-            />
 
             {/* Experience Level */}
             <Text style={styles.label}>Experience Level</Text>
             <View style={styles.experienceBox}>
-              <RadioButton
+              <CheckboxButton
                 label="Beginner"
-                selected={experienceLevel === 'Beginner'}
-                onPress={() => setExperienceLevel('Beginner')}
+                selected={experienceLevel.includes('Beginner')}
+                onPress={() => toggleExperienceLevel('Beginner')}
               />
-              <RadioButton
+              <CheckboxButton
                 label="Intermediate"
-                selected={experienceLevel === 'Intermediate'}
-                onPress={() => setExperienceLevel('Intermediate')}
+                selected={experienceLevel.includes('Intermediate')}
+                onPress={() => toggleExperienceLevel('Intermediate')}
               />
-              <RadioButton
+              <CheckboxButton
                 label="Advanced"
-                selected={experienceLevel === 'Advanced'}
-                onPress={() => setExperienceLevel('Advanced')}
+                selected={experienceLevel.includes('Advanced')}
+                onPress={() => toggleExperienceLevel('Advanced')}
               />
             </View>
           </View>
@@ -393,7 +401,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 120 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
-  backButton: { backgroundColor: '#f0f0f0', padding: 10, borderRadius: 20 },
+  backButton: { backgroundColor: '#fff', padding: 10, borderRadius: 20 ,shadowColor:"#000",shadowOffset:{width:2,height:3},shadowOpacity:0.3,shadowRadius:4,elevation:3, },
   progressContainer: {
     flex: 1,
     height: 8,
@@ -472,23 +480,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   option: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
-  radio: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: '#000',
-    borderRadius: 12, // Changed to round for radio button look
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1,
+    borderColor: '#171717ff',
+    borderRadius: 4,
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  radioSelected: {
-    width: 14,
-    height: 14,
+  checkboxSelected: {
     backgroundColor: '#000',
-    borderRadius: 7,
   },
-  optionText: { fontSize: 16, color: '#000' },
+  
+  optionText: { fontSize: 12, color: '#000' },
   buttonContainer: {
     position: 'absolute',
     bottom: 0,
@@ -502,10 +508,10 @@ const styles = StyleSheet.create({
   nextButton: {
     backgroundColor: '#000',
     borderRadius: 30,
-    paddingVertical: 18,
+    paddingVertical: 12,
     alignItems: 'center',
   },
-  nextButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
   // MODAL
   modalOverlay: {

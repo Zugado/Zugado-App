@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import Feather from "react-native-vector-icons/Feather";
 
 export default function DateTimePickerField({
   label,
@@ -32,9 +33,14 @@ export default function DateTimePickerField({
         onPress={() => setOpen(true)}
         activeOpacity={0.7}
       >
-        <Text style={{ color: value ? "#000" : "#888" }}>
+        <Text style={{ color: value ? "#000" : "#888", fontSize: 12, flex: 1 }}>
           {value || `Select ${label}`}
         </Text>
+        <Feather 
+          name={mode === "date" ? "calendar" : mode === "time" ? "clock" : "calendar"} 
+          size={20} 
+          color="#000000" 
+        />
       </TouchableOpacity>
 
       {open && (
@@ -52,11 +58,14 @@ export default function DateTimePickerField({
 
 const styles = StyleSheet.create({
   label: {
-    fontSize: 15,
+    fontSize: 14,
     marginBottom: 8,
     color: "#000",
+    fontWeight: "600",
   },
   input: {
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 10,

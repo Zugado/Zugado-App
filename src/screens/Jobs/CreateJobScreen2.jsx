@@ -40,12 +40,12 @@ export default function CreateJob({ navigation, route }) {
   const [amountMax, setAmountMax] = useState("");
 
 
-  const SquareRadioButton = ({ label, selected, onPress }) => (
-    <TouchableOpacity style={styles.squareOption} onPress={onPress}>
-      <View style={[styles.squareRadio, selected && styles.squareRadioSelected]} />
-      <Text style={[styles.squareOptionText, selected && styles.squareOptionTextSelected]}>
-        {label}
-      </Text>
+  const CheckboxButton = ({ label, selected, onPress }) => (
+    <TouchableOpacity activeOpacity={0.8} style={styles.option} onPress={onPress}>
+      <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
+        {selected && <Feather name="check" size={12} color="#fff" />}
+      </View>
+      <Text style={styles.optionText}>{label}</Text>
     </TouchableOpacity>
   );
 
@@ -104,17 +104,17 @@ export default function CreateJob({ navigation, route }) {
             <Text style={styles.label}>Job Location</Text>
 
             <View style={styles.locationOptionsContainer}>
-              <SquareRadioButton
+              <CheckboxButton
                 label="On-site"
                 selected={jobLocationType === "On-site"}
                 onPress={() => setJobLocationType("On-site")}
               />
-              <SquareRadioButton
+              <CheckboxButton
                 label="Hybrid"
                 selected={jobLocationType === "Hybrid"}
                 onPress={() => setJobLocationType("Hybrid")}
               />
-              <SquareRadioButton
+              <CheckboxButton
                 label="Remote"
                 selected={jobLocationType === "Remote"}
                 onPress={() => setJobLocationType("Remote")}
@@ -122,6 +122,7 @@ export default function CreateJob({ navigation, route }) {
             </View>
 
             {/* Address picker placeholder */}
+            <Text style={styles.label}>Address</Text>
             <TouchableOpacity style={styles.textInputWithIcon}>
               <TextInput
                 style={styles.textInputFlex}
@@ -329,8 +330,8 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 100 },
   header: { flexDirection: "row", alignItems: "center", marginBottom: 30 },
-  backButton: { backgroundColor: "#f0f0f0", padding: 10, borderRadius: 20 },
-  progressContainer: {
+ backButton: { backgroundColor: '#fff', padding: 10, borderRadius: 20 ,shadowColor:"#000",shadowOffset:{width:2,height:3},shadowOpacity:0.3,shadowRadius:4,elevation:3, },
+ progressContainer: {
     flex: 1,
     height: 8,
     backgroundColor: "#f0f0f0",
@@ -339,25 +340,30 @@ const styles = StyleSheet.create({
   },
   progressBar: { height: "100%", backgroundColor: "#000", borderRadius: 4 },
   progressText: { fontSize: 14, color: "#888" },
-  title: { fontSize: 24, fontWeight: "bold", color: "#000", marginBottom: 30 },
+  title: { fontSize: 24, fontWeight: "bold", color: "#000", marginBottom: 30,textAlign:"center" },
   form: { width: "100%" },
-  label: { fontSize: 16, color: "#000", marginBottom: 8, fontWeight: "600" },
+  label: { fontSize: 14, color: "#000", marginBottom: 8, fontWeight: "600" },
   textInputWithIcon: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 10,
-    paddingVertical: Platform.OS === "ios" ? 12 : 6,
+    paddingVertical: 12,
     paddingHorizontal: 15,
     marginBottom: 20,
   },
-  textInputFlex: { flex: 1, fontSize: 16, color: "#000", padding: 0 },
+  textInputFlex: { flex: 1, fontSize: 12, color: "#000", padding: 0 },
 
   locationOptionsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 30,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
   squareOption: {
     flex: 1,
@@ -366,9 +372,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
+   
     backgroundColor: "#fff",
   },
   squareRadio: {
@@ -381,8 +385,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   squareRadioSelected: { backgroundColor: "#000", borderColor: "#000" },
-  squareOptionText: { fontSize: 15, color: "#000" },
+  squareOptionText: { fontSize: 12, color: "#000" },
   squareOptionTextSelected: { fontWeight: "bold" },
+
+  // Checkbox styles
+  option: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1,
+    borderColor: '#171717ff',
+    borderRadius: 4,
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxSelected: {
+    backgroundColor: '#000',
+  },
+  optionText: { fontSize: 12, color: '#000' },
 
   // Round Radios
   disclosureOptionsContainer: { flexDirection: "row", marginBottom: 20 },
@@ -403,7 +424,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     borderRadius: 5,
   },
-  roundOptionText: { fontSize: 16, color: "#000" },
+  roundOptionText: { fontSize: 12, color: "#000" },
 
   // Amount input
   amountInputContainer: {
@@ -444,7 +465,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 15,
-    fontSize: 16,
+    fontSize: 12,
     color: "#000",
     marginHorizontal: 5,
   },
@@ -462,8 +483,8 @@ const styles = StyleSheet.create({
   nextButton: {
     backgroundColor: "#000",
     borderRadius: 30,
-    paddingVertical: 18,
+    paddingVertical: 12,
     alignItems: "center",
   },
-  nextButtonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  nextButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });

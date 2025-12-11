@@ -12,14 +12,46 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import MediaPicker from '../../components/MediaPicker';
-
+import ImagePickerSheet from '../../components/ImagePickerSheet';
+import { useImagePicker } from '../../utils/useImagePicker';
 export default function CreateJobPageThree({ navigation, route }) {
   const { jobData } = route.params;
+   const { openCamera, openGallery } = useImagePicker();
+
   const [mediaFiles, setMediaFiles] = useState([]);
-
+  const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
   console.log('Job Data from Previous Screens:', jobData);
+  const pickImage = async source => {
+    try {
+      let result = null;
 
-  const handleRemoveMedia = (id) => {
+      if (source === 'camera') {
+        result = await openCamera();
+      } else {
+        result = await openGallery();
+      }
+
+      console.log('📸 Picker result:', result);
+
+      if (result?.uri) {
+        if (mediaFiles.length >= 3) return;
+        const newFile = {
+          id: Date.now().toString(),
+          uri: result.uri,
+          type: 'image',
+          fileName: result.fileName || 'image.jpg'
+        };
+        setMediaFiles([...mediaFiles, newFile]);
+      }
+    } catch (error) {
+      console.log('Error picking image:', error);
+    } finally {
+      setPickerSheetVisible(false);
+    }
+  };
+
+
+  const handleRemoveMedia = id => {
     setMediaFiles(prev => prev.filter(file => file.id !== id));
   };
 
@@ -42,7 +74,7 @@ export default function CreateJobPageThree({ navigation, route }) {
         style={styles.removeButton}
         onPress={() => handleRemoveMedia(file.id)}
       >
-        <Feather name="x" size={14} color="#fff" />
+        <Feather name="x" size={14} color='#fd6363ff' />
       </TouchableOpacity>
     </View>
   );
@@ -84,16 +116,16 @@ export default function CreateJobPageThree({ navigation, route }) {
             <Text style={styles.label}>Upload Images & Videos</Text>
 
             {/* Use Reusable Component */}
-            <MediaPicker
-              onSelect={(selected) => {
+            {/* <MediaPicker
+              onSelect={selected => {
                 setMediaFiles(prev => [...prev, ...selected]);
               }}
-            >
-              <View style={styles.uploadBox}>
+            > */}
+              <TouchableOpacity onPress={()=>setPickerSheetVisible(true)} style={styles.uploadBox}>
                 <Feather name="upload-cloud" size={30} color="#000" />
                 <Text style={styles.browseFileText}>Browse File</Text>
-              </View>
-            </MediaPicker>
+              </TouchableOpacity>
+            {/* </MediaPicker> */}
           </View>
 
           {/* --- Uploaded Media Thumbnails --- */}
@@ -115,7 +147,15 @@ export default function CreateJobPageThree({ navigation, route }) {
             <Text style={styles.submitButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>
+         
       </SafeAreaView>
+      {/* --- Image Picker Sheet --- */}
+      <ImagePickerSheet
+        visible={pickerSheetVisible}
+        onClose={() => setPickerSheetVisible(false)}
+        onCamera={() => pickImage('camera')}
+        onGallery={() => pickImage('gallery')}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -126,7 +166,16 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 20, paddingBottom: 100 },
 
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
-  backButton: { backgroundColor: '#f0f0f0', padding: 10, borderRadius: 20 },
+  backButton: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
 
   progressContainer: {
     flex: 1,
@@ -142,8 +191,14 @@ const styles = StyleSheet.create({
   },
   progressText: { fontSize: 14, color: '#888' },
 
-  title: { fontSize: 24, fontWeight: 'bold', color: '#000', marginBottom: 30 },
-  label: { fontSize: 16, color: '#000', marginBottom: 10, fontWeight: '600' },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  label: { fontSize: 14, color: '#000', marginBottom: 10, fontWeight: '600' },
 
   uploadSection: { marginBottom: 30 },
   uploadBox: {
@@ -155,7 +210,12 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     minHeight: 150,
   },
-  browseFileText: { fontSize: 16, color: '#000', marginTop: 10, fontWeight: '600' },
+  browseFileText: {
+    fontSize: 14,
+    color: '#000',
+    marginTop: 10,
+    fontWeight: '600',
+  },
 
   mediaContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 15 },
   thumbnailContainer: {
@@ -164,6 +224,13 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 10,
     overflow: 'hidden',
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: '#c0c0c0ff',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 2, height: 3 },
+    shadowColor: '#000',
+    elevation: 3,
   },
   thumbnailPlaceholder: {
     flex: 1,
@@ -175,8 +242,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 5,
     right: 5,
-    backgroundColor: '#000000AA',
+    backgroundColor: '#ffffffaa',
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#fd6363ff',
     width: 20,
     height: 20,
     alignItems: 'center',
@@ -197,8 +266,8 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: '#000',
     borderRadius: 30,
-    paddingVertical: 18,
+    paddingVertical: 12,
     alignItems: 'center',
   },
-  submitButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  submitButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
