@@ -21,15 +21,19 @@ export default function CreateJob({ navigation }) {
   const [experienceLevel, setExperienceLevel] = useState([]);
 
   // Job For
-  const [jobFor, setJobFor] = useState('Select');
+  const [jobFor, setJobFor] = useState('');
   const [showJobForModal, setShowJobForModal] = useState(false);
   const jobForOptions = [
     { label: 'Person', value: 'Person' },
     { label: 'Thing', value: 'Thing' },
   ];
+   const typeOptions = [
+    { label: 'Standard', value: 'Standard' },
+    { label: 'Quick', value: 'Quick' },
+  ];
 
   // Job Type
-  const [jobType, setJobType] = useState('Select');
+  const [jobType, setJobType] = useState('');
   const [showJobTypeModal, setShowJobTypeModal] = useState(false);
   // --- NEW TAG STATE & LOGIC ---
   const [tags, setTags] = useState([
@@ -111,6 +115,30 @@ export default function CreateJob({ navigation }) {
 
           {/* --- Form --- */}
           <View style={styles.form}>
+             {/* Job For */}
+            <Text style={styles.label}>Job For</Text>
+            <TypeSelectorButtons
+              type={jobFor}
+              setType={setJobFor}
+              options={jobForOptions}
+            />
+            
+            {/* Job Type */}
+            <Text style={styles.label}>Job Type</Text>
+             <TypeSelectorButtons
+              type={jobType}
+              setType={setJobType}
+              options={typeOptions}
+            />
+            {/* <TouchableOpacity
+              style={[styles.textInput,{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
+              onPress={() => setShowJobTypeModal(true)}
+            >
+              <Text style={{ color: jobType === 'Select' ? '#888' : '#000' , fontSize: 12 }}>
+                {jobType}
+              </Text>
+              <Feather name="chevron-down" size={20} color="#888" />
+            </TouchableOpacity> */}
              {/* Job Title */}
             <Text style={styles.label}>Job Title</Text>
             <TextInput
@@ -120,26 +148,9 @@ export default function CreateJob({ navigation }) {
               value={title}
               onChangeText={setTitle}
             />
-            {/* Job For */}
-            <Text style={styles.label}>Job For</Text>
-            <TypeSelectorButtons
-              type={jobFor}
-              setType={setJobFor}
-              options={jobForOptions}
-            />
+           
            
 
-            {/* Job Type */}
-            <Text style={styles.label}>Job Type</Text>
-            <TouchableOpacity
-              style={[styles.textInput,{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}
-              onPress={() => setShowJobTypeModal(true)}
-            >
-              <Text style={{ color: jobType === 'Select' ? '#888' : '#000' , fontSize: 12 }}>
-                {jobType}
-              </Text>
-              <Feather name="chevron-down" size={20} color="#888" />
-            </TouchableOpacity>
    {/* Job Description */}
             <Text style={styles.label}>Job Description</Text>
             <TextInput
