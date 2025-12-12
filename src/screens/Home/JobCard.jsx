@@ -6,6 +6,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import { useNavigation } from '@react-navigation/native';
+import { Colors } from '../../styles/commonStyles';
 
 const JobCard = ({saved=true ,urgent=false}) => {
   const dispatch = useDispatch();
@@ -14,26 +15,21 @@ const JobCard = ({saved=true ,urgent=false}) => {
     <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen')}>
       {/* Image */}
       {saved?(<Image
-        source={require('../../assets/jobCard.png')} 
+        source={require('../../assets/jobImage.png')} 
         style={styles.cardImage}
         resizeMode='cover'
       />):(
       <View style={styles.empltyImage}></View>)}
       {/* Urgent Tag */}
       <View style={styles.urgentTag}>
-        {urgent ? (
+        {urgent && (
           <Image
-            source={require('../../assets/Icons/ToggleYes.png')} 
+            source={require('../../assets/Icons/urgentTag.png')} 
             style={styles.urgentTagImage}
             resizeMode='cover'
           />
-        ) : (
-          <Image
-            source={require('../../assets/Icons/ToggleNo.png')} 
-            style={styles.urgentTagImage}
-            resizeMode='cover'
-          />
-        )}
+        ) }
+        <Text style={{position:"absolute",fontSize:10,right:20,top:1,color:Colors.whiteColor,fontWeight:"700"}}>Urgent</Text>
       </View>
        <View style={styles.saveTag}>
         <Image
@@ -120,8 +116,8 @@ const styles = StyleSheet.create({
   
   },
 urgentTagImage: {
-    width:60,
-    height: 23,
+    width:75,
+    height: 16,
   
   },
   urgentTag: {

@@ -35,10 +35,8 @@ const AddNewAddressScreen = ({ navigation, route }) => {
     const addressData = {
       address,
       coordinates: selectedLocation,
-      landmark,
-      
+      landmark,    
     };
-
     console.log('Saving address:', addressData);
     navigation.navigate('SelectAddressScreen', { newAddress: addressData });
   };
