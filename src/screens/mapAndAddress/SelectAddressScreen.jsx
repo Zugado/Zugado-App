@@ -47,7 +47,7 @@ const dummyaddresses = [
 ];
 const SelectAddressScreen = ({ navigation, route }) => {
   const [addresses] = useState(dummyaddresses);
-
+  
   const getAddressIcon = type => {
     switch (type) {
       case 'Office':
@@ -63,6 +63,10 @@ const SelectAddressScreen = ({ navigation, route }) => {
 
   const handleAddressSelect = address => {
     console.log('Selected Address:', address);
+    navigation.navigate('CreateJobScreen2', {
+      selectedAddress: address,
+      jobData: route.params?.jobData,
+    });
   };
 
   const renderAddressCard = ({ item }) => (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,10 +13,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import DateTimePickerField from '../../components/DateTimePickerField';
+import { Colors } from '../../styles/commonStyles';
 
 export default function CreateJob({ navigation, route }) {
-  const { jobData } = route.params;
+  const { jobData } = route.params || {};
+  const [address, setAddress] = useState({});
 
+  useEffect(() => {
+    if (route.params?.selectedAddress) {
+      console.log('Setting address object:', route.params.selectedAddress);
+      setAddress(route.params.selectedAddress);
+    }
+  }, [route.params?.selectedAddress]);
+  // const [coordinate, setCoordinate] = useState(null);
   const [jobLocationType, setJobLocationType] = useState('On-site');
 
   const [discloseAmount, setDiscloseAmount] = useState(true);
@@ -135,13 +144,24 @@ export default function CreateJob({ navigation, route }) {
               onPress={() => navigation.navigate('SelectAddressScreen')}
               style={styles.textInputWithIcon}
             >
-              <TextInput
-                style={styles.textInputFlex}
-                placeholder="Choose Address"
-                placeholderTextColor="#888"
-                editable={false}
-              />
-              <Feather name="map-pin" size={20} color="#000" />
+              {!address.address ? (
+                <>
+                  <TextInput
+                    style={styles.textInputFlex}
+                    placeholder="Choose Address"
+                    placeholderTextColor="#888"
+                    editable={false}
+                  />
+                  <Feather name="map-pin" size={20} color="#000" />
+                </>
+              ) : (
+                <View>
+                  <Text style={[styles.textInputFlex,{fontWeight:'600'}]}>{address?.name}</Text>
+                  <Text style={[styles.textInputFlex,{fontSize:10,color:Colors.primary}]}>{address?.mobile}</Text>
+                  <Text  style={[styles.textInputFlex,{fontSize:10,color:Colors.grayColor}]}>{address?.landmark}</Text>
+                  <Text style={[styles.textInputFlex,{fontSize:10,color:Colors.grayColor}]}>{address?.address}</Text>
+                </View>
+              )}
             </TouchableOpacity>
 
             {/* Timing Type */}
