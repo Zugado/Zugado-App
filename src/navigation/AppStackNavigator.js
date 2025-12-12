@@ -7,7 +7,9 @@ import CreateJobScreen2 from '../screens/Jobs/CreateJobScreen2';
 import CreateJobScreen3 from '../screens/Jobs/CreateJobScreen3';
 import JobDetailedScreen from '../screens/Jobs/JobDetailedScreen';
 import LanguageSelectScreen from '../screens/LanguageSelectScreen';
-
+import LocationPickerScreen from '../screens/mapAndAddress/LocationPickerScreen';
+import AddNewAddressScreen from '../screens/mapAndAddress/AddNewAddressScreen';
+import SelectAddressScreen from '../screens/mapAndAddress/SelectAddressScreen';
 const Stack = createStackNavigator();
 
 export default function AppStackNavigator() {
@@ -19,6 +21,9 @@ export default function AppStackNavigator() {
       <Stack.Screen name="CreateJobScreen3" component={CreateJobScreen3} />
       <Stack.Screen name="JobDetailedScreen" component={JobDetailedScreen} />
       <Stack.Screen name="LanguageSelectScreen" component={LanguageSelectScreen} />
+       <Stack.Screen name="LocationPickerScreen" component={LocationPickerScreen} />
+       <Stack.Screen name="AddNewAddressScreen" component={AddNewAddressScreen} />
+        <Stack.Screen name="SelectAddressScreen" component={SelectAddressScreen} />
     </Stack.Navigator>
   );
 }

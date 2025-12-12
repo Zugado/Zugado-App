@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,39 +9,42 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Feather from "react-native-vector-icons/Feather";
-import DateTimePickerField from "../../components/DateTimePickerField";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Feather from 'react-native-vector-icons/Feather';
+import DateTimePickerField from '../../components/DateTimePickerField';
 
 export default function CreateJob({ navigation, route }) {
   const { jobData } = route.params;
 
-  const [jobLocationType, setJobLocationType] = useState("On-site");
+  const [jobLocationType, setJobLocationType] = useState('On-site');
 
   const [discloseAmount, setDiscloseAmount] = useState(true);
   const [isNegotiable, setIsNegotiable] = useState(true);
 
-  const [timingType, setTimingType] = useState("fixed");
+  const [timingType, setTimingType] = useState('fixed');
 
-  const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [date, setDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [dailyHours, setDailyHours] = useState("");
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [dailyHours, setDailyHours] = useState('');
 
-  const [deadline, setDeadline] = useState("");
+  const [deadline, setDeadline] = useState('');
 
-  const [estimatedHours, setEstimatedHours] = useState("");
+  const [estimatedHours, setEstimatedHours] = useState('');
 
-  const [amountMin, setAmountMin] = useState("");
-  const [amountMax, setAmountMax] = useState("");
-
+  const [amountMin, setAmountMin] = useState('');
+  const [amountMax, setAmountMax] = useState('');
 
   const CheckboxButton = ({ label, selected, onPress }) => (
-    <TouchableOpacity activeOpacity={0.8} style={styles.option} onPress={onPress}>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      style={styles.option}
+      onPress={onPress}
+    >
       <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
         {selected && <Feather name="check" size={12} color="#fff" />}
       </View>
@@ -60,13 +63,13 @@ export default function CreateJob({ navigation, route }) {
 
   const getTimingDetails = () => {
     switch (timingType) {
-      case "fixed":
+      case 'fixed':
         return { date, startTime, endTime };
-      case "multiday":
+      case 'multiday':
         return { startDate, endDate, dailyHours };
-      case "deadline":
+      case 'deadline':
         return { deadline };
-      case "flexible":
+      case 'flexible':
         return { estimatedHours };
       default:
         return {};
@@ -75,8 +78,8 @@ export default function CreateJob({ navigation, route }) {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#fff" }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <SafeAreaView style={styles.container}>
         <ScrollView
@@ -86,18 +89,23 @@ export default function CreateJob({ navigation, route }) {
         >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+            >
               <Feather name="arrow-left" size={20} color="#000" />
             </TouchableOpacity>
 
             <View style={styles.progressContainer}>
-              <View style={[styles.progressBar, { width: "66.66%" }]} />
+              <View style={[styles.progressBar, { width: '66.66%' }]} />
             </View>
 
             <Text style={styles.progressText}>2/3</Text>
           </View>
 
-          <Text style={styles.title}>Define Location & Payment Information</Text>
+          <Text style={styles.title}>
+            Define Location & Payment Information
+          </Text>
 
           <View style={styles.form}>
             {/* Job Location */}
@@ -106,24 +114,27 @@ export default function CreateJob({ navigation, route }) {
             <View style={styles.locationOptionsContainer}>
               <CheckboxButton
                 label="On-site"
-                selected={jobLocationType === "On-site"}
-                onPress={() => setJobLocationType("On-site")}
+                selected={jobLocationType === 'On-site'}
+                onPress={() => setJobLocationType('On-site')}
               />
               <CheckboxButton
                 label="Hybrid"
-                selected={jobLocationType === "Hybrid"}
-                onPress={() => setJobLocationType("Hybrid")}
+                selected={jobLocationType === 'Hybrid'}
+                onPress={() => setJobLocationType('Hybrid')}
               />
               <CheckboxButton
                 label="Remote"
-                selected={jobLocationType === "Remote"}
-                onPress={() => setJobLocationType("Remote")}
+                selected={jobLocationType === 'Remote'}
+                onPress={() => setJobLocationType('Remote')}
               />
             </View>
 
             {/* Address picker placeholder */}
             <Text style={styles.label}>Address</Text>
-            <TouchableOpacity style={styles.textInputWithIcon}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SelectAddressScreen')}
+              style={styles.textInputWithIcon}
+            >
               <TextInput
                 style={styles.textInputFlex}
                 placeholder="Choose Address"
@@ -139,28 +150,28 @@ export default function CreateJob({ navigation, route }) {
             <View style={{ marginBottom: 20 }}>
               <RoundRadioButton
                 label="Fixed"
-                selected={timingType === "fixed"}
-                onPress={() => setTimingType("fixed")}
+                selected={timingType === 'fixed'}
+                onPress={() => setTimingType('fixed')}
               />
               <RoundRadioButton
                 label="Multi-day"
-                selected={timingType === "multiday"}
-                onPress={() => setTimingType("multiday")}
+                selected={timingType === 'multiday'}
+                onPress={() => setTimingType('multiday')}
               />
               <RoundRadioButton
                 label="Deadline"
-                selected={timingType === "deadline"}
-                onPress={() => setTimingType("deadline")}
+                selected={timingType === 'deadline'}
+                onPress={() => setTimingType('deadline')}
               />
               <RoundRadioButton
                 label="Flexible"
-                selected={timingType === "flexible"}
-                onPress={() => setTimingType("flexible")}
+                selected={timingType === 'flexible'}
+                onPress={() => setTimingType('flexible')}
               />
             </View>
 
             {/* Input forms based on timing type */}
-            {timingType === "fixed" && (
+            {timingType === 'fixed' && (
               <>
                 <DateTimePickerField
                   label="Date"
@@ -185,7 +196,7 @@ export default function CreateJob({ navigation, route }) {
               </>
             )}
 
-            {timingType === "multiday" && (
+            {timingType === 'multiday' && (
               <>
                 <DateTimePickerField
                   label="Start Date"
@@ -211,7 +222,7 @@ export default function CreateJob({ navigation, route }) {
               </>
             )}
 
-            {timingType === "deadline" && (
+            {timingType === 'deadline' && (
               <DateTimePickerField
                 label="Deadline"
                 mode="datetime"
@@ -220,7 +231,7 @@ export default function CreateJob({ navigation, route }) {
               />
             )}
 
-            {timingType === "flexible" && (
+            {timingType === 'flexible' && (
               <TextInput
                 style={styles.textInputWithIcon}
                 placeholder="Estimated Hours"
@@ -262,8 +273,8 @@ export default function CreateJob({ navigation, route }) {
                 <View style={styles.negotiableSwitchContainer}>
                   <Text style={styles.negotiableText}>Negotiable</Text>
                   <Switch
-                    trackColor={{ false: "#767577", true: "#5CB85C" }}
-                    thumbColor={isNegotiable ? "#fff" : "#f4f3f4"}
+                    trackColor={{ false: '#767577', true: '#5CB85C' }}
+                    thumbColor={isNegotiable ? '#fff' : '#f4f3f4'}
                     onValueChange={setIsNegotiable}
                     value={isNegotiable}
                     style={styles.negotiableSwitch}
@@ -290,7 +301,6 @@ export default function CreateJob({ navigation, route }) {
                   onChangeText={setAmountMax}
                 />
               </View>
-
             </>
           </View>
         </ScrollView>
@@ -300,7 +310,7 @@ export default function CreateJob({ navigation, route }) {
           <TouchableOpacity
             style={styles.nextButton}
             onPress={() =>
-              navigation.navigate("CreateJobScreen3", {
+              navigation.navigate('CreateJobScreen3', {
                 jobData: {
                   ...jobData,
                   locationType: jobLocationType,
@@ -311,7 +321,7 @@ export default function CreateJob({ navigation, route }) {
                     min: Number(amountMin),
                     max: Number(amountMax),
                     disclose: discloseAmount,
-                  }
+                  },
                 },
               })
             }
@@ -326,41 +336,56 @@ export default function CreateJob({ navigation, route }) {
 
 /* ========== STYLES HERE ========== */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: '#fff' },
   scrollView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 100 },
-  header: { flexDirection: "row", alignItems: "center", marginBottom: 30 },
- backButton: { backgroundColor: '#fff', padding: 10, borderRadius: 20 ,shadowColor:"#000",shadowOffset:{width:2,height:3},shadowOpacity:0.3,shadowRadius:4,elevation:3, },
- progressContainer: {
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
+  backButton: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  progressContainer: {
     flex: 1,
     height: 8,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#f0f0f0',
     borderRadius: 4,
     marginHorizontal: 15,
   },
-  progressBar: { height: "100%", backgroundColor: "#000", borderRadius: 4 },
-  progressText: { fontSize: 14, color: "#888" },
-  title: { fontSize: 24, fontWeight: "bold", color: "#000", marginBottom: 30,textAlign:"center" },
-  form: { width: "100%" },
-  label: { fontSize: 14, color: "#000", marginBottom: 8, fontWeight: "600" },
+  progressBar: { height: '100%', backgroundColor: '#000', borderRadius: 4 },
+  progressText: { fontSize: 14, color: '#888' },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  form: { width: '100%' },
+  label: { fontSize: 14, color: '#000', marginBottom: 8, fontWeight: '600' },
   textInputWithIcon: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 15,
     marginBottom: 20,
   },
-  textInputFlex: { flex: 1, fontSize: 12, color: "#000", padding: 0 },
+  textInputFlex: { flex: 1, fontSize: 12, color: '#000', padding: 0 },
 
   locationOptionsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -368,25 +393,25 @@ const styles = StyleSheet.create({
   squareOption: {
     flex: 1,
     marginHorizontal: 4,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 12,
-   
-    backgroundColor: "#fff",
+
+    backgroundColor: '#fff',
   },
   squareRadio: {
     width: 20,
     height: 20,
     borderWidth: 1,
-    borderColor: "#888",
+    borderColor: '#888',
     borderRadius: 5,
     marginRight: 8,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
-  squareRadioSelected: { backgroundColor: "#000", borderColor: "#000" },
-  squareOptionText: { fontSize: 12, color: "#000" },
-  squareOptionTextSelected: { fontWeight: "bold" },
+  squareRadioSelected: { backgroundColor: '#000', borderColor: '#000' },
+  squareOptionText: { fontSize: 12, color: '#000' },
+  squareOptionTextSelected: { fontWeight: 'bold' },
 
   // Checkbox styles
   option: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
@@ -406,85 +431,90 @@ const styles = StyleSheet.create({
   optionText: { fontSize: 12, color: '#000' },
 
   // Round Radios
-  disclosureOptionsContainer: { flexDirection: "row", marginBottom: 20 },
-  roundOption: { flexDirection: "row", alignItems: "center", marginVertical: 6, marginRight: 30 },
+  disclosureOptionsContainer: { flexDirection: 'row', marginBottom: 20 },
+  roundOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 6,
+    marginRight: 30,
+  },
   roundRadio: {
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: "#000",
+    borderColor: '#000',
     borderRadius: 10,
     marginRight: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   roundRadioSelected: {
     width: 10,
     height: 10,
-    backgroundColor: "#000",
+    backgroundColor: '#000',
     borderRadius: 5,
   },
-  roundOptionText: { fontSize: 12, color: "#000" },
+  roundOptionText: { fontSize: 12, color: '#000' },
 
   // Amount input
   amountInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 10,
     marginBottom: 20,
   },
   amountInput: { paddingVertical: 12, paddingHorizontal: 15 },
   negotiableSwitchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 8,
     borderLeftWidth: 1,
-    borderLeftColor: "#ddd",
-    height: "100%",
-    backgroundColor: "rgba(92, 184, 92, 0.1)",
+    borderLeftColor: '#ddd',
+    height: '100%',
+    backgroundColor: 'rgba(92, 184, 92, 0.1)',
   },
   negotiableText: {
     fontSize: 14,
-    fontWeight: "bold",
-    color: "#5CB85C",
+    fontWeight: 'bold',
+    color: '#5CB85C',
     marginRight: 5,
   },
   negotiableSwitch: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
 
   amountRangeContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 20,
   },
   rangeInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 15,
     fontSize: 12,
-    color: "#000",
+    color: '#000',
     marginHorizontal: 5,
   },
 
   buttonContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: '#eee',
   },
   nextButton: {
-    backgroundColor: "#000",
+    backgroundColor: '#000',
     borderRadius: 30,
     paddingVertical: 12,
-    alignItems: "center",
+    alignItems: 'center',
   },
-  nextButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
