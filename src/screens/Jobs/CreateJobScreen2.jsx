@@ -156,10 +156,33 @@ export default function CreateJob({ navigation, route }) {
                 </>
               ) : (
                 <View>
-                  <Text style={[styles.textInputFlex,{fontWeight:'600'}]}>{address?.name}</Text>
-                  <Text style={[styles.textInputFlex,{fontSize:10,color:Colors.primary}]}>{address?.mobile}</Text>
-                  <Text  style={[styles.textInputFlex,{fontSize:10,color:Colors.grayColor}]}>{address?.landmark}</Text>
-                  <Text style={[styles.textInputFlex,{fontSize:10,color:Colors.grayColor}]}>{address?.address}</Text>
+                  <Text style={[styles.textInputFlex, {fontSize: 10, fontWeight: '600' }]}>
+                    {address?.name}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.textInputFlex,
+                      { fontSize: 10, color: Colors.primary },
+                    ]}
+                  >
+                    {address?.mobile}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.textInputFlex,
+                      { fontSize: 10, color: Colors.grayColor },
+                    ]}
+                  >
+                    {address?.landmark}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.textInputFlex,
+                      { fontSize: 10, color: Colors.grayColor },
+                    ]}
+                  >
+                    {address?.address}
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
