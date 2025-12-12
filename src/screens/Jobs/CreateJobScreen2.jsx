@@ -25,6 +25,7 @@ export default function CreateJob({ navigation, route }) {
       setAddress(route.params.selectedAddress);
     }
   }, [route.params?.selectedAddress]);
+  
   // const [coordinate, setCoordinate] = useState(null);
   const [jobLocationType, setJobLocationType] = useState('On-site');
 

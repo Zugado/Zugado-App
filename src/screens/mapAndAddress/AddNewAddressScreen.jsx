@@ -23,7 +23,7 @@ const AddNewAddressScreen = ({ navigation, route }) => {
   const [addressType, setAddressType] = useState('Home');
   const [mobileNumber, setMobileNumber] = useState('');
   const [name, setName] = useState('');
-
+  const [newAddress, setNewAddress] = useState(address);
   const addressTypes = ['Home', 'Office', 'Work', 'Other'];
 
   const handleSave = () => {
@@ -36,9 +36,7 @@ const AddNewAddressScreen = ({ navigation, route }) => {
       address,
       coordinates: selectedLocation,
       landmark,
-      type: addressType,
-      mobileNumber,
-      name,
+      
     };
 
     console.log('Saving address:', addressData);
@@ -72,14 +70,24 @@ const AddNewAddressScreen = ({ navigation, route }) => {
           </MapView>
         </View>
 
-        <View style={styles.addressContainer}>
+        {/* <View style={styles.addressContainer}>
           <Text style={styles.addressLabel}>Selected Address</Text>
           <Text style={styles.addressText}>
             {address || 'No address selected'}
           </Text>
-        </View>
+        </View> */}
 
         <View style={styles.formContainer}>
+          <Text style={styles.label}>Address</Text>
+          <TextInput
+            style={styles.textAreaInput}
+            placeholder="Enter Address Details"
+            placeholderTextColor={Colors.grayColor}
+            value={newAddress}
+            onChangeText={setNewAddress}
+            multiline={true}
+            textAlignVertical="top"
+          />
           <Text style={styles.label}>Landmark (Optional)</Text>
           <TextInput
             style={styles.textInput}
@@ -89,7 +97,7 @@ const AddNewAddressScreen = ({ navigation, route }) => {
             onChangeText={setLandmark}
           />
 
-          <Text style={styles.label}>Address Type</Text>
+          {/* <Text style={styles.label}>Address Type</Text>
           <View style={styles.addressTypeContainer}>
             {addressTypes.map(type => (
               <TouchableOpacity
@@ -110,18 +118,18 @@ const AddNewAddressScreen = ({ navigation, route }) => {
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </View> */}
 
-          <Text style={styles.label}>Name *</Text>
+          {/* <Text style={styles.label}>Name *</Text>
           <TextInput
             style={styles.textInput}
             placeholder="Enter your name"
             placeholderTextColor={Colors.grayColor}
             value={name}
             onChangeText={setName}
-          />
+          /> */}
 
-          <Text style={styles.label}>Mobile Number *</Text>
+          {/* <Text style={styles.label}>Mobile Number *</Text>
           <TextInput
             style={styles.textInput}
             placeholder="Enter mobile number"
@@ -129,12 +137,15 @@ const AddNewAddressScreen = ({ navigation, route }) => {
             keyboardType="phone-pad"
             value={mobileNumber}
             onChangeText={setMobileNumber}
-          />
+          /> */}
         </View>
       </ScrollView>
 
       {/* Save Button */}
       <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.cancelButton} onPress={()=>navigation.pop(2)}>
+          <Text style={styles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>Save Address</Text>
         </TouchableOpacity>
@@ -194,6 +205,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.blackColor,
   },
+  textAreaInput: {
+    borderWidth: 1,
+    borderColor: Colors.extraLightGrayColor,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 12,
+    height: 100,
+    color: Colors.blackColor,
+  },
+
   addressTypeContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -218,18 +240,35 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   buttonContainer: {
+    flexDirection: 'row',
     padding: 16,
     borderTopWidth: 1,
+    gap: 12,
     borderTopColor: Colors.extraLightGrayColor,
   },
   saveButton: {
+    flex: 1,
     backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+    cancelButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: Colors.grayColor,
+    // backgroundColor: Colors.secondary,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
   },
   saveButtonText: {
     color: Colors.whiteColor,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cancelButtonText: {
+    color: Colors.grayColor,
     fontSize: 16,
     fontWeight: '600',
   },
