@@ -21,16 +21,16 @@ const JobCard = ({saved=true ,urgent=false}) => {
       />):(
       <View style={styles.empltyImage}></View>)}
       {/* Urgent Tag */}
-      <View style={styles.urgentTag}>
-        {urgent && (
+      {urgent && ( <View style={styles.urgentTag}>
+       
           <Image
             source={require('../../assets/Icons/urgentTag.png')} 
             style={styles.urgentTagImage}
             resizeMode='cover'
           />
-        ) }
+     
         <Text style={{position:"absolute",fontSize:10,right:20,top:1,color:Colors.whiteColor,fontWeight:"700"}}>Urgent</Text>
-      </View>
+      </View>   ) }
        <View style={styles.saveTag}>
         <Image
           source={require('../../assets/Icons/SavedGolden.png')} 

@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
 
   tagRow: {
   padding: 6,
+  paddingRight:0,
   flexDirection: 'row',
   alignItems: 'center',
 
@@ -115,14 +116,14 @@ const styles = StyleSheet.create({
 },
   tagScroll: {
     flex: 1,
-    marginRight: 10,
+    // marginRight: 10,
   },
   tag: {
     borderWidth: 1, // Reduced border thickness
     borderColor: '#ddd', // Softer border color
     borderRadius: 8, // Reduced border radius for a slightly sharper look
     paddingHorizontal: 12, // Reduced padding
-    paddingVertical: 4,  // Reduced padding
+    paddingVertical: 6,  // Reduced padding
     marginRight: 8,
     backgroundColor: '#fff', // Added background for better contrast
   },
@@ -135,7 +136,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 5, // Added padding for better hit area
-    borderRadius: 5,
+//     borderRadius: 5,
+borderLeftWidth:1,
+// borderTopWidth:1,
+// borderBottomWidth:1,
+borderColor:"#838181ff"
   },
   sortText: {
     color: '#444', // Slightly darker for better visibility

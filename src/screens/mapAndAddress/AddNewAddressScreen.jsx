@@ -95,7 +95,7 @@ const AddNewAddressScreen = ({ navigation, route }) => {
             onChangeText={setLandmark}
           />
 
-          {/* <Text style={styles.label}>Address Type</Text>
+          <Text style={styles.label}>Address Type</Text>
           <View style={styles.addressTypeContainer}>
             {addressTypes.map(type => (
               <TouchableOpacity
@@ -116,7 +116,7 @@ const AddNewAddressScreen = ({ navigation, route }) => {
                 </Text>
               </TouchableOpacity>
             ))}
-          </View> */}
+          </View>
 
           {/* <Text style={styles.label}>Name *</Text>
           <TextInput
