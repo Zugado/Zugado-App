@@ -14,6 +14,8 @@ import {
   Linking,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import MyStatusBar from '../../components/MyStatusbar';
 
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
@@ -307,7 +309,9 @@ const LocationPickerScreen = ({ navigation, route }) => {
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={styles.safeAreaBlack}>
+      <MyStatusBar />
+      <View style={{ flex: 1 }}>
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={20} color={Colors.grayColor} />
         <TextInput
@@ -404,13 +408,18 @@ const LocationPickerScreen = ({ navigation, route }) => {
           <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       )}
-    </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default LocationPickerScreen;
 
 const styles = StyleSheet.create({
+  safeAreaBlack: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   searchContainer: {
     position: 'absolute',
     top: 16,

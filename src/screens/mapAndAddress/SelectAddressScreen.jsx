@@ -125,8 +125,9 @@ const SelectAddressScreen = ({ navigation, route }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeAreaBlack}>
       <MyStatusBar />
+      <View style={styles.container}>
       <CommonAppBar title="Select Address" navigation={navigation} />
       <View style={{ flex: 1 }}>
         <TouchableOpacity
@@ -153,12 +154,17 @@ const SelectAddressScreen = ({ navigation, route }) => {
           ListEmptyComponent={renderEmptyList}
         />
       </View>
+      </View>
     </SafeAreaView>
   );
 };
 export default SelectAddressScreen;
 
 const styles = StyleSheet.create({
+  safeAreaBlack: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.bodyBackColor,

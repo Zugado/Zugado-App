@@ -76,7 +76,7 @@ const ManageJobScreen = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeAreaBlack}>
         <MyStatusBar/> 
          <View style={styles.container}>
         {/* Header */}
@@ -132,12 +132,13 @@ const ManageJobScreen = () => {
 
 // --- Stylesheet ---
 const styles = StyleSheet.create({
-  safeArea: {
+  safeAreaBlack: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#000000',
   },
   container: {
     flex: 1,
+    backgroundColor: '#FFF',
     paddingHorizontal: 20, // Padding for main content area
   },
   // --- Header Styles ---

@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import DateTimePickerField from '../../components/DateTimePickerField';
+import MyStatusBar from '../../components/MyStatusbar';
 import { Colors } from '../../styles/commonStyles';
 
 export default function CreateJob({ navigation, route }) {
@@ -91,7 +92,9 @@ export default function CreateJob({ navigation, route }) {
       style={{ flex: 1, backgroundColor: '#fff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.safeAreaBlack}>
+        <MyStatusBar />
+        <View style={styles.container}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -303,49 +306,51 @@ export default function CreateJob({ navigation, route }) {
               />
             </View>
 
-            <>
-              {/* Amount */}
-              <Text style={styles.label}>Amount</Text>
-              <View style={styles.amountInputContainer}>
-                <TextInput
-                  style={[styles.textInputFlex, styles.amountInput]}
-                  placeholder="Enter Amount"
-                  placeholderTextColor="#888"
-                  keyboardType="numeric"
-                />
+            {discloseAmount && (
+              <>
+                {/* Amount */}
+                <Text style={styles.label}>Amount</Text>
+                <View style={styles.amountInputContainer}>
+                  <TextInput
+                    style={[styles.textInputFlex, styles.amountInput]}
+                    placeholder="Enter Amount"
+                    placeholderTextColor="#888"
+                    keyboardType="numeric"
+                  />
 
-                <View style={styles.negotiableSwitchContainer}>
-                  <Text style={styles.negotiableText}>Negotiable</Text>
-                  <Switch
-                    trackColor={{ false: '#767577', true: '#5CB85C' }}
-                    thumbColor={isNegotiable ? '#fff' : '#f4f3f4'}
-                    onValueChange={setIsNegotiable}
-                    value={isNegotiable}
-                    style={styles.negotiableSwitch}
+                  <View style={styles.negotiableSwitchContainer}>
+                    <Text style={styles.negotiableText}>Negotiable</Text>
+                    <Switch
+                      trackColor={{ false: '#767577', true: '#5CB85C' }}
+                      thumbColor={isNegotiable ? '#fff' : '#f4f3f4'}
+                      onValueChange={setIsNegotiable}
+                      value={isNegotiable}
+                      style={styles.negotiableSwitch}
+                    />
+                  </View>
+                </View>
+
+                <Text style={styles.label}>Amount Range</Text>
+                <View style={styles.amountRangeContainer}>
+                  <TextInput
+                    style={styles.rangeInput}
+                    placeholder="Min Amount"
+                    placeholderTextColor="#888"
+                    keyboardType="numeric"
+                    value={amountMin}
+                    onChangeText={setAmountMin}
+                  />
+                  <TextInput
+                    style={styles.rangeInput}
+                    placeholder="Max Amount"
+                    placeholderTextColor="#888"
+                    keyboardType="numeric"
+                    value={amountMax}
+                    onChangeText={setAmountMax}
                   />
                 </View>
-              </View>
-
-              <Text style={styles.label}>Amount Range</Text>
-              <View style={styles.amountRangeContainer}>
-                <TextInput
-                  style={styles.rangeInput}
-                  placeholder="Min Amount"
-                  placeholderTextColor="#888"
-                  keyboardType="numeric"
-                  value={amountMin}
-                  onChangeText={setAmountMin}
-                />
-                <TextInput
-                  style={styles.rangeInput}
-                  placeholder="Max Amount"
-                  placeholderTextColor="#888"
-                  keyboardType="numeric"
-                  value={amountMax}
-                  onChangeText={setAmountMax}
-                />
-              </View>
-            </>
+              </>
+            )}
           </View>
         </ScrollView>
 
@@ -373,6 +378,7 @@ export default function CreateJob({ navigation, route }) {
             <Text style={styles.nextButtonText}>Next</Text>
           </TouchableOpacity>
         </View>
+        </View>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -380,6 +386,10 @@ export default function CreateJob({ navigation, route }) {
 
 /* ========== STYLES HERE ========== */
 const styles = StyleSheet.create({
+  safeAreaBlack: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   container: { flex: 1, backgroundColor: '#fff' },
   scrollView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 100 },

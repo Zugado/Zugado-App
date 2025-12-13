@@ -13,28 +13,77 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import MediaPicker from '../../components/MediaPicker';
 import ImagePickerSheet from '../../components/ImagePickerSheet';
+import MyStatusBar from '../../components/MyStatusbar';
 import { useImagePicker } from '../../utils/useImagePicker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+
 export default function CreateJobPageThree({ navigation, route }) {
   const { jobData } = route.params;
-   const { openCamera, openGallery } = useImagePicker();
+  const { openCamera, openGallery } = useImagePicker();
 
   const [mediaFiles, setMediaFiles] = useState([]);
   const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
+  const [currentMediaType, setCurrentMediaType] = useState('image');
   console.log('Job Data from Previous Screens:', jobData);
-  const pickImage = async source => {
+  const pickVideo = async (source) => {
     try {
-      let result = null;
-
-      if (source === 'camera') {
-        result = await openCamera();
-      } else {
-        result = await openGallery();
+      if (mediaFiles.length >= 3) {
+        alert('Maximum 3 media files allowed');
+        return;
       }
 
-      console.log('📸 Picker result:', result);
+      const options = {
+        mediaType: 'video',
+        videoQuality: 'medium',
+        durationLimit: 60, // 60 seconds max
+        includeBase64: false,
+      };
+
+      let result;
+      if (source === 'camera') {
+        result = await launchCamera(options);
+      } else {
+        result = await launchImageLibrary(options);
+      }
+
+      if (result.didCancel || result.cancelled) return;
+      if (result.errorCode || result.error) {
+        console.log('Video picker error:', result.errorMessage || result.error);
+        return;
+      }
+
+      const asset = result.assets?.[0];
+      if (asset?.uri) {
+        const newFile = {
+          id: Date.now().toString(),
+          uri: asset.uri,
+          type: 'video',
+          fileName: asset.fileName || 'video.mp4'
+        };
+        setMediaFiles([...mediaFiles, newFile]);
+      }
+    } catch (error) {
+      console.log('Error picking video:', error);
+    } finally {
+      setPickerSheetVisible(false);
+    }
+  };
+
+  const pickImage = async (source) => {
+    try {
+      if (mediaFiles.length >= 3) {
+        alert('Maximum 3 media files allowed');
+        return;
+      }
+
+      let result;
+      if (source === 'camera') {
+        result = await openCamera('freeform');
+      } else {
+        result = await openGallery('freeform');
+      }
 
       if (result?.uri) {
-        if (mediaFiles.length >= 3) return;
         const newFile = {
           id: Date.now().toString(),
           uri: result.uri,
@@ -57,15 +106,23 @@ export default function CreateJobPageThree({ navigation, route }) {
 
   const MediaThumbnail = ({ file }) => (
     <View style={styles.thumbnailContainer}>
-      {/* Show Image or Video Placeholder */}
+      {/* Show Image or Video Thumbnail */}
       {file.type === 'image' ? (
         <Image
           source={{ uri: file.uri }}
           style={{ width: '100%', height: '100%' }}
+          resizeMode="cover"
         />
       ) : (
-        <View style={styles.thumbnailPlaceholder}>
-          <Feather name="video" size={26} color="#777" />
+        <View style={styles.videoThumbnailContainer}>
+          <Image
+            source={{ uri: file.uri }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+          />
+          <View style={styles.videoOverlay}>
+            <Feather name="play" size={20} color="#fff" />
+          </View>
         </View>
       )}
 
@@ -84,7 +141,9 @@ export default function CreateJobPageThree({ navigation, route }) {
       style={{ flex: 1, backgroundColor: '#fff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.safeAreaBlack}>
+        <MyStatusBar />
+        <View style={styles.container}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -116,16 +175,33 @@ export default function CreateJobPageThree({ navigation, route }) {
             <Text style={styles.label}>Upload Images & Videos</Text>
 
             {/* Use Reusable Component */}
-            {/* <MediaPicker
-              onSelect={selected => {
-                setMediaFiles(prev => [...prev, ...selected]);
-              }}
-            > */}
-              <TouchableOpacity onPress={()=>setPickerSheetVisible(true)} style={styles.uploadBox}>
-                <Feather name="upload-cloud" size={30} color="#000" />
-                <Text style={styles.browseFileText}>Browse File</Text>
-              </TouchableOpacity>
-            {/* </MediaPicker> */}
+              <View style={styles.uploadButtonsContainer}>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setCurrentMediaType('image');
+                    setPickerSheetVisible(true);
+                  }} 
+                  style={[styles.uploadBox, styles.uploadButton]}
+                  disabled={mediaFiles.length >= 3}
+                >
+                  <Feather name="camera" size={24} color={mediaFiles.length >= 3 ? "#ccc" : "#000"} />
+                  <Text style={[styles.browseFileText, {color: mediaFiles.length >= 3 ? "#ccc" : "#000"}]}>Add Photo</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  onPress={() => {
+                    setCurrentMediaType('video');
+                    setPickerSheetVisible(true);
+                  }} 
+                  style={[styles.uploadBox, styles.uploadButton]}
+                  disabled={mediaFiles.length >= 3}
+                >
+                  <Feather name="video" size={24} color={mediaFiles.length >= 3 ? "#ccc" : "#000"} />
+                  <Text style={[styles.browseFileText, {color: mediaFiles.length >= 3 ? "#ccc" : "#000"}]}>Add Video</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <Text style={styles.mediaCountText}>{mediaFiles.length}/3 media files</Text>
           </View>
 
           {/* --- Uploaded Media Thumbnails --- */}
@@ -147,20 +223,36 @@ export default function CreateJobPageThree({ navigation, route }) {
             <Text style={styles.submitButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>
-         
+        </View>
       </SafeAreaView>
-      {/* --- Image Picker Sheet --- */}
+      {/* --- Media Picker Sheet --- */}
       <ImagePickerSheet
         visible={pickerSheetVisible}
         onClose={() => setPickerSheetVisible(false)}
-        onCamera={() => pickImage('camera')}
-        onGallery={() => pickImage('gallery')}
+        onCamera={() => {
+          if (currentMediaType === 'video') {
+            pickVideo('camera');
+          } else {
+            pickImage('camera');
+          }
+        }}
+        onGallery={() => {
+          if (currentMediaType === 'video') {
+            pickVideo('gallery');
+          } else {
+            pickImage('gallery');
+          }
+        }}
       />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaBlack: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   container: { flex: 1, backgroundColor: '#fff' },
   scrollView: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 100 },
@@ -201,6 +293,12 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, color: '#000', marginBottom: 10, fontWeight: '600' },
 
   uploadSection: { marginBottom: 30 },
+  uploadButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 10,
+  },
   uploadBox: {
     borderWidth: 1,
     borderColor: '#ddd',
@@ -209,6 +307,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 40,
     minHeight: 150,
+  },
+  uploadButton: {
+    flex: 1,
+    paddingVertical: 20,
+    minHeight: 80,
+  },
+  mediaCountText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 5,
   },
   browseFileText: {
     fontSize: 14,
@@ -235,6 +344,21 @@ const styles = StyleSheet.create({
   thumbnailPlaceholder: {
     flex: 1,
     backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoThumbnailContainer: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  videoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
