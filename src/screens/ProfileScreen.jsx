@@ -544,6 +544,11 @@ export default function ProfileScreen({ navigation }) {
               <FontAwesome name="star" size={14} color="#FF9529" />
               <Text style={styles.ratingText}>{user?.ratings?.averageRating || '0.0'}</Text>
             </View>
+
+            <View style={styles.balanceContainer}>
+              <Feather name="dollar-sign" size={14} color="#4CAF50" />
+              <Text style={styles.balanceText}>{user?.balance || '0'}</Text>
+            </View>
           </View>
         </View>
 
@@ -654,32 +659,78 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* Settings Section */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+        <View style={styles.settingsContainer}>
+          <Text style={styles.settingsTitle}>Settings</Text>
           
-          <TouchableOpacity style={styles.settingItem} onPress={guestAction}>
-            <Feather name="user" size={20} color="#000" />
-            <Text style={styles.settingText}>Account Settings</Text>
-            <Feather name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
+          {/* Preferences Group */}
+          <View style={styles.settingsGroup}>
+            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate('PreferencesScreen')}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="settings" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Preferences</Text>
+                <Text style={styles.settingsItemSubtitle}>Notifications, Language, Appearance</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Account Group */}
+          <View style={styles.settingsGroup}>
+            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("EditProfileScreen")}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="user" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Account</Text>
+                <Text style={styles.settingsItemSubtitle}>Profile, Security, Privacy</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Resources Group */}
+          <Text style={styles.settingsGroupTitle}>Resources</Text>
           
-          <TouchableOpacity style={styles.settingItem} onPress={guestAction}>
-            <Ionicons name="card-outline" size={20} color="#000" />
-            <Text style={styles.settingText}>Payment Details</Text>
-            <Feather name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.settingItem} onPress={guestAction}>
-            <Feather name="globe" size={20} color="#000" />
-            <Text style={styles.settingText}>Language</Text>
-            <Feather name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate("EditProfileScreen")}>
-            <Feather name="edit" size={20} color="#000" />
-            <Text style={styles.settingText}>Edit Profile</Text>
-            <Feather name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
+          <View style={styles.settingsGroup}>
+            <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="help-circle" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Support</Text>
+                <Text style={styles.settingsItemSubtitle}>Help Center, Contact Us</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+            
+            <View style={styles.settingsDivider} />
+            
+            <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="info" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Community and Legal</Text>
+                <Text style={styles.settingsItemSubtitle}>Terms, Privacy Policy</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+            
+            <View style={styles.settingsDivider} />
+            
+            <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="briefcase" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Become a Seller</Text>
+                <Text style={styles.settingsItemSubtitle}>Start offering services</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.sectionContainer}>
@@ -1147,6 +1198,21 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontWeight: 'bold',
   },
+  balanceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E8',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginLeft: 15,
+  },
+  balanceText: {
+    color: '#4CAF50',
+    marginLeft: 5,
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
   infoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1604,5 +1670,75 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     marginTop: 10,
+  },
+  // Professional Settings Styles
+  settingsContainer: {
+    marginBottom: 20,
+  },
+  settingsTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 20,
+  },
+  settingsGroup: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 16,
+    marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: 'transparent',
+  },
+  settingsIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  settingsContent: {
+    flex: 1,
+  },
+  settingsItemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 2,
+  },
+  settingsItemSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
+  },
+  settingsGroupTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 12,
+    marginTop: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  settingsDivider: {
+    height: 1,
+    backgroundColor: '#e9ecef',
+    marginHorizontal: 16,
   },
 });
