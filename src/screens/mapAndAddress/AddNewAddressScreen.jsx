@@ -42,8 +42,9 @@ const AddNewAddressScreen = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeAreaBlack}>
       <MyStatusBar />
+      <View style={styles.container}>
 
       <CommonAppBar title="Add New Address" navigation={navigation} />
 
@@ -148,11 +149,16 @@ const AddNewAddressScreen = ({ navigation, route }) => {
           <Text style={styles.saveButtonText}>Save Address</Text>
         </TouchableOpacity>
       </View>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeAreaBlack: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.whiteColor,

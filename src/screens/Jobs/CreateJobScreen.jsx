@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -36,34 +36,88 @@ export default function CreateJob({ navigation }) {
   const [jobType, setJobType] = useState('');
   const [showJobTypeModal, setShowJobTypeModal] = useState(false);
   // --- NEW TAG STATE & LOGIC ---
-  const [tags, setTags] = useState([
-    { tag: 'web', subTag: 'frontend' },
-    { tag: 'react', subTag: 'development' },
-  ]);
+  const [tags, setTags] = useState([]);
 
   const [showTagModal, setShowTagModal] = useState(false);
   const [currentSelectedTag, setCurrentSelectedTag] = useState(null);
   const [showSubTagModal, setShowSubTagModal] = useState(false);
+  const [suggestedTags, setSuggestedTags] = useState([]);
+  const [showCustomTagModal, setShowCustomTagModal] = useState(false);
+  const [customTag, setCustomTag] = useState('');
+  const [customSubTag, setCustomSubTag] = useState('');
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState(null);
 
-  // Define your available Tag/SubTag structure
-  const availableTags = [
-    {
-      name: 'web',
-      subTags: ['frontend', 'backend', 'fullstack'],
-    },
-    {
-      name: 'react',
-      subTags: ['development', 'native', 'testing'],
-    },
-    {
-      name: 'design',
-      subTags: ['ui/ux', 'graphic', 'motion'],
-    },
-    {
-      name: 'marketing',
-      subTags: ['seo', 'content', 'social media'],
-    },
-  ];
+  // Cleanup when component unmounts (going back to home)
+  useEffect(() => {
+    return () => {
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+    };
+  }, [typingTimeout]);
+
+  // AI-powered tag suggestion using Gemini
+  const getAITagSuggestions = async (description) => {
+    try {
+      const prompt = `Based on this job description, suggest minimun 2 relevant tags in the format "tag/subtag". Only return the tags separated by commas, no explanations:\n\n"${description}"`;
+      
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': 'AIzaSyCs7PmOsTjptoDjOfivX6ZF6ZtBQcDsd-Y'
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }]
+        })
+      });
+      
+      const data = await response.json();
+      console.log('AI response:', data);
+      const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
+      // Parse AI response to extract tag/subtag pairs
+      const tagPairs = aiResponse.split(',').map(pair => {
+        const cleanPair = pair.trim().replace(/["']/g, '');
+        const [tag, subTag] = cleanPair.split('/');
+        return tag && subTag ? { tag: tag.toLowerCase().trim(), subTag: subTag.toLowerCase().trim() } : null;
+      }).filter(Boolean);
+      
+      return tagPairs;
+    } catch (error) {
+      console.log('AI suggestion error:', error);
+      // Fallback to simple keyword matching
+      return getSimpleTagSuggestions(description);
+    }
+  };
+
+  // Fallback simple tag suggestions
+  const getSimpleTagSuggestions = (text) => {
+    const suggestions = [];
+    const lowerText = text.toLowerCase();
+    
+    // const keywordMap = {
+    //   'web': ['website', 'html', 'css', 'javascript', 'web'],
+    //   'react': ['react', 'jsx', 'component'],
+    //   'mobile': ['mobile', 'app', 'ios', 'android', 'flutter'],
+    //   'design': ['design', 'ui', 'ux', 'figma'],
+    //   'backend': ['backend', 'api', 'server', 'database'],
+    //   'marketing': ['marketing', 'seo', 'social', 'content']
+    // };
+    
+    Object.entries(keywordMap).forEach(([tag, keywords]) => {
+      if (keywords.some(keyword => lowerText.includes(keyword))) {
+        suggestions.push({ tag, subTag: 'development' });
+      }
+    });
+    
+    return suggestions.slice(0, 3);
+  };
 
   const CheckboxButton = ({ label, selected, onPress }) => (
     <TouchableOpacity activeOpacity={0.8} style={styles.option} onPress={onPress}>
@@ -87,8 +141,9 @@ export default function CreateJob({ navigation }) {
       style={{ flex: 1, backgroundColor: '#fff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.safeAreaBlack} edges={['top']}>
         <MyStatusBar />
+        <View style={styles.container}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -160,7 +215,38 @@ export default function CreateJob({ navigation }) {
               multiline
               numberOfLines={4}
               value={description}
-              onChangeText={setDescription}
+              onChangeText={(text) => {
+                setDescription(text);
+                
+                // Clear existing timeout
+                if (typingTimeout) {
+                  clearTimeout(typingTimeout);
+                }
+                
+                // Clear suggestions if text is too short
+                if (text.length < 10) {
+                  setSuggestedTags([]);
+                  setIsLoadingSuggestions(false);
+                  return;
+                }
+                
+                // Show loading state
+                setIsLoadingSuggestions(true);
+                
+                // Set new timeout for 10 seconds
+                const newTimeout = setTimeout(async () => {
+                  try {
+                    const suggestions = await getAITagSuggestions(text);
+                    setSuggestedTags(suggestions);
+                  } catch (error) {
+                    console.log('Error getting suggestions:', error);
+                  } finally {
+                    setIsLoadingSuggestions(false);
+                  }
+                }, 10000);
+                
+                setTypingTimeout(newTimeout);
+              }}
             />
            
             {/* Skill Required */}
@@ -176,14 +262,11 @@ export default function CreateJob({ navigation }) {
             {/* Job Category - UPDATED SECTION */}
             <Text style={styles.label}>Job Category</Text>
             <View style={styles.categoryBox}>
-              <Text style={styles.categoryPlaceholder}>
-                Selected Categories:
-              </Text>
               <View style={styles.tagsContainer}>
                 {tags.map((item, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>
-                      {item.tag} / {item.subTag}
+                  <View key={index} style={styles.selectedTag}>
+                    <Text style={styles.selectedTagText}>
+                      {item.tag}/{item.subTag}
                     </Text>
                     <TouchableOpacity
                       onPress={() =>
@@ -192,23 +275,61 @@ export default function CreateJob({ navigation }) {
                         )
                       }
                     >
-                      <Feather
-                        name="x"
-                        size={14}
-                        color="#555"
-                        style={styles.tagClose}
-                      />
+                      <Feather name="x" size={12} color="#fff" />
                     </TouchableOpacity>
                   </View>
                 ))}
-                <TouchableOpacity
-                  style={styles.addTagButton}
-                  onPress={() => setShowTagModal(true)}
-                >
-                  <Feather name="plus" size={16} color="#000" />
-                  <Text style={styles.addTagText}>Add Tag</Text>
-                </TouchableOpacity>
               </View>
+              
+              {/* Custom Tag Button */}
+              <TouchableOpacity
+                style={styles.addCustomTagButton}
+                onPress={() => setShowCustomTagModal(true)}
+              >
+                <View style={styles.addTagIconContainer}>
+                  <Feather name="plus" size={18} color="#fff" />
+                </View>
+                <Text style={styles.addCustomTagText}>Add Custom Tag</Text>
+                <Feather name="chevron-right" size={16} color="#666" />
+              </TouchableOpacity>
+              
+              {/* AI Suggested Tags */}
+              {(isLoadingSuggestions || suggestedTags.length > 0) && (
+                <View style={styles.aiSuggestionsContainer}>
+                  <Text style={styles.aiSuggestionsTitle}>✨ AI Suggestions:</Text>
+                  <View style={styles.aiSuggestionsRow}>
+                    {isLoadingSuggestions ? (
+                      // Skeleton loaders
+                      Array.from({ length: 3 }).map((_, index) => (
+                        <View key={index} style={styles.skeletonTag}>
+                          <View style={styles.skeletonText} />
+                        </View>
+                      ))
+                    ) : (
+                      // Actual suggestions
+                      suggestedTags.map((suggestion, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.aiSuggestionTag}
+                          onPress={() => {
+                            const newTag = { tag: suggestion.tag, subTag: suggestion.subTag };
+                            const exists = tags.some(t => t.tag === newTag.tag && t.subTag === newTag.subTag);
+                            if (!exists) {
+                              setTags(prev => [...prev, newTag]);
+                            }
+                            setSuggestedTags(prev => prev.filter((_, i) => i !== index));
+                          }}
+                        >
+                          <Text style={styles.aiSuggestionText}>
+                            {suggestion.tag}/{suggestion.subTag}
+                          </Text>
+                          <Feather name="plus" size={10} color="#007AFF" />
+                        </TouchableOpacity>
+                      ))
+                    )}
+                  </View>
+                </View>
+              )}
             </View>
 
          
@@ -330,77 +451,95 @@ export default function CreateJob({ navigation }) {
           </View>
         )}
 
-        {/* --- NEW MODAL: Select Main Tag --- */}
-        {showTagModal && (
+
+
+        {/* --- Enhanced Custom Tag Modal --- */}
+        {showCustomTagModal && (
           <View style={styles.modalOverlay}>
-            <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>Select Main Tag</Text>
-              <ScrollView style={styles.modalScrollView}>
-                {availableTags.map(item => (
-                  <TouchableOpacity
-                    key={item.name}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setCurrentSelectedTag(item);
-                      setShowTagModal(false);
-                      setShowSubTagModal(true);
-                    }}
-                  >
-                    <Text style={styles.modalOptionText}>
-                      {item.name.toUpperCase()}
+            <View style={styles.enhancedModalBox}>
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <View style={styles.modalIconContainer}>
+                  <Feather name="tag" size={24} color="#000" />
+                </View>
+                <Text style={styles.enhancedModalTitle}>Add Custom Tag</Text>
+                <Text style={styles.modalSubtitle}>Create your own professional tag</Text>
+              </View>
+              
+              {/* Modal Content */}
+              <View style={styles.modalContent}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Tag</Text>
+                  <TextInput
+                    style={styles.enhancedInput}
+                    placeholder="e.g., python, design, marketing"
+                    placeholderTextColor="#999"
+                    value={customTag}
+                    onChangeText={setCustomTag}
+                  />
+                </View>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Subtag</Text>
+                  <TextInput
+                    style={styles.enhancedInput}
+                    placeholder="e.g., django, ui-ux, social-media"
+                    placeholderTextColor="#999"
+                    value={customSubTag}
+                    onChangeText={setCustomSubTag}
+                  />
+                </View>
+                
+                <View style={styles.previewContainer}>
+                  <Text style={styles.previewLabel}>Preview:</Text>
+                  <View style={styles.previewTag}>
+                    <Text style={styles.previewTagText}>
+                      {customTag || 'tag'}/{customSubTag || 'subtag'}
                     </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setShowTagModal(false)}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+              
+              {/* Modal Actions */}
+              <View style={styles.enhancedModalActions}>
+                <TouchableOpacity
+                  style={styles.enhancedCancelButton}
+                  onPress={() => {
+                    setShowCustomTagModal(false);
+                    setCustomTag('');
+                    setCustomSubTag('');
+                  }}
+                >
+                  <Text style={styles.enhancedCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[
+                    styles.enhancedAddButton,
+                    (!customTag.trim() || !customSubTag.trim()) && styles.disabledButton
+                  ]}
+                  disabled={!customTag.trim() || !customSubTag.trim()}
+                  onPress={() => {
+                    if (customTag.trim() && customSubTag.trim()) {
+                      const newTag = { tag: customTag.trim().toLowerCase(), subTag: customSubTag.trim().toLowerCase() };
+                      const exists = tags.some(t => t.tag === newTag.tag && t.subTag === newTag.subTag);
+                      if (!exists) {
+                        setTags(prev => [...prev, newTag]);
+                      }
+                      setShowCustomTagModal(false);
+                      setCustomTag('');
+                      setCustomSubTag('');
+                    }
+                  }}
+                >
+                  <Feather name="plus" size={16} color="#fff" />
+                  <Text style={styles.enhancedAddText}>Add Tag</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         )}
-
-        {/* --- NEW MODAL: Select SubTag --- */}
-        {showSubTagModal && currentSelectedTag && (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>
-                Select Sub-Tag for: **{currentSelectedTag.name.toUpperCase()}**
-              </Text>
-              <ScrollView style={styles.modalScrollView}>
-                {currentSelectedTag.subTags.map(subTag => (
-                  <TouchableOpacity
-                    key={subTag}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setTags(prevTags => [
-                        ...prevTags,
-                        { tag: currentSelectedTag.name, subTag: subTag },
-                      ]);
-                      setCurrentSelectedTag(null);
-                      setShowSubTagModal(false);
-                    }}
-                  >
-                    <Text style={styles.modalOptionText}>{subTag}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => {
-                  setCurrentSelectedTag(null);
-                  setShowSubTagModal(false);
-                }}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        </View>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -408,9 +547,13 @@ export default function CreateJob({ navigation }) {
 
 // ------------------- STYLES -------------------
 const styles = StyleSheet.create({
+  safeAreaBlack: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   container: { flex: 1, backgroundColor: '#fff' },
   scrollView: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 120 },
+  scrollContent: { padding: 20, paddingBottom: 100 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
   backButton: { backgroundColor: '#fff', padding: 10, borderRadius: 20 ,shadowColor:"#000",shadowOffset:{width:2,height:3},shadowOpacity:0.3,shadowRadius:4,elevation:3, },
   progressContainer: {
@@ -515,6 +658,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
+    paddingBottom: 34,
   },
   nextButton: {
     backgroundColor: '#000',
@@ -553,4 +697,217 @@ const styles = StyleSheet.create({
   modalOptionText: { fontSize: 16, textAlign: 'center', color: '#000' },
   modalCancelBtn: { marginTop: 15 },
   modalCancelText: { fontSize: 16, color: 'red' },
+  
+  // Updated category styles
+  selectedTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#000',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  selectedTagText: {
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: '500',
+    marginRight: 6,
+  },
+  // Enhanced custom tag button
+  addCustomTagButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 15,
+  },
+  addTagIconContainer: {
+    backgroundColor: '#000',
+    borderRadius: 20,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  addCustomTagText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000',
+  },
+  aiSuggestionsContainer: {
+    backgroundColor: '#f8f9ff',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e3e8ff',
+  },
+  aiSuggestionsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4f46e5',
+    marginBottom: 8,
+  },
+  aiSuggestionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  aiSuggestionTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    borderRadius: 15,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    gap: 4,
+  },
+  aiSuggestionText: {
+    fontSize: 10,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  
+  // Skeleton loader styles
+  skeletonTag: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 6,
+  },
+  skeletonText: {
+    width: 60,
+    height: 12,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 6,
+  },
+  
+  // Enhanced modal styles
+  enhancedModalBox: {
+    width: '90%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    overflow: 'hidden',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  modalHeader: {
+    backgroundColor: '#f8f9fa',
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  modalIconContainer: {
+    backgroundColor: '#000',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  enhancedModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  modalContent: {
+    padding: 20,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  enhancedInput: {
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '#000',
+    backgroundColor: '#f8f9fa',
+  },
+  previewContainer: {
+    marginTop: 8,
+    padding: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  previewLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 8,
+  },
+  previewTag: {
+    backgroundColor: '#000',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  previewTagText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  enhancedModalActions: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+  },
+  enhancedCancelButton: {
+    flex: 1,
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#e9ecef',
+  },
+  enhancedCancelText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  enhancedAddButton: {
+    flex: 1,
+    paddingVertical: 16,
+    alignItems: 'center',
+    backgroundColor: '#000',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
+  },
+  enhancedAddText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
 });
