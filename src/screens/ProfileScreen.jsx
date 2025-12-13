@@ -269,11 +269,7 @@ export default function ProfileScreen({ navigation }) {
     return age;
   };
 
-  // Global Edit State (Header Button)
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  
-  // Specific Field Edit State (Pencil Button)
-  const [activeEditField, setActiveEditField] = useState(null); 
+  // Remove edit profile functionality - using separate EditProfileScreen 
 
   const [editedUser, setEditedUser] = useState({
     firstName: user?.firstName || '',
@@ -413,71 +409,7 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // Global Edit Handler (Header Button)
-  const handleGlobalEditToggle = () => {
-    if (isEditingProfile) {
-      // If we are exiting edit mode (pressing CHECK)
-      // 1. Clear any active field editing state
-      setActiveEditField(null);
-      setShowDropdown(null);
-      // 2. Perform global save logic here (e.g., dispatch(updateUserProfileAPI(editedUser)));
-      showSnackbar('Profile edit mode turned off.', 'success');
-    }else{
-      showSnackbar('Profile edit mode turned on.', 'warning');
-
-    }
-    // Toggle the overall editing state
-    setIsEditingProfile(prev => !prev);
-  };
-  
-  // Individual Field Edit Handler (Pencil Button)
-  const handleFieldEditToggle = async (field) => {
-    if (activeEditField === field) {
-      // If the field is currently active (pressing CHECK)
-      try {
-        setLoading(true);
-        
-        // Prepare data based on field type
-        let updateData = {};
-        
-        if (field === 'name') {
-          updateData = {
-            firstName: editedUser.firstName,
-            middleName: editedUser.middleName,
-            lastName: editedUser.lastName
-          };
-        } else if (field === 'age') {
-          updateData = {
-            dateOfBirth: editedUser.dateOfBirth
-          };
-        } else {
-          const backendValue = mapToBackend(field, editedUser[field]);
-          updateData = { [field]: backendValue };
-        }
-        
-        const response = await dispatch(updateUserDetails(updateData));
-        
-        if (updateUserDetails.fulfilled.match(response)) {
-          const fieldName = formatFieldName(field);
-          showSnackbar(`${fieldName} updated successfully`, 'success');
-          setActiveEditField(null);
-        } else {
-          const fieldName = formatFieldName(field);
-          showSnackbar(response?.payload?.message || `Failed to update ${fieldName}`, 'error');
-        }
-      } catch (error) {
-        const fieldName = formatFieldName(field);
-        showSnackbar(`Error updating ${fieldName}`, 'error');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // If pressing the pencil icon
-      setActiveEditField(null);
-      setShowDropdown(null);
-      setActiveEditField(field);
-    }
-  };
+  // Removed edit handlers - using separate EditProfileScreen
 
   
 
@@ -571,17 +503,12 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.header}>
         <Header showSearch={false} />
 
-        {/* Profile Image and Edit Camera */}
+        {/* Profile Image */}
         <View style={styles.imageContainer}>
           <Image
             source={user?.avatar ? { uri: user.avatar } : require('../assets/profile.png')}
             style={styles.profileImage}
           />
-          {isEditingProfile && (
-            <TouchableOpacity style={styles.imageEditButton} onPress={() => setPickerSheetVisible(true)}>
-              <Feather name="camera" size={16} color="#fff" />
-            </TouchableOpacity>
-          )}
         </View>
       </View>
 
@@ -601,88 +528,16 @@ export default function ProfileScreen({ navigation }) {
         }
       >
 
-          {/* Global edit button */}
-           <TouchableOpacity style={styles.globalEditButton} onPress={handleGlobalEditToggle}>
-            <Feather
-            name={isEditingProfile ? "check" : "edit-2"}
-            size={20}
-            color="#000000ff"
-          />
-        </TouchableOpacity>
+          {/* Removed global edit button - using separate EditProfileScreen */}
 
         <View style={styles.profileHeader}>
           <View style={styles.nameContainer}>
-            {isEditingProfile && activeEditField === 'name' ? (
-              <View style={styles.nameEditContainer}>
-                <TextInput
-                  style={styles.nameInput}
-                  value={editedUser.firstName}
-                  onChangeText={(text) => handleInputChange('firstName', text)}
-                  placeholder="First Name"
-                />
-                <TextInput
-                  style={styles.nameInput}
-                  value={editedUser.middleName}
-                  onChangeText={(text) => handleInputChange('middleName', text)}
-                  placeholder="Middle Name"
-                />
-                <TextInput
-                  style={styles.nameInput}
-                  value={editedUser.lastName}
-                  onChangeText={(text) => handleInputChange('lastName', text)}
-                  placeholder="Last Name"
-                />
-              </View>
-            ) : (
-              <Text style={styles.profileName}>{`${editedUser.firstName} ${editedUser.middleName || ''} ${editedUser.lastName}` || "User Name"}</Text>
-            )}
-            
-            {/* Name Edit Toggle */}
-            {isEditingProfile && (
-              <TouchableOpacity 
-                style={[styles.editButton, activeEditField === 'name' && styles.activeEditButton]} 
-                onPress={() => handleFieldEditToggle('name')}
-              >
-                <Feather 
-                  name={activeEditField === 'name' ? "check" : "edit-2"} 
-                  size={18} 
-                  color={activeEditField === 'name' ? "#fff" : "#000"} 
-                />
-              </TouchableOpacity>
-            )}
+            <Text style={styles.profileName}>{`${user?.firstName || ''} ${user?.middleName || ''} ${user?.lastName || ''}` || "User Name"}</Text>
           </View>
 
           <View style={styles.subHeader}>
             <View style={styles.ageContainer}>
-              {isEditingProfile && activeEditField === 'age' ? (
-                <TouchableOpacity
-                  style={styles.datePickerButton}
-                  onPress={() => setShowDatePicker(true)}
-                >
-                  <Text style={styles.datePickerText}>
-                    {editedUser.dateOfBirth 
-                      ? new Date(editedUser.dateOfBirth).toLocaleDateString()
-                      : 'Select Date of Birth'
-                    }
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <Text style={styles.ageText}>{editedUser.age ? `Age - ${editedUser.age} Yrs` : "Age 0"}</Text>
-              )}
-              
-              {/* Age Edit Toggle */}
-              {isEditingProfile && (
-                <TouchableOpacity 
-                  style={[styles.ageEditButton, activeEditField === 'age' && styles.activeAgeEditButton]} 
-                  onPress={() => handleFieldEditToggle('age')}
-                >
-                  <Feather 
-                    name={activeEditField === 'age' ? "check" : "edit-2"} 
-                    size={14} 
-                    color={activeEditField === 'age' ? "#fff" : "#666"} 
-                  />
-                </TouchableOpacity>
-              )}
+              <Text style={styles.ageText}>{user?.dateOfBirth ? `Age - ${calculateAge(user.dateOfBirth)} Yrs` : "Age 0"}</Text>
             </View>
 
             <View style={styles.ratingContainer}>
@@ -692,72 +547,51 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Info Grid */}
+        {/* Info Grid - Read Only */}
         <View style={styles.infoGrid}>
-          <InfoBox
-            iconName="phone"
-            title="Contact"
-            value={editedUser.mobile || "98765 43210"}
-            field="mobile"
-            // isEditingProfile={isEditingProfile}
-            // activeEditField={activeEditField}
-            onEditFieldToggle={handleFieldEditToggle}
-            onInputChange={handleInputChange}
-            editValue={editedUser.mobile}
-          />
-          <InfoBox
-            iconName="briefcase"
-            title="Job Type"
-            value={editedUser.jobType}
-            field="jobType"
-            isEditingProfile={isEditingProfile}
-            activeEditField={activeEditField}
-            onEditFieldToggle={handleFieldEditToggle}
-            editValue={editedUser.jobType}
-            isDropdown={true}
-            options={jobTypeOptions}
-            onDropdownSelect={handleDropdownSelect}
-            showDropdown={activeEditField === 'jobType' && showDropdown === 'jobType'}
-            onDropdownToggle={() => handleDropdownToggle('jobType')}
-          />
-          <InfoBox
-            iconName="monitor"
-            title="Working Model"
-            value={editedUser.workingModel}
-            field="workingModel"
-            isEditingProfile={isEditingProfile}
-            activeEditField={activeEditField}
-            onEditFieldToggle={handleFieldEditToggle}
-            editValue={editedUser.workingModel}
-            isDropdown={true}
-            options={workingModelOptions}
-            onDropdownSelect={handleDropdownSelect}
-            showDropdown={activeEditField === 'workingModel' && showDropdown === 'workingModel'}
-            onDropdownToggle={() => handleDropdownToggle('workingModel')}
-          />
-          <InfoBox
-            iconName="trending-up"
-            title="Level"
-            value={editedUser.level}
-            field="level"
-            isEditingProfile={isEditingProfile}
-            activeEditField={activeEditField}
-            onEditFieldToggle={handleFieldEditToggle}
-            editValue={editedUser.level}
-            isDropdown={true}
-            options={levelOptions}
-            onDropdownSelect={handleDropdownSelect}
-            showDropdown={activeEditField === 'level' && showDropdown === 'level'}
-            onDropdownToggle={() => handleDropdownToggle('level')}
-          />
+          <View style={styles.infoBox}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="phone" size={20} color="#666" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoTitle}>Contact</Text>
+              <Text style={styles.infoValue}>{user?.mobile || "98765 43210"}</Text>
+            </View>
+          </View>
+          <View style={styles.infoBox}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="briefcase" size={20} color="#666" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoTitle}>Job Type</Text>
+              <Text style={styles.infoValue}>{mapFromBackend('jobType', user?.jobType) || 'Full-Time'}</Text>
+            </View>
+          </View>
+          <View style={styles.infoBox}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="monitor" size={20} color="#666" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoTitle}>Working Model</Text>
+              <Text style={styles.infoValue}>{mapFromBackend('workingModel', user?.workingModel) || 'Remote'}</Text>
+            </View>
+          </View>
+          <View style={styles.infoBox}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="trending-up" size={20} color="#666" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoTitle}>Level</Text>
+              <Text style={styles.infoValue}>{mapFromBackend('level', user?.level) || 'Advanced'}</Text>
+            </View>
+          </View>
         </View>
 
-        {/* Role Selection (Disabled when editing) */}
+        {/* Role Selection */}
         <View style={styles.roleSelectionContainer}>
           <TouchableOpacity
             style={styles.roleButton}
             onPress={() => console.log('Job Provider selected')}
-            disabled={isEditingProfile}
           >
             <MaterialCommunityIcons
               name="briefcase-variant"
@@ -772,7 +606,6 @@ export default function ProfileScreen({ navigation }) {
           <TouchableOpacity
             style={styles.roleButton}
             onPress={() => console.log('Job Seeker selected')}
-            disabled={isEditingProfile}
           >
             <MaterialCommunityIcons
               name="account-search"
@@ -785,12 +618,11 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Other Sections (Disabled when editing) */}
+        {/* Other Sections */}
         <View style={styles.sectionContainer}>
           <TouchableOpacity
             style={styles.verificationButton}
             onPress={() => setIsVerificationExpanded(!isVerificationExpanded)}
-            disabled={isEditingProfile}
           >
             <MaterialCommunityIcons name="shield-check-outline" size={24} color="#000" />
             <Text style={styles.verificationTitle}>Verification</Text>
@@ -825,27 +657,33 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Settings</Text>
           
-          <TouchableOpacity style={styles.settingItem} onPress={guestAction} disabled={isEditingProfile}>
+          <TouchableOpacity style={styles.settingItem} onPress={guestAction}>
             <Feather name="user" size={20} color="#000" />
             <Text style={styles.settingText}>Account Settings</Text>
             <Feather name="chevron-right" size={16} color="#666" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingItem} onPress={guestAction} disabled={isEditingProfile}>
+          <TouchableOpacity style={styles.settingItem} onPress={guestAction}>
             <Ionicons name="card-outline" size={20} color="#000" />
             <Text style={styles.settingText}>Payment Details</Text>
             <Feather name="chevron-right" size={16} color="#666" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.settingItem} onPress={guestAction} disabled={isEditingProfile}>
+          <TouchableOpacity style={styles.settingItem} onPress={guestAction}>
             <Feather name="globe" size={20} color="#000" />
             <Text style={styles.settingText}>Language</Text>
+            <Feather name="chevron-right" size={16} color="#666" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate("EditProfileScreen")}>
+            <Feather name="edit" size={20} color="#000" />
+            <Text style={styles.settingText}>Edit Profile</Text>
             <Feather name="chevron-right" size={16} color="#666" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.sectionContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} disabled={isEditingProfile}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Feather name="log-out" size={24} color="#ff4444" />
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
@@ -1188,18 +1026,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
     paddingBottom: 100,
   },
-  globalEditButton: {
-    position: 'absolute',
-    top: -40,
-    right: -10,
-    zIndex: 10,
-    padding: 8,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 20,
-    // borderWidth: 2,
-    // borderColor: '#000000ff',
-    // borderRadius: 50,
-  },
+  // Removed globalEditButton styles
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -1325,8 +1152,36 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: 20,
-    zIndex: 1,
-    overflow: 'visible',
+  },
+  infoBox: {
+    width: '48%',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 15,
+    padding: 12,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  infoIconContainer: {
+    marginRight: 12,
+  },
+  infoTextContainer: {
+    flex: 1,
+  },
+  infoTitle: {
+    fontSize: 12,
+    color: '#777',
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
   },
   roleSelectionContainer: {
     flexDirection: 'row',

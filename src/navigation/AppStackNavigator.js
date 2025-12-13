@@ -10,6 +10,7 @@ import LanguageSelectScreen from '../screens/LanguageSelectScreen';
 import LocationPickerScreen from '../screens/mapAndAddress/LocationPickerScreen';
 import AddNewAddressScreen from '../screens/mapAndAddress/AddNewAddressScreen';
 import SelectAddressScreen from '../screens/mapAndAddress/SelectAddressScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 const Stack = createStackNavigator();
 
 export default function AppStackNavigator() {
@@ -24,6 +25,7 @@ export default function AppStackNavigator() {
        <Stack.Screen name="LocationPickerScreen" component={LocationPickerScreen} />
        <Stack.Screen name="AddNewAddressScreen" component={AddNewAddressScreen} />
         <Stack.Screen name="SelectAddressScreen" component={SelectAddressScreen} />
+        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
     </Stack.Navigator>
   );
 }

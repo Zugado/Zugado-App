@@ -33,6 +33,7 @@
     "react-native-gesture-handler": "^2.29.1",
     "react-native-image-crop-picker": "^0.51.1",
     "react-native-image-picker": "^8.2.1",
+    "react-native-image-zoom-viewer": "^3.0.1",
     "react-native-localize": "^3.6.0",
     "react-native-maps": "^1.26.20",
     "react-native-modal-datetime-picker": "^18.0.0",
