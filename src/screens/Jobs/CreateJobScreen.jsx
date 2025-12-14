@@ -364,13 +364,13 @@ export default function CreateJob({ navigation }) {
             onPress={() =>
               navigation.navigate('CreateJobScreen2', {
                 jobData: {
-                  jobFor,
-                  jobType,
+                  jobFor: jobFor.toLowerCase(),
                   title,
                   description,
                   tags,
                   requirements: skill,
-                  experienceLevel,
+                  experienceLevel: experienceLevel.length > 0 ? experienceLevel[0].toLowerCase() : 'entry',
+                  jobType: jobType.toLowerCase(),
                 },
               })
             }

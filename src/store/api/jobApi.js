@@ -1,7 +1,6 @@
 import { apiPostRequest } from "../https/post";
 import { apiGetRequest } from "../https/get";
 import { apiPutRequest } from "../https/put";
-import { apiPostRequest } from "../https/post";
 
 //Create job api
 export const createJobAPI = (data) =>

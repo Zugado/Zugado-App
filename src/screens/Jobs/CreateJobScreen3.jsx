@@ -16,14 +16,20 @@ import ImagePickerSheet from '../../components/ImagePickerSheet';
 import MyStatusBar from '../../components/MyStatusbar';
 import { useImagePicker } from '../../utils/useImagePicker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { useSnackbar } from '../../contexts/SnackbarContext';
+import { useDispatch } from 'react-redux';
+import { createJob, uploadJobAttachmentsById } from '../../store/thunks/jobThunk';
 
 export default function CreateJobPageThree({ navigation, route }) {
   const { jobData } = route.params;
   const { openCamera, openGallery } = useImagePicker();
+  const { showSnackbar } = useSnackbar();
+  const dispatch = useDispatch();
 
   const [mediaFiles, setMediaFiles] = useState([]);
   const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
   const [currentMediaType, setCurrentMediaType] = useState('image');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   console.log('Job Data from Previous Screens:', jobData);
   const pickVideo = async (source) => {
     try {
@@ -102,6 +108,82 @@ export default function CreateJobPageThree({ navigation, route }) {
 
   const handleRemoveMedia = id => {
     setMediaFiles(prev => prev.filter(file => file.id !== id));
+  };
+
+  const handleSubmitJob = async () => {
+    setIsSubmitting(true);
+    try {
+      // Format job data according to API structure
+      const formattedJobData = {
+        jobFor: jobData.jobFor,
+        title: jobData.title,
+        description: jobData.description,
+        tags: jobData.tags,
+        requirements: jobData.requirements,
+        experienceLevel: jobData.experienceLevel,
+        locationType: jobData.locationType,
+        location: jobData.location,
+        jobType: jobData.jobType,
+        timingType: jobData.timingType,
+        timingDetails: jobData.timingDetails,
+        amount: jobData.amount
+      };
+
+      console.log('Formatted Job Data:', JSON.stringify(formattedJobData, null, 2));
+
+      // Create job first
+      const jobResponse = await dispatch(createJob(formattedJobData));
+      
+      console.log('Job created successfully :', jobResponse);
+      if (createJob.fulfilled.match(jobResponse)) {
+        const jobId = jobResponse.payload?.id || jobResponse.payload?._id;
+        
+        // Upload media files if any
+        if (mediaFiles.length > 0 && jobId) {
+          console.log('Uploading media files for job:', jobId);
+          await uploadMediaFiles(jobId);
+        }
+        
+        showSnackbar('Job posted successfully!', 'success');
+        navigation.navigate('MainTabs', { screen: 'Home' });
+      } else {
+        throw new Error(jobResponse.payload?.message || 'Failed to create job');
+      }
+    } catch (error) {
+      console.error('Error submitting job:', error);
+      showSnackbar('Failed to post job. Please try again.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const uploadMediaFiles = async (jobId) => {
+    try {
+      const formData = new FormData();
+      
+      mediaFiles.forEach((file) => {
+        formData.append('documents', {
+          uri: file.uri,
+          type: file.type === 'image' ? 'image/jpeg' : 'video/mp4',
+          name: file.fileName
+        });
+      });
+      
+      const uploadResponse = await dispatch(uploadJobAttachmentsById({
+        jobId,
+        formData
+      }));
+      
+      if (uploadJobAttachmentsById.fulfilled.match(uploadResponse)) {
+        console.log('Media files uploaded successfully');
+      } else {
+        console.warn('Media upload failed:', uploadResponse.payload);
+        showSnackbar('Job created but media upload failed', 'warning');
+      }
+    } catch (error) {
+      console.error('Error uploading media:', error);
+      showSnackbar('Job created but media upload failed', 'warning');
+    }
   };
 
   const MediaThumbnail = ({ file }) => (
@@ -217,10 +299,13 @@ export default function CreateJobPageThree({ navigation, route }) {
         {/* --- Submit Button --- */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.submitButton}
-            onPress={() => console.log('Submit Job Posting')}
+            style={[styles.submitButton, isSubmitting && { opacity: 0.7 }]}
+            onPress={handleSubmitJob}
+            disabled={isSubmitting}
           >
-            <Text style={styles.submitButtonText}>Submit</Text>
+            <Text style={styles.submitButtonText}>
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </Text>
           </TouchableOpacity>
         </View>
         </View>

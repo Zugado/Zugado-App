@@ -362,8 +362,11 @@ export default function CreateJob({ navigation, route }) {
               navigation.navigate('CreateJobScreen3', {
                 jobData: {
                   ...jobData,
-                  locationType: jobLocationType,
-                  // isNegotiable,
+                  locationType: jobLocationType.toLowerCase(),
+                  location: address.coordinates ? {
+                    type: 'Point',
+                    coordinates: address.coordinates
+                  } : null,
                   timingType,
                   timingDetails: getTimingDetails(),
                   amount: {
