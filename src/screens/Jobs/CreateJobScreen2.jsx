@@ -15,9 +15,11 @@ import Feather from 'react-native-vector-icons/Feather';
 import DateTimePickerField from '../../components/DateTimePickerField';
 import MyStatusBar from '../../components/MyStatusbar';
 import { Colors } from '../../styles/commonStyles';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 export default function CreateJob({ navigation, route }) {
   const { jobData } = route.params || {};
+  const { showSnackbar } = useSnackbar();
   const [address, setAddress] = useState({});
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function CreateJob({ navigation, route }) {
   }, [route.params?.selectedAddress]);
   
   // const [coordinate, setCoordinate] = useState(null);
-  const [jobLocationType, setJobLocationType] = useState('On-site');
+  const [jobLocationType, setJobLocationType] = useState('onsite');
 
   const [discloseAmount, setDiscloseAmount] = useState(true);
   const [isNegotiable, setIsNegotiable] = useState(true);
@@ -91,6 +93,7 @@ export default function CreateJob({ navigation, route }) {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#fff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <SafeAreaView style={styles.safeAreaBlack}>
         <MyStatusBar />
@@ -99,6 +102,7 @@ export default function CreateJob({ navigation, route }) {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
           <View style={styles.header}>
@@ -127,25 +131,25 @@ export default function CreateJob({ navigation, route }) {
             <View style={styles.locationOptionsContainer}>
               <CheckboxButton
                 label="On-site"
-                selected={jobLocationType === 'On-site'}
-                onPress={() => setJobLocationType('On-site')}
+                selected={jobLocationType === 'onsite'}
+                onPress={() => setJobLocationType('onsite')}
               />
               <CheckboxButton
                 label="Hybrid"
-                selected={jobLocationType === 'Hybrid'}
-                onPress={() => setJobLocationType('Hybrid')}
+                selected={jobLocationType === 'hybrid'}
+                onPress={() => setJobLocationType('hybrid')}
               />
               <CheckboxButton
                 label="Remote"
-                selected={jobLocationType === 'Remote'}
-                onPress={() => setJobLocationType('Remote')}
+                selected={jobLocationType === 'remote'}
+                onPress={() => setJobLocationType('remote')}
               />
             </View>
 
             {/* Address picker placeholder */}
             <Text style={styles.label}>Address</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate('SelectAddressScreen')}
+              onPress={() => navigation.navigate('SelectAddressScreen', { jobData })}
               style={styles.textInputWithIcon}
             >
               {!address.address ? (
@@ -159,7 +163,7 @@ export default function CreateJob({ navigation, route }) {
                   <Feather name="map-pin" size={20} color="#000" />
                 </>
               ) : (
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={[styles.textInputFlex, {fontSize: 10, fontWeight: '600' }]}>
                     {address?.name}
                   </Text>
@@ -188,6 +192,11 @@ export default function CreateJob({ navigation, route }) {
                     {address?.address}
                   </Text>
                 </View>
+              )}
+              {address.address && (
+                <TouchableOpacity onPress={() => navigation.navigate('SelectAddressScreen', { jobData })}>
+                  <Feather name="edit-2" size={16} color={Colors.primary} />
+                </TouchableOpacity>
               )}
             </TouchableOpacity>
 
@@ -259,9 +268,10 @@ export default function CreateJob({ navigation, route }) {
                   onChange={setEndDate}
                 />
 
+                <Text style={styles.label}>Daily Hours</Text>
                 <TextInput
                   style={styles.textInputWithIcon}
-                  placeholder="Daily Hours"
+                  placeholder="Enter daily working hours (e.g., 8)"
                   keyboardType="numeric"
                   value={dailyHours}
                   onChangeText={setDailyHours}
@@ -279,13 +289,16 @@ export default function CreateJob({ navigation, route }) {
             )}
 
             {timingType === 'flexible' && (
-              <TextInput
-                style={styles.textInputWithIcon}
-                placeholder="Estimated Hours"
-                keyboardType="numeric"
-                value={estimatedHours}
-                onChangeText={setEstimatedHours}
-              />
+              <>
+                <Text style={styles.label}>Estimated Hours</Text>
+                <TextInput
+                  style={styles.textInputWithIcon}
+                  placeholder="Enter estimated total hours (e.g., 40)"
+                  keyboardType="numeric"
+                  value={estimatedHours}
+                  onChangeText={setEstimatedHours}
+                />
+              </>
             )}
 
             {/* Amount Disclosure */}
@@ -358,26 +371,49 @@ export default function CreateJob({ navigation, route }) {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.nextButton}
-            onPress={() =>
+            onPress={() => {
+              // Validation
+              const timingDetails = getTimingDetails();
+              if (timingType === 'fixed' && (!timingDetails.date || !timingDetails.startTime || !timingDetails.endTime)) {
+                showSnackbar('Fixed timing requires date, start time, and end time', 'error');
+                return;
+              }
+              if (timingType === 'multiday' && (!timingDetails.startDate || !timingDetails.endDate || !timingDetails.dailyHours)) {
+                showSnackbar('Multi-day timing requires start date, end date, and daily hours', 'error');
+                return;
+              }
+              if (timingType === 'deadline' && !timingDetails.deadline) {
+                showSnackbar('Deadline timing requires a deadline', 'error');
+                return;
+              }
+              if (timingType === 'flexible' && !timingDetails.estimatedHours) {
+                showSnackbar('Flexible timing requires estimated hours', 'error');
+                return;
+              }
+              if (discloseAmount && amountMin && amountMax && Number(amountMin) > Number(amountMax)) {
+                showSnackbar('Minimum amount cannot be greater than maximum amount', 'error');
+                return;
+              }
+              
               navigation.navigate('CreateJobScreen3', {
                 jobData: {
                   ...jobData,
-                  locationType: jobLocationType.toLowerCase(),
+                  locationType: jobLocationType,
                   location: address.coordinates ? {
                     type: 'Point',
-                    coordinates: address.coordinates
+                    coordinates: [address.coordinates.longitude, address.coordinates.latitude]
                   } : null,
                   timingType,
-                  timingDetails: getTimingDetails(),
+                  timingDetails,
                   amount: {
-                    min: Number(amountMin),
-                    max: Number(amountMax),
+                    min: Number(amountMin) || 0,
+                    max: Number(amountMax) || 0,
                     disclose: discloseAmount,
                   },
                 },
               })
             }
-          >
+            }>
             <Text style={styles.nextButtonText}>Next</Text>
           </TouchableOpacity>
         </View>
@@ -395,7 +431,7 @@ const styles = StyleSheet.create({
   },
   container: { flex: 1, backgroundColor: '#fff' },
   scrollView: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 100 },
+  scrollContent: { padding: 20, paddingBottom: 120 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
   backButton: {
     backgroundColor: '#fff',
