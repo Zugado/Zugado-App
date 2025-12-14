@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Colors, commonStyles } from '../styles/commonStyles';
 
@@ -100,6 +100,29 @@ export function commonLabel(label, optional) {
         <Text style={styles.label}>*</Text>
       )}
     </Text>
+  );
+}
+export function FaddedIcon({}) {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginVertical: 20,
+      }}
+    >
+      <Image
+        source={require('../assets/Icons/LogoLogin.png')}
+        style={{
+          width: 200,
+          height: 50,
+           resizeMode: 'contain',
+          marginLeft: 10,
+          opacity: 0.2,
+        }}
+      />
+    </View>
   );
 }
 const styles = StyleSheet.create({
