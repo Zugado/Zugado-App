@@ -33,7 +33,7 @@ const EditProfileScreen = ({ navigation }) => {
   const [mobNumber, setMobNumber] = useState('');
   const [workMode, setWorkMode] = useState('Remote');
   const [jobType, setJobType] = useState('Full-Time');
-  const [level, setLevel] = useState('Noob');
+  const [level, setLevel] = useState('Beginner');
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
@@ -46,14 +46,14 @@ const EditProfileScreen = ({ navigation }) => {
 
   const workModeOptions = ['Remote', 'On-Site', 'Hybrid'];
   const jobTypeOptions = ['Full-Time', 'Part-Time', 'Casually'];
-  const levelOptions = ['Noob', 'Beginner', 'Intermediate', 'Experienced'];
+  const levelOptions = ['Beginner', 'Intermediate', 'Experienced'];
 
   // Mapping functions
   const mapToBackend = (field, value) => {
     const mappings = {
       workMode: { 'Remote': 'remote', 'On-Site': 'onsite', 'Hybrid': 'hybrid' },
       jobType: { 'Full-Time': 'fulltime', 'Part-Time': 'parttime', 'Casually': 'casually' },
-      level: { 'Noob': 'beginner', 'Beginner': 'beginner', 'Intermediate': 'intermediate', 'Experienced': 'advanced' }
+      level: { 'Beginner': 'beginner', 'Intermediate': 'intermediate', 'Experienced': 'advanced' }
     };
     return mappings[field]?.[value] || value;
   };
@@ -236,7 +236,7 @@ const EditProfileScreen = ({ navigation }) => {
           {/* Professional Form Sections */}
           <View style={styles.formContainer}>
             {/* Personal Information Section */}
-            <View style={styles.formSection}>
+           <View style={[styles.formSection,{ paddingTop: 80,}]}>
               <Text style={styles.sectionTitle}>Personal Information</Text>
               
               <View style={styles.inputGroup}>
@@ -334,7 +334,7 @@ const EditProfileScreen = ({ navigation }) => {
             </View>
 
             {/* Professional Preferences Section */}
-            <View style={styles.formSection}>
+            <View style={[styles.formSection,{}]}>
               <Text style={styles.sectionTitle}>Professional Preferences</Text>
               
               <View style={styles.inputGroup}>
@@ -578,10 +578,12 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     marginTop: 60,
+    
   },
   formSection: {
     backgroundColor: Colors.whiteColor,
     borderRadius: 16,
+   
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
@@ -591,7 +593,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   sectionTitle: {
-    fontSize: 18,
+    textAlign: 'center',
+    fontSize: 16,
     fontWeight: '700',
     color: Colors.primary,
     marginBottom: 20,
