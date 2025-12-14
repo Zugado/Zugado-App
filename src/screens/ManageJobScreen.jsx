@@ -89,7 +89,7 @@ const MyJobsSection = ({ isLoading }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      {myJobsData>0&&(<View style={styles.filterContainer}>
+      {myJobsData.length>0 &&(<View style={styles.filterContainer}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -152,7 +152,7 @@ const PostedJobsSection = ({ isLoading }) => {
 
   return (
     <View style={{ flex: 1 }}>
-     {postedJobsData>0&&(  <View style={styles.filterContainer}>
+     {postedJobsData.length>0&&(  <View style={styles.filterContainer}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
