@@ -28,6 +28,7 @@ import { updateProfilePicAPI } from '../store/api/userApi';
 import { updateUserDetails, getUserProfile, updateProfilePic } from '../store/thunks/userThunk';
 import Header from '../components/Header';
 import MyStatusBar from '../components/MyStatusbar';
+import ImagePreviewModal from '../components/ImagePreviewModal';
 
 const InfoBox = ({ 
   iconName, 
@@ -236,6 +237,7 @@ export default function ProfileScreen({ navigation }) {
   const [showDocumentDropdown, setShowDocumentDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
 
   // Mapping functions for backend API - MUST be before useState
   const mapToBackend = (field, value) => {
@@ -505,10 +507,12 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Profile Image */}
         <View style={styles.imageContainer}>
-          <Image
-            source={user?.avatar ? { uri: user.avatar } : require('../assets/profile.png')}
-            style={styles.profileImage}
-          />
+          <TouchableOpacity onPress={() => setImagePreviewVisible(true)}>
+            <Image
+              source={user?.avatar ? { uri: user.avatar } : require('../assets/profile.png')}
+              style={styles.profileImage}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -958,6 +962,12 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
       )}
+
+      <ImagePreviewModal
+        image={user?.avatar}
+        visibility={imagePreviewVisible}
+        setVisibility={setImagePreviewVisible}
+      />
     </SafeAreaView>
   );
 }

@@ -19,6 +19,7 @@ import ImagePickerSheet from '../components/ImagePickerSheet';
 import { useImagePicker } from '../utils/useImagePicker';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { updateUserDetails, updateProfilePic } from '../store/thunks/userThunk';
+import ImagePreviewModal from '../components/ImagePreviewModal';
 
 const EditProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -37,6 +38,7 @@ const EditProfileScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
+  const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -212,12 +214,14 @@ const EditProfileScreen = ({ navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flex: 1, marginHorizontal: 16, marginTop: 20 }}>
           <View style={styles.avatarContainer}>
-            <TouchableOpacity onPress={() => setPickerSheetVisible(true)}>
+            <View>
               {profileImage || user?.avatar ? (
-                <Image
-                  source={{ uri: profileImage || user.avatar }}
-                  style={styles.avatar}
-                />
+                <TouchableOpacity onPress={() => setImagePreviewVisible(true)}>
+                  <Image
+                    source={{ uri: profileImage || user.avatar }}
+                    style={styles.avatar}
+                  />
+                </TouchableOpacity>
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Feather
@@ -227,10 +231,10 @@ const EditProfileScreen = ({ navigation }) => {
                   />
                 </View>
               )}
-              <View style={styles.editIcon}>
+              <TouchableOpacity onPress={() => setPickerSheetVisible(true)} style={styles.editIcon}>
                 <Feather name="camera" size={16} color={Colors.whiteColor} />
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Professional Form Sections */}
@@ -472,6 +476,12 @@ const EditProfileScreen = ({ navigation }) => {
         }}
       />
 
+      <ImagePreviewModal
+        image={profileImage || user?.avatar}
+        visibility={imagePreviewVisible}
+        setVisibility={setImagePreviewVisible}
+      />
+
       {/* OTP Verification Modal */}
       <Modal
         visible={showOtpModal}
@@ -706,7 +716,7 @@ const styles = StyleSheet.create({
   updateButton: {
     backgroundColor: Colors.primary,
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 12,
     alignItems: 'center',
     marginBottom: 20,
     shadowColor: Colors.primary,
