@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
+import { useSelector } from 'react-redux';
 import MyStatusBar from '../../components/MyStatusbar';
 import { CommonAppBar } from '../../components/CommonComponents';
 import { Colors } from '../../styles/commonStyles';
+import { getSavedAddresses } from '../../utils/addressStorage';
 const dummyaddresses = [
   {
     id: '1',
@@ -46,7 +48,31 @@ const dummyaddresses = [
   },
 ];
 const SelectAddressScreen = ({ navigation, route }) => {
-  const [addresses] = useState(dummyaddresses);
+  const { newAddress } = route.params || {};
+  const { user } = useSelector((state) => state.auth);
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadSavedAddresses();
+  }, [newAddress]);
+
+  const loadSavedAddresses = async () => {
+    try {
+      const savedAddresses = await getSavedAddresses(user?.id || user?._id);
+      if (newAddress) {
+        // Remove any existing address with same ID to prevent duplicates
+        const filteredAddresses = savedAddresses.filter(addr => addr.id !== newAddress.id);
+        setAddresses([newAddress, ...filteredAddresses]);
+      } else {
+        setAddresses(savedAddresses);
+      }
+    } catch (error) {
+      console.error('Error loading addresses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const getAddressIcon = type => {
     switch (type) {
@@ -64,7 +90,10 @@ const SelectAddressScreen = ({ navigation, route }) => {
   const handleAddressSelect = address => {
     console.log('Selected Address:', address);
     navigation.navigate('CreateJobScreen2', {
-      selectedAddress: address,
+      selectedAddress: {
+        ...address,
+        type: address.addressType // Map addressType to type for compatibility
+      },
       jobData: route.params?.jobData,
     });
   };
@@ -78,11 +107,11 @@ const SelectAddressScreen = ({ navigation, route }) => {
       <View style={styles.cardHeader}>
         <View style={styles.typeContainer}>
           <Feather
-            name={getAddressIcon(item.type)}
+            name={getAddressIcon(item.addressType)}
             size={16}
             color={Colors.primary}
           />
-          <Text style={styles.addressType}>{item.type}</Text>
+          <Text style={styles.addressType}>{item.addressType}</Text>
         </View>
         <Feather name="chevron-right" size={16} color={Colors.grayColor} />
       </View>
@@ -145,14 +174,20 @@ const SelectAddressScreen = ({ navigation, route }) => {
           <Text style={styles.sectionTitle}>Saved Addresses</Text>
         </View>
 
-        <FlatList
-          data={addresses}
-          renderItem={renderAddressCard}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={renderEmptyList}
-        />
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading addresses...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={addresses}
+            renderItem={renderAddressCard}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={renderEmptyList}
+          />
+        )}
       </View>
       </View>
     </SafeAreaView>
@@ -291,5 +326,14 @@ const styles = StyleSheet.create({
     color: Colors.grayColor,
     marginTop: 8,
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.grayColor,
   },
 });

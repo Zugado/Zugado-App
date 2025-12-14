@@ -14,27 +14,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import MyStatusBar from '../../components/MyStatusbar';
 import { TypeSelectorButtons } from '../../components/CommonComponents';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 export default function CreateJob({ navigation }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [skill, setSkill] = useState('');
   const [experienceLevel, setExperienceLevel] = useState([]);
+  const { showSnackbar } = useSnackbar();
 
   // Job For
   const [jobFor, setJobFor] = useState('');
   const [showJobForModal, setShowJobForModal] = useState(false);
-  const jobForOptions = [
-    { label: 'Person', value: 'Person' },
-    { label: 'Thing', value: 'Thing' },
-  ];
-   const typeOptions = [
-    { label: 'Standard', value: 'Standard' },
-    { label: 'Quick', value: 'Quick' },
-  ];
-
+  
   // Job Type
   const [jobType, setJobType] = useState('');
   const [showJobTypeModal, setShowJobTypeModal] = useState(false);
+  
+  const jobForOptions = [
+    { label: 'Person', value: 'person' },
+    { label: 'Thing', value: 'thing' },
+  ];
+   const typeOptions = [
+    { label: 'Standard', value: 'standard' },
+    { label: 'Quick', value: 'quick' },
+  ];
   // --- NEW TAG STATE & LOGIC ---
   const [tags, setTags] = useState([]);
 
@@ -140,6 +143,7 @@ export default function CreateJob({ navigation }) {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#fff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <SafeAreaView style={styles.safeAreaBlack} edges={['top']}>
         <MyStatusBar />
@@ -148,6 +152,7 @@ export default function CreateJob({ navigation }) {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* --- Header --- */}
           <View style={styles.header}>
@@ -171,7 +176,7 @@ export default function CreateJob({ navigation }) {
           {/* --- Form --- */}
           <View style={styles.form}>
              {/* Job For */}
-            <Text style={styles.label}>Job For</Text>
+            <Text style={styles.label}>Job For<Text style={styles.required}>*</Text></Text>
             <TypeSelectorButtons
               type={jobFor}
               setType={setJobFor}
@@ -179,7 +184,7 @@ export default function CreateJob({ navigation }) {
             />
             
             {/* Job Type */}
-            <Text style={styles.label}>Job Type</Text>
+            <Text style={styles.label}>Job Type<Text style={styles.required}>*</Text></Text>
              <TypeSelectorButtons
               type={jobType}
               setType={setJobType}
@@ -195,7 +200,7 @@ export default function CreateJob({ navigation }) {
               <Feather name="chevron-down" size={20} color="#888" />
             </TouchableOpacity> */}
              {/* Job Title */}
-            <Text style={styles.label}>Job Title</Text>
+            <Text style={styles.label}>Job Title<Text style={styles.required}>*</Text></Text>
             <TextInput
               style={styles.textInput}
               placeholder="Enter Title"
@@ -207,7 +212,7 @@ export default function CreateJob({ navigation }) {
            
 
    {/* Job Description */}
-            <Text style={styles.label}>Job Description</Text>
+            <Text style={styles.label}>Job Description<Text style={styles.required}>*</Text></Text>
             <TextInput
               style={[styles.textInput, styles.descriptionInput]}
               placeholder="Enter Description"
@@ -249,12 +254,14 @@ export default function CreateJob({ navigation }) {
               }}
             />
            
-            {/* Skill Required */}
-            <Text style={styles.label}>Skill Required</Text>
+            {/* Requirements */}
+            <Text style={styles.label}>Requirements</Text>
             <TextInput
-              style={styles.textInput}
-              placeholder="Enter Skill (e.g., React, Redux)"
+              style={[styles.textInput, styles.descriptionInput]}
+              placeholder="Enter job requirements (e.g., 3+ years React experience, portfolio required)"
               placeholderTextColor="#888"
+              multiline
+              numberOfLines={3}
               value={skill}
               onChangeText={setSkill}
             />
@@ -339,19 +346,19 @@ export default function CreateJob({ navigation }) {
             <Text style={styles.label}>Experience Level</Text>
             <View style={styles.experienceBox}>
               <CheckboxButton
-                label="Beginner"
-                selected={experienceLevel.includes('Beginner')}
-                onPress={() => toggleExperienceLevel('Beginner')}
+                label="Entry Level"
+                selected={experienceLevel.includes('entry')}
+                onPress={() => toggleExperienceLevel('entry')}
               />
               <CheckboxButton
                 label="Intermediate"
-                selected={experienceLevel.includes('Intermediate')}
-                onPress={() => toggleExperienceLevel('Intermediate')}
+                selected={experienceLevel.includes('intermediate')}
+                onPress={() => toggleExperienceLevel('intermediate')}
               />
               <CheckboxButton
-                label="Advanced"
-                selected={experienceLevel.includes('Advanced')}
-                onPress={() => toggleExperienceLevel('Advanced')}
+                label="Expert"
+                selected={experienceLevel.includes('expert')}
+                onPress={() => toggleExperienceLevel('expert')}
               />
             </View>
           </View>
@@ -361,20 +368,38 @@ export default function CreateJob({ navigation }) {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.nextButton}
-            onPress={() =>
+            onPress={() => {
+              // Validation
+              if (!jobFor || !title.trim() || !description.trim() || !jobType) {
+                showSnackbar('Please fill all required fields', 'error');
+                return;
+              }
+              if (title.length > 100) {
+                showSnackbar('Title must be 100 characters or less', 'error');
+                return;
+              }
+              if (description.length > 1000) {
+                showSnackbar('Description must be 1000 characters or less', 'error');
+                return;
+              }
+              if (skill.length > 500) {
+                showSnackbar('Requirements must be 500 characters or less', 'error');
+                return;
+              }
+              
               navigation.navigate('CreateJobScreen2', {
                 jobData: {
-                  jobFor: jobFor.toLowerCase(),
-                  title,
-                  description,
+                  jobFor,
+                  title: title.trim(),
+                  description: description.trim(),
                   tags,
-                  requirements: skill,
-                  experienceLevel: experienceLevel.length > 0 ? experienceLevel[0].toLowerCase() : 'entry',
-                  jobType: jobType.toLowerCase(),
+                  requirements: skill.trim(),
+                  experienceLevel: experienceLevel.length > 0 ? experienceLevel[0] : 'entry',
+                  jobType,
                 },
               })
             }
-          >
+            }>
             <Text style={styles.nextButtonText}>Next</Text>
           </TouchableOpacity>
         </View>
@@ -553,7 +578,7 @@ const styles = StyleSheet.create({
   },
   container: { flex: 1, backgroundColor: '#fff' },
   scrollView: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 100 },
+  scrollContent: { padding: 20, paddingBottom: 120 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
   backButton: { backgroundColor: '#fff', padding: 10, borderRadius: 20 ,shadowColor:"#000",shadowOffset:{width:2,height:3},shadowOpacity:0.3,shadowRadius:4,elevation:3, },
   progressContainer: {
@@ -573,6 +598,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: 'bold', color: '#000', marginBottom: 30 ,textAlign:'center' },
   form: { width: '100%' },
   label: { fontSize: 14, color: '#000', marginBottom: 8, fontWeight: '500' },
+  required: { color: '#FF0000', fontSize: 14 },
   textInput: {
     borderWidth: 1,
     borderColor: '#ddd',

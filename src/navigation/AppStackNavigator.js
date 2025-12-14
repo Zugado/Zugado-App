@@ -12,6 +12,7 @@ import AddNewAddressScreen from '../screens/mapAndAddress/AddNewAddressScreen';
 import SelectAddressScreen from '../screens/mapAndAddress/SelectAddressScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import PreferencesScreen from '../screens/PreferencesScreen';
+import SavedAddressesScreen from '../screens/SavedAddressesScreen';
 const Stack = createStackNavigator();
 
 export default function AppStackNavigator() {
@@ -28,6 +29,8 @@ export default function AppStackNavigator() {
         <Stack.Screen name="SelectAddressScreen" component={SelectAddressScreen} />
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="PreferencesScreen" component={PreferencesScreen} />
+        <Stack.Screen name="SavedAddressesScreen" component={SavedAddressesScreen} />
+        <Stack.Screen name="EditAddressScreen" component={AddNewAddressScreen} />
     </Stack.Navigator>
   );
 }

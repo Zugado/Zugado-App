@@ -30,7 +30,16 @@ export default function CreateJobPageThree({ navigation, route }) {
   const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
   const [currentMediaType, setCurrentMediaType] = useState('image');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log('Job Data from Previous Screens:', jobData);
+  console.log('Job Data from Previous Screens:', JSON.stringify(jobData, null, 2));
+  console.log('Individual fields:', {
+    jobFor: jobData?.jobFor,
+    title: jobData?.title,
+    description: jobData?.description,
+    tags: jobData?.tags,
+    requirements: jobData?.requirements,
+    experienceLevel: jobData?.experienceLevel,
+    jobType: jobData?.jobType
+  });
   const pickVideo = async (source) => {
     try {
       if (mediaFiles.length >= 3) {
@@ -113,20 +122,54 @@ export default function CreateJobPageThree({ navigation, route }) {
   const handleSubmitJob = async () => {
     setIsSubmitting(true);
     try {
+      // Format timing details based on timing type
+      let formattedTimingDetails = {};
+      
+      switch (jobData.timingType) {
+        case 'fixed':
+          formattedTimingDetails = {
+            date: jobData.timingDetails.date,
+            startTime: jobData.timingDetails.startTime,
+            endTime: jobData.timingDetails.endTime
+          };
+          break;
+        case 'multiday':
+          formattedTimingDetails = {
+            startDate: jobData.timingDetails.startDate,
+            endDate: jobData.timingDetails.endDate,
+            dailyHours: jobData.timingDetails.dailyHours
+          };
+          break;
+        case 'deadline':
+          formattedTimingDetails = {
+            deadline: jobData.timingDetails.deadline
+          };
+          break;
+        case 'flexible':
+          formattedTimingDetails = {
+            estimatedHours: jobData.timingDetails.estimatedHours
+          };
+          break;
+      }
+
       // Format job data according to API structure
       const formattedJobData = {
         jobFor: jobData.jobFor,
         title: jobData.title,
         description: jobData.description,
-        tags: jobData.tags,
-        requirements: jobData.requirements,
+        tags: jobData.tags || [],
+        requirements: jobData.requirements || '',
         experienceLevel: jobData.experienceLevel,
         locationType: jobData.locationType,
         location: jobData.location,
         jobType: jobData.jobType,
         timingType: jobData.timingType,
-        timingDetails: jobData.timingDetails,
-        amount: jobData.amount
+        timingDetails: formattedTimingDetails,
+        amount: {
+          min: jobData.amount?.min || 0,
+          max: jobData.amount?.max || 0,
+          disclose: jobData.amount?.disclose || false
+        }
       };
 
       console.log('Formatted Job Data:', JSON.stringify(formattedJobData, null, 2));
@@ -134,9 +177,9 @@ export default function CreateJobPageThree({ navigation, route }) {
       // Create job first
       const jobResponse = await dispatch(createJob(formattedJobData));
       
-      console.log('Job created successfully :', jobResponse);
+      console.log('Job created successfully:', jobResponse);
       if (createJob.fulfilled.match(jobResponse)) {
-        const jobId = jobResponse.payload?.id || jobResponse.payload?._id;
+        const jobId = jobResponse.payload?.data?.id || jobResponse.payload?.id || jobResponse.payload?._id;
         
         // Upload media files if any
         if (mediaFiles.length > 0 && jobId) {
@@ -145,7 +188,10 @@ export default function CreateJobPageThree({ navigation, route }) {
         }
         
         showSnackbar('Job posted successfully!', 'success');
-        navigation.navigate('MainTabs', { screen: 'Home' });
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs', params: { screen: 'Home' } }],
+        });
       } else {
         throw new Error(jobResponse.payload?.message || 'Failed to create job');
       }
@@ -222,6 +268,7 @@ export default function CreateJobPageThree({ navigation, route }) {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#fff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <SafeAreaView style={styles.safeAreaBlack}>
         <MyStatusBar />
@@ -230,6 +277,7 @@ export default function CreateJobPageThree({ navigation, route }) {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* --- Header --- */}
           <View style={styles.header}>
@@ -251,6 +299,19 @@ export default function CreateJobPageThree({ navigation, route }) {
 
           {/* --- Title --- */}
           <Text style={styles.title}>Add Media & Finalize Posting</Text>
+          
+          {/* Job Summary */}
+          <View style={styles.summaryContainer}>
+            <Text style={styles.summaryTitle}>Job Summary</Text>
+            <Text style={styles.summaryText}>Title: {jobData.title}</Text>
+            <Text style={styles.summaryText}>Type: {jobData.jobType} • {jobData.jobFor}</Text>
+            <Text style={styles.summaryText}>Location: {jobData.locationType}</Text>
+            {jobData.amount?.disclose && (
+              <Text style={styles.summaryText}>
+                Amount: ${jobData.amount.min} - ${jobData.amount.max}
+              </Text>
+            )}
+          </View>
 
           {/* --- Upload Section --- */}
           <View style={styles.uploadSection}>
@@ -340,7 +401,7 @@ const styles = StyleSheet.create({
   },
   container: { flex: 1, backgroundColor: '#fff' },
   scrollView: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 100 },
+  scrollContent: { padding: 20, paddingBottom: 120 },
 
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
   backButton: {
@@ -372,8 +433,27 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
-    marginBottom: 30,
+    marginBottom: 20,
     textAlign: 'center',
+  },
+  summaryContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 8,
+  },
+  summaryText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
   },
   label: { fontSize: 14, color: '#000', marginBottom: 10, fontWeight: '600' },
 
