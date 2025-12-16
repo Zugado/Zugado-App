@@ -16,7 +16,8 @@ const FloatingLabelSkillsInput = ({
   onSkillsChange, 
   availableTags = [],
   placeholder = "Type to search skills...",
-  maxSkills = 10 
+  maxSkills = 10,
+  onFocus
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -41,6 +42,9 @@ const FloatingLabelSkillsInput = ({
       duration: 200,
       useNativeDriver: false,
     }).start();
+    if (onFocus && inputRef.current) {
+      onFocus(inputRef.current);
+    }
   };
 
   const handleBlur = () => {
@@ -101,7 +105,7 @@ const FloatingLabelSkillsInput = ({
         uniqueFiltered.unshift(inputValue.trim());
       }
 
-      setFilteredSuggestions(uniqueFiltered.slice(0, 8));
+      setFilteredSuggestions(uniqueFiltered);
       setShowSuggestions(true);
     } else {
       setFilteredSuggestions([]);
@@ -177,7 +181,8 @@ const FloatingLabelSkillsInput = ({
           <ScrollView 
             style={styles.suggestionsList}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}
           >
             {filteredSuggestions.map((suggestion, index) => {
               const isUserTyped = suggestion === inputValue.trim() && 

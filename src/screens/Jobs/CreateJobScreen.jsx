@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,useRef} from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import FloatingLabelSkillsInput from '../../components/inputFields/FloatingLabel
 import { getAllTags } from '../../store/thunks/jobThunk';
 import { selectTags, selectTagsLoading } from '../../store/selector';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import { scrollToInput } from '../../utils/commonMethods';
 export default function CreateJob({ navigation }) {
   const dispatch = useDispatch();
   const availableTags = useSelector(selectTags);
@@ -59,6 +60,8 @@ export default function CreateJob({ navigation }) {
     </TouchableOpacity>
   );
 
+  const scrollViewRef = useRef(null);
+
   const toggleExperienceLevel = (level) => {
     setExperienceLevel(prev => 
       prev.includes(level) 
@@ -77,6 +80,7 @@ export default function CreateJob({ navigation }) {
         <MyStatusBar />
         <View style={styles.container}>
         <ScrollView
+          ref={scrollViewRef}
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -156,10 +160,9 @@ export default function CreateJob({ navigation }) {
               value={title}
               onChangeText={setTitle}
               placeholder="Enter a clear, descriptive title"
+              onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
             />
            
-           
-
             {/* Task Description */}
             <FloatingLabelInput
               label="Task Description *"
@@ -168,6 +171,7 @@ export default function CreateJob({ navigation }) {
               multiline
               numberOfLines={4}
               placeholder="Describe the job requirements, deliverables, and expectations"
+              onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
             />
            
             
@@ -180,6 +184,7 @@ export default function CreateJob({ navigation }) {
               availableTags={availableTags}
               placeholder="E.g Software,Design..."
               maxSkills={8}
+              onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
             />
 
          
@@ -191,6 +196,7 @@ export default function CreateJob({ navigation }) {
               multiline
               numberOfLines={3}
               placeholder="List specific skills, experience, or qualifications needed"
+              onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
             />
 
               {/* Task Type */}
