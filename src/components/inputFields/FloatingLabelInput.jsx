@@ -21,10 +21,12 @@ const FloatingLabelInput = ({
   buttonText = "Button",
   onButtonPress,
   buttonStyle,
+  onFocus,
   ...props 
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const animated = useState(new Animated.Value(value ? 1 : 0))[0];
+  const inputRef = React.useRef(null);
 
    React.useEffect(() => {
     if (value && value.trim() !== '') {
@@ -41,6 +43,9 @@ const FloatingLabelInput = ({
       duration: 200,
       useNativeDriver: false,
     }).start();
+    if (onFocus && inputRef.current) {
+      onFocus(inputRef.current);
+    }
   };
 
   const handleBlur = () => {
@@ -78,6 +83,7 @@ const FloatingLabelInput = ({
       <View style={styles.inputWrapper}>
         <TextInput
           {...props}
+          ref={inputRef}
           value={value}
           onChangeText={onChangeText}
           style={[

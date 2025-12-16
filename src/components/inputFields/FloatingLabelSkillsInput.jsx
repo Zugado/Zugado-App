@@ -16,7 +16,8 @@ const FloatingLabelSkillsInput = ({
   onSkillsChange, 
   availableTags = [],
   placeholder = "Type to search skills...",
-  maxSkills = 10 
+  maxSkills = 10,
+  onFocus
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -41,6 +42,9 @@ const FloatingLabelSkillsInput = ({
       duration: 200,
       useNativeDriver: false,
     }).start();
+    if (onFocus && inputRef.current) {
+      onFocus(inputRef.current);
+    }
   };
 
   const handleBlur = () => {
