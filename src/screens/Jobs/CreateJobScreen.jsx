@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
-    paddingTop: 20,
+    paddingVertical: 20,
   },
   nextButton: {
     backgroundColor: '#000',

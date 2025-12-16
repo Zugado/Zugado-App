@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { selectLocationAddress } from '../store/selector';
+import NotificationIcon from './NotificationIcon';
 
 const Header = ({ showSearch = true, navigation }) => {
   const locationAddress = useSelector(selectLocationAddress);
@@ -41,22 +42,17 @@ const Header = ({ showSearch = true, navigation }) => {
         />
 
         <View style={styles.iconsContainer}>
-          <TouchableOpacity onPress={() => navigation?.navigate('WishlistScreen')}>
+          <TouchableOpacity
+            onPress={() => navigation?.navigate('WishlistScreen')}
+          >
             <Image
               source={require('../assets/Icons/Saved.png')}
               style={styles.icon}
             />
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.bellIconContainer}>
-            <Image
-              source={require('../assets/Icons/Notification.png')}
-              style={styles.icon}
-            />
-            <View style={styles.badgeContainer}>
-              <Text style={styles.badgeText}>12</Text>
-            </View>
-          </TouchableOpacity>
+          <View style={{marginLeft: 18}}><NotificationIcon color={"#fff"} /></View>
+          
+         
         </View>
       </View>
 
@@ -71,8 +67,11 @@ const Header = ({ showSearch = true, navigation }) => {
               style={styles.searchInput}
             />
           </View>
-          <TouchableOpacity 
-            style={[styles.jobButton, { backgroundColor: isQuickJobFirst ? '#000' : '#22c55e' }]}
+          <TouchableOpacity
+            style={[
+              styles.jobButton,
+              { backgroundColor: isQuickJobFirst ? '#000' : '#22c55e' },
+            ]}
             onPress={() => setIsQuickJobFirst(!isQuickJobFirst)}
             activeOpacity={0.8}
           >
@@ -88,7 +87,6 @@ const Header = ({ showSearch = true, navigation }) => {
               </>
             )}
           </TouchableOpacity>
-
         </View>
       )}
     </View>
@@ -136,32 +134,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   icon: {
-    width: 22,  // unified icon size
+    width: 22, // unified icon size
     height: 22,
     resizeMode: 'contain',
   },
-  bellIconContainer: {
-    marginLeft: 18,
-    position: 'relative',
-  },
-  badgeContainer: {
-    position: 'absolute',
-    top: -5,
-    right: -8,
-    backgroundColor: 'red',
-    borderRadius: 12,
-    width: 18,
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: 'bold',
-  },
+  
   searchWrapper: {
     flexDirection: 'row',
     alignItems: 'center',

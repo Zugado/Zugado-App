@@ -254,8 +254,7 @@ export default function JobDetailedScreen({ navigation, route }) {
      <CommonAppBar
       title="Task Details"
       onBackPress={() => navigation.goBack()}
-      icon={"bell"}
-      method={() => {}} />
+      showNotificationIcon={true} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Attachments Carousel */}

@@ -2,29 +2,20 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Colors, commonStyles } from '../styles/commonStyles';
+import NotificationIcon from './NotificationIcon';
 
-export const CommonAppBar = ({ title, onBackPress, navigation ,icon ,method}) => {
+export const CommonAppBar = ({ title, onBackPress, navigation, showNotificationIcon = false }) => {
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBackPress || (() => navigation?.goBack())}>
         <Feather name="arrow-left" size={24} color={Colors.blackColor} />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>{title}</Text>
-      <TouchableOpacity 
-        style={{
-          backgroundColor: '#fff',
-          borderRadius: 18,
-          padding: icon ? 6 : 0,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 3,
-          elevation: 3,
-        }} 
-        onPress={method}
-      >
-        {icon && <Feather name="bell" size={24} color="#111827" />}
-      </TouchableOpacity>
+      {showNotificationIcon ? (
+        <NotificationIcon />
+      ) : (
+        <View style={{ width: 24 }} />
+      )}
     </View>
   );
 };
