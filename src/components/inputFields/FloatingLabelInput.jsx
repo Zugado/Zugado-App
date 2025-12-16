@@ -31,10 +31,10 @@ const FloatingLabelInput = ({
    React.useEffect(() => {
     if (value && value.trim() !== '') {
       animated.setValue(1);
-    } else {
+    } else if (!isFocused) {
       animated.setValue(0);
     }
-  }, [value]);
+  }, [value, isFocused]);
 
   const handleFocus = () => {
     setIsFocused(true);
@@ -50,7 +50,7 @@ const FloatingLabelInput = ({
 
   const handleBlur = () => {
     setIsFocused(false);
-    if (!value) {
+    if (!value || !value.trim()) {
       Animated.timing(animated, {
         toValue: 0,
         duration: 200,

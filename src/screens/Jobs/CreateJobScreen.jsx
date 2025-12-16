@@ -18,6 +18,7 @@ import { getAllTags } from '../../store/thunks/jobThunk';
 import { selectTags, selectTagsLoading } from '../../store/selector';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { scrollToInput } from '../../utils/commonMethods';
+import { FaddedIcon } from '../../components/CommonComponents';
 export default function CreateJob({ navigation }) {
   const dispatch = useDispatch();
   const availableTags = useSelector(selectTags);
@@ -278,6 +279,7 @@ export default function CreateJob({ navigation }) {
                 ))}
               </View>
             </View>
+            <FaddedIcon/>
           </View>
         </ScrollView>
 
@@ -481,18 +483,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-
-
   buttonContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 20,
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
-    paddingBottom: 34,
+    paddingTop: 20,
   },
   nextButton: {
     backgroundColor: '#000',

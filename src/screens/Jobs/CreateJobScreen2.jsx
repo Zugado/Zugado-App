@@ -17,6 +17,7 @@ import FloatingLabelInput from '../../components/inputFields/FloatingLabelInput'
 import MyStatusBar from '../../components/MyStatusbar';
 import { Colors } from '../../styles/commonStyles';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import { FaddedIcon } from '../../components/CommonComponents';
 
 export default function CreateJob({ navigation, route }) {
   const { jobData } = route.params || {};
@@ -401,7 +402,9 @@ export default function CreateJob({ navigation, route }) {
                 </View>
               </>
             )}
+          
           </View>
+            <FaddedIcon/>
         </ScrollView>
 
         {/* NEXT BUTTON */}
