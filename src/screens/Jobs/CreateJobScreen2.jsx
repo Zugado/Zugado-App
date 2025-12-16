@@ -36,7 +36,6 @@ export default function CreateJob({ navigation, route }) {
   const [jobLocationType, setJobLocationType] = useState('onsite');
 
   const [discloseAmount, setDiscloseAmount] = useState(false);
-  const [amount, setAmount] = useState('');
 
   const [timingType, setTimingType] = useState('fixed');
 
@@ -362,7 +361,6 @@ export default function CreateJob({ navigation, route }) {
                 selected={discloseAmount === false}
                 onPress={() => {
                   setDiscloseAmount(false);
-                  setAmount('');
                   setAmountMin('');
                   setAmountMax('');
                 }}
@@ -371,14 +369,6 @@ export default function CreateJob({ navigation, route }) {
 
             {discloseAmount && (
               <>
-                <FloatingLabelInput
-                  label="Amount (INR) ₹"
-                  value={amount}
-                  onChangeText={setAmount}
-                  keyboardType="numeric"
-                  placeholder="5000"
-                />
-
                 <Text style={styles.label}>Amount Range (INR)</Text>
                 <View style={styles.amountRangeContainer}>
                   <View style={styles.rangeInputWrapper}>
