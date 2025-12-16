@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, FlatList, Dimensions } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../../components/MyStatusbar';
 import { getJobById } from '../../store/thunks/jobThunk';
+import Video from 'react-native-video';
+import { selectToken } from '../../store/selector';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock data for Job Details section
 const jobDetailsData = [
@@ -110,18 +113,25 @@ const getLocationIcon = (locationType) => {
   }
 };
 
+const { width } = Dimensions.get('window');
+
 export default function JobDetailedScreen({ navigation, route }) {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const [jobData, setJobData] = useState(null);
+  const [previewModal, setPreviewModal] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState(null);
   const jobId = route.params?.jobId;
-
+  console.log("Token = ", AsyncStorage.getItem('token'));
+  console.log("jobData = ", JSON.stringify(jobData, null, 2))
   useEffect(() => {
     if (jobId) {
       fetchJobDetails();
     }
   }, [jobId]);
 
+   console.log("Token = ", AsyncStorage.getItem('token'));
+  console.log("jobData = ", JSON.stringify(jobData, null, 2));
   const fetchJobDetails = async () => {
     try {
       setLoading(true);
@@ -135,6 +145,38 @@ export default function JobDetailedScreen({ navigation, route }) {
       setLoading(false);
     }
   };
+
+  const openPreview = (media) => {
+    setSelectedMedia(media);
+    setPreviewModal(true);
+  };
+
+  const isVideo = (url) => {
+    return url.toLowerCase().includes('.mp4') || url.toLowerCase().includes('.mov') || url.toLowerCase().includes('.avi');
+  };
+
+  const renderAttachment = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.attachmentItem}
+      onPress={() => openPreview(item)}
+    >
+      {isVideo(item.url) ? (
+        <View style={styles.videoThumbnail}>
+          <Video
+            source={{ uri: item.url }}
+            style={styles.attachmentImage}
+            paused={true}
+            resizeMode="cover"
+          />
+          <View style={styles.playIcon}>
+            <Feather name="play" size={24} color="#fff" />
+          </View>
+        </View>
+      ) : (
+        <Image source={{ uri: item.url }} style={styles.attachmentImage} />
+      )}
+    </TouchableOpacity>
+  );
 
   if (loading) {
     return (
@@ -178,13 +220,34 @@ export default function JobDetailedScreen({ navigation, route }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Featured Image */}
-        <View style={styles.imageContainer}>
-          <Image source={require('../../assets/jobImage.png')} style={styles.image} />
-          <TouchableOpacity style={styles.bookmarkButton}>
-            <Feather name="bookmark" size={20} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        {/* Attachments Carousel */}
+        {jobData.attachments && jobData.attachments.length > 0 ? (
+          <View style={styles.attachmentsContainer}>
+            <FlatList
+              data={jobData.attachments}
+              renderItem={renderAttachment}
+              keyExtractor={(item) => item._id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              pagingEnabled
+              snapToInterval={width}
+              decelerationRate="fast"
+            />
+            <TouchableOpacity style={styles.bookmarkButton}>
+              <Feather name="bookmark" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.imageContainer}>
+            <Image 
+              source={require('../../assets/jobImage.png')} 
+              style={styles.image} 
+            />
+            <TouchableOpacity style={styles.bookmarkButton}>
+              <Feather name="bookmark" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.content}>
           {/* Job Title and Status */}
@@ -268,6 +331,42 @@ export default function JobDetailedScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Preview Modal */}
+      <Modal
+        visible={previewModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPreviewModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TouchableOpacity 
+            style={styles.modalClose}
+            onPress={() => setPreviewModal(false)}
+          >
+            <Feather name="x" size={24} color="#fff" />
+          </TouchableOpacity>
+          
+          {selectedMedia && (
+            <View style={styles.modalContent}>
+              {isVideo(selectedMedia.url) ? (
+                <Video
+                  source={{ uri: selectedMedia.url }}
+                  style={styles.modalVideo}
+                  controls={true}
+                  resizeMode="contain"
+                />
+              ) : (
+                <Image 
+                  source={{ uri: selectedMedia.url }} 
+                  style={styles.modalImage}
+                  resizeMode="contain"
+                />
+              )}
+            </View>
+          )}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -283,7 +382,51 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 100 },
   imageContainer: { position: 'relative', height: 200 },
   image: { width: '100%', height: '100%' },
-  bookmarkButton: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 999 },
+  bookmarkButton: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 999, zIndex: 10 },
+  
+  // Attachments Carousel Styles
+  attachmentsContainer: { position: 'relative', height: 200 },
+  attachmentItem: { width: width, height: 200 },
+  attachmentImage: { width: '100%', height: '100%' },
+  videoThumbnail: { position: 'relative', width: '100%', height: '100%' },
+  playIcon: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -12 }, { translateY: -12 }],
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 20,
+    padding: 8,
+  },
+  
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 8,
+  },
+  modalContent: {
+    width: '90%',
+    height: '70%',
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
+  },
+  modalVideo: {
+    width: '100%',
+    height: '100%',
+  },
 
   content: { padding: 16 },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
