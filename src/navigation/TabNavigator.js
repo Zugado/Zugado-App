@@ -97,7 +97,7 @@ export default function TabNavigator() {
       default:
         icon = icons.home.inactive;
     }
-    return <Image source={icon} style={{ width: 28, height: 28, resizeMode: 'contain' }} />;
+    return <Image source={icon} style={{ width: 20, height: 28, resizeMode: 'contain' }} />;
   };
 
   return (
@@ -105,8 +105,8 @@ export default function TabNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarStyle: { position: 'absolute', height: 80, backgroundColor: '#fff', ...styles.shadow },
-          tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginTop: 4 },
+          tabBarStyle: { position: 'absolute', height: 60, backgroundColor: '#fff', ...styles.shadow },
+          tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 4 },
           tabBarIcon: ({ focused }) => renderTabIcon(route.name, focused),
         })}
         screenListeners={{ tabPress: handleTabPress }}
