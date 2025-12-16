@@ -158,8 +158,6 @@ export default function CreateJob({ navigation }) {
               placeholder="Enter a clear, descriptive title"
             />
            
-           
-
             {/* Task Description */}
             <FloatingLabelInput
               label="Task Description *"

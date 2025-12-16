@@ -77,6 +77,7 @@ const FloatingLabelInput = ({
 
       <View style={styles.inputWrapper}>
         <TextInput
+          {...props}
           value={value}
           onChangeText={onChangeText}
           style={[
@@ -93,7 +94,7 @@ const FloatingLabelInput = ({
           multiline={multiline}
           numberOfLines={numberOfLines}
           textAlignVertical={multiline ? "top" : "center"}
-          {...props}
+          placeholder={isFocused && !value ? props.placeholder : ""}
         />
         
         {showButton && (
