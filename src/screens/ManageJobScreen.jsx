@@ -59,7 +59,7 @@ const myJobsData = [
 ];
 
 // Dummy data for Posted Jobs (jobs I created)
-const postedJobsData =[];
+const postedJobsData = [];
 
 const EmptyList = ({ message }) => (
   <View style={styles.emptyContainer}>
@@ -71,7 +71,7 @@ const EmptyList = ({ message }) => (
 const MyJobsSection = ({ isLoading }) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
-  const filters = ['filter1', 'filter2', 'filter3', ];
+  const filters = ['filter1', 'filter2', 'filter3'];
 
   const filteredJobs =
     selectedFilter === 'All'
@@ -84,38 +84,44 @@ const MyJobsSection = ({ isLoading }) => {
   };
 
   if (isLoading) {
-    return <LoaderCard count={5} cardHeight={12} />;
+    return (
+      <ScrollView>
+        <LoaderCard count={5} cardHeight={12} />
+      </ScrollView>
+    );
   }
 
   return (
     <View style={{ flex: 1 }}>
-      {myJobsData.length>0 &&(<View style={styles.filterContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScrollContent}
-        >
-          {filters.map(filter => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterButton,
-                selectedFilter === filter && styles.selectedFilterButton,
-              ]}
-              onPress={() => setSelectedFilter(filter)}
-            >
-              <Text
+      {myJobsData.length > 0 && (
+        <View style={styles.filterContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScrollContent}
+          >
+            {filters.map(filter => (
+              <TouchableOpacity
+                key={filter}
                 style={[
-                  styles.filterText,
-                  selectedFilter === filter && styles.selectedFilterText,
+                  styles.filterButton,
+                  selectedFilter === filter && styles.selectedFilterButton,
                 ]}
+                onPress={() => setSelectedFilter(filter)}
               >
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>)}
+                <Text
+                  style={[
+                    styles.filterText,
+                    selectedFilter === filter && styles.selectedFilterText,
+                  ]}
+                >
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
       <FlatList
         data={filteredJobs}
         keyExtractor={item => item.id.toString()}
@@ -135,7 +141,7 @@ const MyJobsSection = ({ isLoading }) => {
 const PostedJobsSection = ({ isLoading }) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
-  const filters = ['filter1', 'filter2', 'filter3', ];
+  const filters = ['filter1', 'filter2', 'filter3'];
   const filteredJobs =
     selectedFilter === 'All'
       ? postedJobsData
@@ -147,38 +153,44 @@ const PostedJobsSection = ({ isLoading }) => {
   };
 
   if (isLoading) {
-    return <LoaderCard count={5} cardHeight={12} />;
+    return (
+      <ScrollView>
+        <LoaderCard count={5} cardHeight={12} />
+      </ScrollView>
+    );
   }
 
   return (
     <View style={{ flex: 1 }}>
-     {postedJobsData.length>0&&(  <View style={styles.filterContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScrollContent}
-        >
-          {filters.map(filter => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterButton,
-                selectedFilter === filter && styles.selectedFilterButton,
-              ]}
-              onPress={() => setSelectedFilter(filter)}
-            >
-              <Text
+      {postedJobsData.length > 0 && (
+        <View style={styles.filterContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScrollContent}
+          >
+            {filters.map(filter => (
+              <TouchableOpacity
+                key={filter}
                 style={[
-                  styles.filterText,
-                  selectedFilter === filter && styles.selectedFilterText,
+                  styles.filterButton,
+                  selectedFilter === filter && styles.selectedFilterButton,
                 ]}
+                onPress={() => setSelectedFilter(filter)}
               >
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>)}
+                <Text
+                  style={[
+                    styles.filterText,
+                    selectedFilter === filter && styles.selectedFilterText,
+                  ]}
+                >
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       <FlatList
         data={filteredJobs}
@@ -200,7 +212,7 @@ const PostedJobsSection = ({ isLoading }) => {
 
 const ManageJobScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.whiteColor }}>
       <MyStatusBar />
@@ -208,8 +220,8 @@ const ManageJobScreen = ({ navigation }) => {
       <SwipableTabs
         titles={['My Jobs', 'Posted Jobs']}
         components={[
-          <MyJobsSection isLoading={isLoading} />, 
-          <PostedJobsSection isLoading={isLoading} />
+          <MyJobsSection isLoading={isLoading} />,
+          <PostedJobsSection isLoading={isLoading} />,
         ]}
       />
     </View>

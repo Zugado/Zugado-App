@@ -22,12 +22,12 @@ const FloatingLabelInput = ({
   onButtonPress,
   buttonStyle,
   onFocus,
+  required = false,
   ...props 
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const animated = useState(new Animated.Value(value ? 1 : 0))[0];
   const inputRef = React.useRef(null);
-
    React.useEffect(() => {
     if (value && value.trim() !== '') {
       animated.setValue(1);
@@ -74,10 +74,18 @@ const FloatingLabelInput = ({
     }),
   };
 
+  const starStyle = {
+    color: animated.interpolate({
+      inputRange: [0, 1],
+      outputRange: ["#6b7280", isFocused ? "#ef4444" : "#6b7280"],
+    }),
+  };
+
   return (
     <View style={styles.fieldContainer}>
       <Animated.Text style={[styles.label, labelStyle]}>
-        {label}
+        {label.replace(' *', '')}
+        {required && <Animated.Text style={starStyle}> *</Animated.Text>}
       </Animated.Text>
 
       <View style={styles.inputWrapper}>
@@ -178,5 +186,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
     fontWeight: "600",
+  },
+  requiredStar: {
+    color: "#ef4444",
   },
 });

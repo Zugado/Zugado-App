@@ -157,21 +157,23 @@ export default function CreateJob({ navigation }) {
             </TouchableOpacity> */}
             {/* Task Title */}
             <FloatingLabelInput
-              label="Task Title *"
+              label="Task Title"
               value={title}
               onChangeText={setTitle}
               placeholder="Enter a clear, descriptive title"
+              required={true}
               onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
             />
            
             {/* Task Description */}
             <FloatingLabelInput
-              label="Task Description *"
+              label="Task Description"
               value={description}
               onChangeText={setDescription}
               multiline
               numberOfLines={4}
               placeholder="Describe the job requirements, deliverables, and expectations"
+              required={true}
               onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
             />
            
@@ -179,12 +181,13 @@ export default function CreateJob({ navigation }) {
 
             {/* Task Skills/Category */}
             <FloatingLabelSkillsInput
-              label="Task Skills & Categories *"
+              label="Task Skills & Categories"
               selectedSkills={selectedSkills}
               onSkillsChange={setSelectedSkills}
               availableTags={availableTags}
               placeholder="E.g Software,Design..."
               maxSkills={8}
+              required={true}
               onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
             />
 

@@ -17,7 +17,8 @@ const FloatingLabelSkillsInput = ({
   availableTags = [],
   placeholder = "Type to search skills...",
   maxSkills = 10,
-  onFocus
+  onFocus,
+  required = false
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -75,6 +76,13 @@ const FloatingLabelSkillsInput = ({
     color: animated.interpolate({
       inputRange: [0, 1],
       outputRange: ["#6b7280", isFocused ? "#111827" : "#6b7280"],
+    }),
+  };
+
+  const starStyle = {
+    color: animated.interpolate({
+      inputRange: [0, 1],
+      outputRange: ["#6b7280", isFocused ? "#ef4444" : "#6b7280"],
     }),
   };
 
@@ -136,7 +144,8 @@ const FloatingLabelSkillsInput = ({
     <View style={styles.fieldContainer}>
       {/* Label - exactly like FloatingLabelInput */}
       <Animated.Text style={[styles.label, labelStyle]}>
-        {label}
+        {label.replace(' *', '')}
+        {required && <Animated.Text style={starStyle}> *</Animated.Text>}
       </Animated.Text>
 
       <View style={styles.inputWrapper}>
@@ -369,6 +378,9 @@ const styles = StyleSheet.create({
   counterText: {
     fontSize: 12,
     color: '#6b7280',
+  },
+  requiredStar: {
+    color: '#ef4444',
   },
 });
 

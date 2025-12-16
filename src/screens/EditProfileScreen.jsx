@@ -269,9 +269,10 @@ const EditProfileScreen = ({ navigation }) => {
               <Text style={styles.sectionTitle}>Personal Information</Text>
 
               <FloatingLabelInput
-                label="First Name *"
+                label="First Name"
                 value={firstName}
                 onChangeText={setFirstName}
+                required={true}
               />
 
               <FloatingLabelInput
@@ -281,17 +282,19 @@ const EditProfileScreen = ({ navigation }) => {
               />
 
               <FloatingLabelInput
-                label="Last Name *"
+                label="Last Name"
                 value={lastName}
                 onChangeText={setLastName}
+                required={true}
               />
 
               <FloatingLabelInput
-                label="Email Address *"
+                label="Email Address"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                required={true}
                 showButton={!emailVerified}
                 buttonText="Verify"
                 onButtonPress={handleVerifyEmail}
@@ -308,10 +311,11 @@ const EditProfileScreen = ({ navigation }) => {
               )}
 
               <FloatingLabelInput
-                label="Contact Number *"
+                label="Contact Number"
                 value={mobNumber}
                 onChangeText={setMobNumber}
                 keyboardType="phone-pad"
+                required={true}
                 showButton={!phoneVerified}
                 buttonText="Verify"
                 onButtonPress={handleVerifyPhone}

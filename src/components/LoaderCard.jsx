@@ -37,8 +37,8 @@ const LoaderCard = ({ count = 1, cardHeight = 12 }) => {
     />
   );
 
-  const Card = ({ item, index }) => (
-    <View key={index} style={styles.card}>
+  const Card = ({ index }) => (
+    <View style={styles.card}>
       <Animated.View style={[styles.image, shimmerStyle]} />
 
       <View style={styles.saveTag} />
@@ -70,7 +70,7 @@ const LoaderCard = ({ count = 1, cardHeight = 12 }) => {
     </View>
   );
 
-  return <>{Array.from({ length: count }).map(Card)}</>;
+  return <>{Array.from({ length: count }, (_, index) => <Card key={index} index={index} />)}</>;
 };
 
 const styles = StyleSheet.create({

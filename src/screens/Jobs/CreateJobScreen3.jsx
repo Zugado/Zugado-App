@@ -19,6 +19,7 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { useDispatch } from 'react-redux';
 import { createJob, uploadJobAttachmentsById } from '../../store/thunks/jobThunk';
+import { FaddedIcon } from '../../components/CommonComponents';
 
 export default function CreateJobPageThree({ navigation, route }) {
   const { jobData } = route.params;
@@ -410,6 +411,7 @@ export default function CreateJobPageThree({ navigation, route }) {
               ))}
             </View>
           )}
+          <FaddedIcon/>
         </ScrollView>
 
         {/* --- Submit Button --- */}
