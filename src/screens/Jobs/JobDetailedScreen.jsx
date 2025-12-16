@@ -12,6 +12,7 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 import Video from 'react-native-video';
 import { selectToken } from '../../store/selector';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CommonAppBar } from '../../components/CommonComponents';
 
 // Mock data for Task Details section
 const jobDetailsData = [
@@ -250,16 +251,11 @@ export default function JobDetailedScreen({ navigation, route }) {
     <SafeAreaView style={styles.container}>
           <MyStatusBar/>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Task Details</Text>
-        <TouchableOpacity style={styles.iconButton}>
-          <Feather name="bell" size={24} color="#111827" />
-          <View style={styles.notificationDot} />
-        </TouchableOpacity>
-      </View>
+     <CommonAppBar
+      title="Task Details"
+      onBackPress={() => navigation.goBack()}
+      icon={"bell"}
+      method={() => {}} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Attachments Carousel */}

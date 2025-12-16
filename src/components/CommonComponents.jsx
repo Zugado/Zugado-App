@@ -3,14 +3,28 @@ import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Colors, commonStyles } from '../styles/commonStyles';
 
-export const CommonAppBar = ({ title, onBackPress, navigation }) => {
+export const CommonAppBar = ({ title, onBackPress, navigation ,icon ,method}) => {
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBackPress || (() => navigation?.goBack())}>
         <Feather name="arrow-left" size={24} color={Colors.blackColor} />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>{title}</Text>
-      <View style={{ width: 24 }} />
+      <TouchableOpacity 
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: 18,
+          padding: icon ? 6 : 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 3,
+          elevation: 3,
+        }} 
+        onPress={method}
+      >
+        {icon && <Feather name="bell" size={24} color="#111827" />}
+      </TouchableOpacity>
     </View>
   );
 };

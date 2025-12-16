@@ -117,11 +117,11 @@ const styles = StyleSheet.create({
   locationText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 12,
   },
   pincodeText: {
     color: '#888',
-    fontSize: 12,
+    fontSize: 8,
   },
   logo: {
     flex: 1,
