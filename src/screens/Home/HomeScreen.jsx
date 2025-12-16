@@ -136,7 +136,7 @@ const HomeScreen = ({ navigation }) => {
               <JobCard 
                 key={job._id || job.id || index}
                 jobData={job}
-                urgent={job.type === 'Quick'}
+                urgent={job.jobType !== 'standard'}
                 saved={true}
               />
             ))

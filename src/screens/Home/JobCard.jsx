@@ -11,6 +11,7 @@ import { Colors } from '../../styles/commonStyles';
 const JobCard = ({saved=true, urgent=false, jobData}) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  console.log("job card = ", JSON.stringify(jobData, null, 2));
   return (
     <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })}>
       {/* Image */}

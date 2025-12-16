@@ -6,7 +6,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../../components/MyStatusbar';
 import { getJobById } from '../../store/thunks/jobThunk';
-import { addToWishlist, removeFromWishlist } from '../../store/thunks/wishlistThunk';
+import { addToWishlist, removeFromWishlist, getWishlist } from '../../store/thunks/wishlistThunk';
 import { selectWishlist } from '../../store/selector';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import Video from 'react-native-video';
@@ -121,7 +121,7 @@ const { width } = Dimensions.get('window');
 
 export default function JobDetailedScreen({ navigation, route }) {
   const dispatch = useDispatch();
-  const wishlist = useSelector(selectWishlist);
+  const wishlist = useSelector(selectWishlist) || [];
   const { showSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
   const [jobData, setJobData] = useState(null);
@@ -132,12 +132,13 @@ export default function JobDetailedScreen({ navigation, route }) {
   const intervalRef = useRef(null);
   const jobId = route.params?.jobId;
   
-  const isWishlisted = wishlist?.some(job => job._id === jobId) || false;
+  const isWishlisted = Array.isArray(wishlist) ? wishlist.some(job => job._id === jobId) : false;
   useEffect(() => {
     if (jobId) {
       fetchJobDetails();
     }
-  }, [jobId]);
+    dispatch(getWishlist());
+  }, [jobId, dispatch]);
 
   console.log("Token = ", AsyncStorage.getItem('token'));
   console.log("jobData = ", JSON.stringify(jobData, null, 2))
