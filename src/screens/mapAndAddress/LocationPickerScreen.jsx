@@ -290,10 +290,22 @@ const LocationPickerScreen = ({ navigation, route }) => {
       return;
     }
     
-    navigation.navigate('AddNewAddressScreen', {
-      address,
-      selectedLocation,
-    });
+    // Check if we need to return to CreateJobScreen2
+    const { returnScreen, jobData } = route.params || {};
+    if (returnScreen === 'CreateJobScreen2') {
+      navigation.navigate('CreateJobScreen2', {
+        jobData,
+        selectedLocation: {
+          address,
+          coordinates: selectedLocation,
+        },
+      });
+    } else {
+      navigation.navigate('AddNewAddressScreen', {
+        address,
+        selectedLocation,
+      });
+    }
   };
 
   const renderSuggestion = ({ item }) => (

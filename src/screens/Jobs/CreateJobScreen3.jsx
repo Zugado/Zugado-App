@@ -157,7 +157,7 @@ export default function CreateJobPageThree({ navigation, route }) {
         jobFor: jobData.jobFor,
         title: jobData.title,
         description: jobData.description,
-        tags: jobData.tags || [],
+        tags: jobData.category || [], // Using category from first screen as tags
         requirements: jobData.requirements || '',
         experienceLevel: jobData.experienceLevel,
         locationType: jobData.locationType,
@@ -172,19 +172,47 @@ export default function CreateJobPageThree({ navigation, route }) {
         }
       };
 
+      console.log('=== JOB CREATION START ===');
       console.log('Formatted Job Data:', JSON.stringify(formattedJobData, null, 2));
+      console.log('Media Files Count:', mediaFiles.length);
 
       // Create job first
       const jobResponse = await dispatch(createJob(formattedJobData));
       
-      console.log('Job created successfully:', jobResponse);
+      console.log('=== JOB CREATION RESPONSE ===');
+      console.log('Full Job Response:', JSON.stringify(jobResponse, null, 2));
+      console.log('Response Type:', jobResponse.type);
+      console.log('Response Payload:', JSON.stringify(jobResponse.payload, null, 2));
+      
       if (createJob.fulfilled.match(jobResponse)) {
-        const jobId = jobResponse.payload?.data?.id || jobResponse.payload?.id || jobResponse.payload?._id;
+        // Try multiple ways to extract job ID
+        const jobId = jobResponse.payload?.data?.id || 
+                     jobResponse.payload?.data?._id || 
+                     jobResponse.payload?.id || 
+                     jobResponse.payload?._id ||
+                     jobResponse.payload?.job?.id ||
+                     jobResponse.payload?.job?._id;
         
-        // Upload media files if any
+        console.log('=== JOB ID EXTRACTION ===');
+        console.log('Extracted Job ID:', jobId);
+        console.log('Job ID Type:', typeof jobId);
+        
+        if (!jobId) {
+          console.error('=== JOB ID NOT FOUND ===');
+          console.error('Available payload keys:', Object.keys(jobResponse.payload || {}));
+          if (jobResponse.payload?.data) {
+            console.error('Available data keys:', Object.keys(jobResponse.payload.data));
+          }
+        }
+        
+        // Upload media files if any and jobId exists
         if (mediaFiles.length > 0 && jobId) {
-          console.log('Uploading media files for job:', jobId);
+          console.log('=== MEDIA UPLOAD START ===');
+          console.log('Uploading', mediaFiles.length, 'media files for job:', jobId);
           await uploadMediaFiles(jobId);
+        } else if (mediaFiles.length > 0 && !jobId) {
+          console.warn('=== MEDIA UPLOAD SKIPPED ===');
+          console.warn('Media files exist but no job ID found');
         }
         
         showSnackbar('Job posted successfully!', 'success');
@@ -193,10 +221,15 @@ export default function CreateJobPageThree({ navigation, route }) {
           routes: [{ name: 'MainTabs', params: { screen: 'Home' } }],
         });
       } else {
+        console.error('=== JOB CREATION FAILED ===');
+        console.error('Error Response:', JSON.stringify(jobResponse, null, 2));
         throw new Error(jobResponse.payload?.message || 'Failed to create job');
       }
     } catch (error) {
-      console.error('Error submitting job:', error);
+      console.error('=== JOB SUBMISSION ERROR ===');
+      console.error('Error Details:', error);
+      console.error('Error Message:', error.message);
+      console.error('Error Stack:', error.stack);
       showSnackbar('Failed to post job. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
@@ -205,9 +238,19 @@ export default function CreateJobPageThree({ navigation, route }) {
 
   const uploadMediaFiles = async (jobId) => {
     try {
+      console.log('=== MEDIA UPLOAD FUNCTION START ===');
+      console.log('Job ID for upload:', jobId);
+      console.log('Media files to upload:', mediaFiles.length);
+      
       const formData = new FormData();
       
-      mediaFiles.forEach((file) => {
+      mediaFiles.forEach((file, index) => {
+        console.log(`Adding file ${index + 1}:`, {
+          uri: file.uri,
+          type: file.type,
+          fileName: file.fileName
+        });
+        
         formData.append('documents', {
           uri: file.uri,
           type: file.type === 'image' ? 'image/jpeg' : 'video/mp4',
@@ -215,19 +258,31 @@ export default function CreateJobPageThree({ navigation, route }) {
         });
       });
       
+      console.log('=== CALLING UPLOAD THUNK ===');
+      console.log('Upload payload:', { jobId });
+      
       const uploadResponse = await dispatch(uploadJobAttachmentsById({
         jobId,
         formData
       }));
       
+      console.log('=== UPLOAD RESPONSE ===');
+      console.log('Upload Response Type:', uploadResponse.type);
+      console.log('Upload Response Payload:', JSON.stringify(uploadResponse.payload, null, 2));
+      
       if (uploadJobAttachmentsById.fulfilled.match(uploadResponse)) {
+        console.log('=== MEDIA UPLOAD SUCCESS ===');
         console.log('Media files uploaded successfully');
       } else {
-        console.warn('Media upload failed:', uploadResponse.payload);
+        console.error('=== MEDIA UPLOAD FAILED ===');
+        console.error('Upload failed response:', JSON.stringify(uploadResponse, null, 2));
         showSnackbar('Job created but media upload failed', 'warning');
       }
     } catch (error) {
-      console.error('Error uploading media:', error);
+      console.error('=== MEDIA UPLOAD ERROR ===');
+      console.error('Upload error details:', error);
+      console.error('Upload error message:', error.message);
+      console.error('Upload error stack:', error.stack);
       showSnackbar('Job created but media upload failed', 'warning');
     }
   };

@@ -3,16 +3,17 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   Switch,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import DateTimePickerField from '../../components/DateTimePickerField';
+import FloatingLabelInput from '../../components/inputFields/FloatingLabelInput';
 import MyStatusBar from '../../components/MyStatusbar';
 import { Colors } from '../../styles/commonStyles';
 import { useSnackbar } from '../../contexts/SnackbarContext';
@@ -20,20 +21,21 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 export default function CreateJob({ navigation, route }) {
   const { jobData } = route.params || {};
   const { showSnackbar } = useSnackbar();
-  const [address, setAddress] = useState({});
+  const [address, setAddress] = useState('');
+  const [coordinates, setCoordinates] = useState(null);
 
   useEffect(() => {
-    if (route.params?.selectedAddress) {
-      console.log('Setting address object:', route.params.selectedAddress);
-      setAddress(route.params.selectedAddress);
+    if (route.params?.selectedLocation) {
+      setAddress(route.params.selectedLocation.address || '');
+      setCoordinates(route.params.selectedLocation.coordinates || null);
     }
-  }, [route.params?.selectedAddress]);
+  }, [route.params?.selectedLocation]);
   
   // const [coordinate, setCoordinate] = useState(null);
   const [jobLocationType, setJobLocationType] = useState('onsite');
 
-  const [discloseAmount, setDiscloseAmount] = useState(true);
-  const [isNegotiable, setIsNegotiable] = useState(true);
+  const [discloseAmount, setDiscloseAmount] = useState(false);
+  const [amount, setAmount] = useState('');
 
   const [timingType, setTimingType] = useState('fixed');
 
@@ -48,6 +50,30 @@ export default function CreateJob({ navigation, route }) {
   const [deadline, setDeadline] = useState('');
 
   const [estimatedHours, setEstimatedHours] = useState('');
+
+  const clearTimingFields = (newType) => {
+    if (newType !== 'fixed') {
+      setDate('');
+      setStartTime('');
+      setEndTime('');
+    }
+    if (newType !== 'multiday') {
+      setStartDate('');
+      setEndDate('');
+      setDailyHours('');
+    }
+    if (newType !== 'deadline') {
+      setDeadline('');
+    }
+    if (newType !== 'flexible') {
+      setEstimatedHours('');
+    }
+  };
+
+  const handleTimingTypeChange = (newType) => {
+    clearTimingFields(newType);
+    setTimingType(newType);
+  };
 
   const [amountMin, setAmountMin] = useState('');
   const [amountMax, setAmountMax] = useState('');
@@ -93,7 +119,8 @@ export default function CreateJob({ navigation, route }) {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#fff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 20}
+      enabled={true}
     >
       <SafeAreaView style={styles.safeAreaBlack}>
         <MyStatusBar />
@@ -126,79 +153,98 @@ export default function CreateJob({ navigation, route }) {
 
           <View style={styles.form}>
             {/* Job Location */}
-            <Text style={styles.label}>Job Location</Text>
-
-            <View style={styles.locationOptionsContainer}>
-              <CheckboxButton
-                label="On-site"
-                selected={jobLocationType === 'onsite'}
-                onPress={() => setJobLocationType('onsite')}
-              />
-              <CheckboxButton
-                label="Hybrid"
-                selected={jobLocationType === 'hybrid'}
-                onPress={() => setJobLocationType('hybrid')}
-              />
-              <CheckboxButton
-                label="Remote"
-                selected={jobLocationType === 'remote'}
-                onPress={() => setJobLocationType('remote')}
-              />
+            <View style={styles.selectorContainer}>
+              <Text style={styles.selectorLabel}>Job Location</Text>
+              <Text style={styles.selectorHelper}>Where will the work be performed?</Text>
+              <View style={styles.locationGrid}>
+                {[
+                  { value: 'onsite', label: 'On-site', icon: 'map-pin', desc: 'At specific location' },
+                  { value: 'remote', label: 'Remote', icon: 'home', desc: 'Work from anywhere' },
+                  { value: 'hybrid', label: 'Hybrid', icon: 'globe', desc: 'Mix of both' }
+                ].map(option => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.locationCard,
+                      jobLocationType === option.value && styles.selectedLocationCard,
+                    ]}
+                    onPress={() => setJobLocationType(option.value)}
+                  >
+                    <View style={styles.locationContent}>
+                      <Feather
+                        name={option.icon}
+                        size={20}
+                        color={jobLocationType === option.value ? '#000' : '#666'}
+                      />
+                      <View style={styles.locationText}>
+                        <Text style={[
+                          styles.locationLabel,
+                          jobLocationType === option.value && styles.selectedLocationLabel,
+                        ]}>
+                          {option.label}
+                        </Text>
+                        <Text style={styles.locationDesc}>{option.desc}</Text>
+                      </View>
+                    </View>
+                    {jobLocationType === option.value && (
+                      <View style={styles.locationCheckmark}>
+                        <Feather name="check" size={12} color="#fff" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
-            {/* Address picker placeholder */}
-            <Text style={styles.label}>Address</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('SelectAddressScreen', { jobData })}
-              style={styles.textInputWithIcon}
-            >
-              {!address.address ? (
-                <>
-                  <TextInput
-                    style={styles.textInputFlex}
-                    placeholder="Choose Address"
-                    placeholderTextColor="#888"
-                    editable={false}
-                  />
+            {/* Address Selection */}
+            <View style={styles.addressContainer}>
+              <Text style={styles.selectorLabel}>Job Address</Text>
+              <Text style={styles.selectorHelper}>Select location on map first, then edit address if needed</Text>
+              
+              {!coordinates ? (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('LocationPickerScreen', { 
+                    returnScreen: 'CreateJobScreen2',
+                    jobData 
+                  })}
+                  style={styles.mapButton}
+                >
                   <Feather name="map-pin" size={20} color="#000" />
-                </>
-              ) : (
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.textInputFlex, {fontSize: 10, fontWeight: '600' }]}>
-                    {address?.name}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.textInputFlex,
-                      { fontSize: 10, color: Colors.primary },
-                    ]}
-                  >
-                    {address?.mobile}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.textInputFlex,
-                      { fontSize: 10, color: Colors.grayColor },
-                    ]}
-                  >
-                    {address?.landmark}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.textInputFlex,
-                      { fontSize: 10, color: Colors.grayColor },
-                    ]}
-                  >
-                    {address?.address}
-                  </Text>
-                </View>
-              )}
-              {address.address && (
-                <TouchableOpacity onPress={() => navigation.navigate('SelectAddressScreen', { jobData })}>
-                  <Feather name="edit-2" size={16} color={Colors.primary} />
+                  <Text style={styles.mapButtonText}>Select on Map</Text>
+                  <Feather name="chevron-right" size={16} color="#666" />
                 </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('LocationPickerScreen', { 
+                      returnScreen: 'CreateJobScreen2',
+                      jobData 
+                    })}
+                    style={styles.mapButtonSelected}
+                  >
+                    <Feather name="map-pin" size={20} color="#000" />
+                    <Text style={styles.mapButtonSelectedText}>Change Location</Text>
+                    <Feather name="edit-2" size={16} color="#666" />
+                  </TouchableOpacity>
+                  
+                  <FloatingLabelInput
+                    label="Address (Optional)"
+                    value={address}
+                    onChangeText={setAddress}
+                    multiline
+                    numberOfLines={2}
+                    placeholder="Enter or edit address manually"
+                  />
+                  
+                  <View style={styles.coordinatesInfo}>
+                    <Feather name="map-pin" size={14} color="#666" />
+                    <Text style={styles.coordinatesText}>
+                      Location: {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
+                    </Text>
+                  </View>
+                </>
               )}
-            </TouchableOpacity>
+            </View>
 
             {/* Timing Type */}
             <Text style={styles.label}>Timing Type</Text>
@@ -207,22 +253,22 @@ export default function CreateJob({ navigation, route }) {
               <RoundRadioButton
                 label="Fixed"
                 selected={timingType === 'fixed'}
-                onPress={() => setTimingType('fixed')}
+                onPress={() => handleTimingTypeChange('fixed')}
               />
               <RoundRadioButton
                 label="Multi-day"
                 selected={timingType === 'multiday'}
-                onPress={() => setTimingType('multiday')}
+                onPress={() => handleTimingTypeChange('multiday')}
               />
               <RoundRadioButton
                 label="Deadline"
                 selected={timingType === 'deadline'}
-                onPress={() => setTimingType('deadline')}
+                onPress={() => handleTimingTypeChange('deadline')}
               />
               <RoundRadioButton
                 label="Flexible"
                 selected={timingType === 'flexible'}
-                onPress={() => setTimingType('flexible')}
+                onPress={() => handleTimingTypeChange('flexible')}
               />
             </View>
 
@@ -268,13 +314,12 @@ export default function CreateJob({ navigation, route }) {
                   onChange={setEndDate}
                 />
 
-                <Text style={styles.label}>Daily Hours</Text>
-                <TextInput
-                  style={styles.textInputWithIcon}
-                  placeholder="Enter daily working hours (e.g., 8)"
-                  keyboardType="numeric"
+                <FloatingLabelInput
+                  label="Daily Hours"
                   value={dailyHours}
                   onChangeText={setDailyHours}
+                  keyboardType="numeric"
+                  placeholder="Enter daily working hours (e.g., 8)"
                 />
               </>
             )}
@@ -290,13 +335,12 @@ export default function CreateJob({ navigation, route }) {
 
             {timingType === 'flexible' && (
               <>
-                <Text style={styles.label}>Estimated Hours</Text>
-                <TextInput
-                  style={styles.textInputWithIcon}
-                  placeholder="Enter estimated total hours (e.g., 40)"
-                  keyboardType="numeric"
+                <FloatingLabelInput
+                  label="Estimated Hours"
                   value={estimatedHours}
                   onChangeText={setEstimatedHours}
+                  keyboardType="numeric"
+                  placeholder="Enter estimated total hours (e.g., 40)"
                 />
               </>
             )}
@@ -315,52 +359,45 @@ export default function CreateJob({ navigation, route }) {
               <RoundRadioButton
                 label="No"
                 selected={discloseAmount === false}
-                onPress={() => setDiscloseAmount(false)}
+                onPress={() => {
+                  setDiscloseAmount(false);
+                  setAmount('');
+                  setAmountMin('');
+                  setAmountMax('');
+                }}
               />
             </View>
 
             {discloseAmount && (
               <>
-                {/* Amount */}
-                <Text style={styles.label}>Amount</Text>
-                <View style={styles.amountInputContainer}>
-                  <TextInput
-                    style={[styles.textInputFlex, styles.amountInput]}
-                    placeholder="Enter Amount"
-                    placeholderTextColor="#888"
-                    keyboardType="numeric"
-                  />
+                <FloatingLabelInput
+                  label="Amount (INR) ₹"
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="numeric"
+                  placeholder="5000"
+                />
 
-                  <View style={styles.negotiableSwitchContainer}>
-                    <Text style={styles.negotiableText}>Negotiable</Text>
-                    <Switch
-                      trackColor={{ false: '#767577', true: '#5CB85C' }}
-                      thumbColor={isNegotiable ? '#fff' : '#f4f3f4'}
-                      onValueChange={setIsNegotiable}
-                      value={isNegotiable}
-                      style={styles.negotiableSwitch}
+                <Text style={styles.label}>Amount Range (INR)</Text>
+                <View style={styles.amountRangeContainer}>
+                  <View style={styles.rangeInputWrapper}>
+                    <FloatingLabelInput
+                      label="Min Amount ₹"
+                      value={amountMin}
+                      onChangeText={setAmountMin}
+                      keyboardType="numeric"
+                      placeholder="0"
                     />
                   </View>
-                </View>
-
-                <Text style={styles.label}>Amount Range</Text>
-                <View style={styles.amountRangeContainer}>
-                  <TextInput
-                    style={styles.rangeInput}
-                    placeholder="Min Amount"
-                    placeholderTextColor="#888"
-                    keyboardType="numeric"
-                    value={amountMin}
-                    onChangeText={setAmountMin}
-                  />
-                  <TextInput
-                    style={styles.rangeInput}
-                    placeholder="Max Amount"
-                    placeholderTextColor="#888"
-                    keyboardType="numeric"
-                    value={amountMax}
-                    onChangeText={setAmountMax}
-                  />
+                  <View style={styles.rangeInputWrapper}>
+                    <FloatingLabelInput
+                      label="Max Amount ₹"
+                      value={amountMax}
+                      onChangeText={setAmountMax}
+                      keyboardType="numeric"
+                      placeholder="0"
+                    />
+                  </View>
                 </View>
               </>
             )}
@@ -399,9 +436,10 @@ export default function CreateJob({ navigation, route }) {
                 jobData: {
                   ...jobData,
                   locationType: jobLocationType,
-                  location: address.coordinates ? {
+                  location: coordinates ? {
                     type: 'Point',
-                    coordinates: [address.coordinates.longitude, address.coordinates.latitude]
+                    coordinates: [coordinates.longitude, coordinates.latitude],
+                    address: address.trim() || ''
                   } : null,
                   timingType,
                   timingDetails,
@@ -431,7 +469,7 @@ const styles = StyleSheet.create({
   },
   container: { flex: 1, backgroundColor: '#fff' },
   scrollView: { flex: 1 },
-  scrollContent: { padding: 20, paddingBottom: 120 },
+  scrollContent: { padding: 20, paddingBottom: 200 },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
   backButton: {
     backgroundColor: '#fff',
@@ -461,28 +499,133 @@ const styles = StyleSheet.create({
   },
   form: { width: '100%' },
   label: { fontSize: 14, color: '#000', marginBottom: 8, fontWeight: '600' },
-  textInputWithIcon: {
+  
+  // Professional Selector Styles
+  selectorContainer: {
+    marginBottom: 24,
+  },
+  selectorLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  selectorHelper: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 12,
+  },
+  
+  // Location Grid Styles
+  locationGrid: {
+    gap: 12,
+  },
+  locationCard: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 2,
+    borderColor: '#e9ecef',
+    borderRadius: 12,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    marginBottom: 20,
+    position: 'relative',
   },
-  textInputFlex: { flex: 1, fontSize: 12, color: '#000', padding: 0 },
-
-  locationOptionsContainer: {
+  selectedLocationCard: {
+    backgroundColor: '#fff',
+    borderColor: '#000',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  locationContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
   },
+  locationText: {
+    flex: 1,
+  },
+  locationLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+    marginBottom: 2,
+  },
+  selectedLocationLabel: {
+    color: '#000',
+    fontWeight: '600',
+  },
+  locationDesc: {
+    fontSize: 12,
+    color: '#999',
+  },
+  locationCheckmark: {
+    backgroundColor: '#000',
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Address Selection Styles
+  addressContainer: {
+    marginBottom: 24,
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderWidth: 2,
+    borderColor: '#e9ecef',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    gap: 12,
+  },
+  mapButtonText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000',
+  },
+  mapButtonSelected: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  mapButtonSelectedText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  coordinatesInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 6,
+  },
+  coordinatesText: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+
+
   squareOption: {
     flex: 1,
     marginHorizontal: 4,
@@ -576,21 +719,14 @@ const styles = StyleSheet.create({
   },
   negotiableSwitch: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
 
+
   amountRangeContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
     marginBottom: 20,
   },
-  rangeInput: {
+  rangeInputWrapper: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    fontSize: 12,
-    color: '#000',
-    marginHorizontal: 5,
   },
 
   buttonContainer: {
