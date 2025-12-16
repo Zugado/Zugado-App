@@ -13,7 +13,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { selectLocationAddress } from '../store/selector';
 
-const Header = ({ showSearch = true }) => {
+const Header = ({ showSearch = true, navigation }) => {
   const locationAddress = useSelector(selectLocationAddress);
   const [isQuickJobFirst, setIsQuickJobFirst] = useState(true);
   return (
@@ -41,7 +41,7 @@ const Header = ({ showSearch = true }) => {
         />
 
         <View style={styles.iconsContainer}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation?.navigate('WishlistScreen')}>
             <Image
               source={require('../assets/Icons/Saved.png')}
               style={styles.icon}

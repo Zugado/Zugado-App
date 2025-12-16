@@ -6,6 +6,9 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../../components/MyStatusbar';
 import { getJobById } from '../../store/thunks/jobThunk';
+import { addToWishlist, removeFromWishlist } from '../../store/thunks/wishlistThunk';
+import { selectWishlist } from '../../store/selector';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import Video from 'react-native-video';
 import { selectToken } from '../../store/selector';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -117,6 +120,8 @@ const { width } = Dimensions.get('window');
 
 export default function JobDetailedScreen({ navigation, route }) {
   const dispatch = useDispatch();
+  const wishlist = useSelector(selectWishlist);
+  const { showSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
   const [jobData, setJobData] = useState(null);
   const [previewModal, setPreviewModal] = useState(false);
@@ -125,6 +130,8 @@ export default function JobDetailedScreen({ navigation, route }) {
   const flatListRef = useRef(null);
   const intervalRef = useRef(null);
   const jobId = route.params?.jobId;
+  
+  const isWishlisted = wishlist?.some(job => job._id === jobId) || false;
   useEffect(() => {
     if (jobId) {
       fetchJobDetails();
@@ -170,6 +177,20 @@ export default function JobDetailedScreen({ navigation, route }) {
   const openPreview = (media) => {
     setSelectedMedia(media);
     setPreviewModal(true);
+  };
+
+  const handleWishlistToggle = async () => {
+    try {
+      if (isWishlisted) {
+        await dispatch(removeFromWishlist(jobId)).unwrap();
+        showSnackbar('Job removed from wishlist', 'success');
+      } else {
+        await dispatch(addToWishlist(jobId)).unwrap();
+        showSnackbar('Job added to wishlist', 'success');
+      }
+    } catch (error) {
+      showSnackbar('Failed to update wishlist', 'error');
+    }
   };
 
   const isVideo = (url) => {
@@ -269,8 +290,8 @@ export default function JobDetailedScreen({ navigation, route }) {
                 }
               }}
             />
-            <TouchableOpacity style={styles.bookmarkButton}>
-              <Feather name="bookmark" size={20} color="#fff" />
+            <TouchableOpacity style={styles.bookmarkButton} onPress={handleWishlistToggle}>
+              <Feather name="heart" size={20} color={isWishlisted ? "#ff4444" : "#fff"} />
             </TouchableOpacity>
           </View>
         ) : (
@@ -279,8 +300,8 @@ export default function JobDetailedScreen({ navigation, route }) {
               source={require('../../assets/jobImage.png')} 
               style={styles.image} 
             />
-            <TouchableOpacity style={styles.bookmarkButton}>
-              <Feather name="bookmark" size={20} color="#fff" />
+            <TouchableOpacity style={styles.bookmarkButton} onPress={handleWishlistToggle}>
+              <Feather name="heart" size={20} color={isWishlisted ? "#ff4444" : "#fff"} />
             </TouchableOpacity>
           </View>
         )}

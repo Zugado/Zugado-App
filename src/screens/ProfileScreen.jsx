@@ -502,7 +502,7 @@ export default function ProfileScreen({ navigation }) {
 
       {/* Header */}
       <View style={styles.header}>
-        <Header showSearch={false} />
+        <Header showSearch={false} navigation={navigation} />
 
         {/* Profile Image */}
         <View style={styles.imageContainer}>
@@ -659,6 +659,21 @@ export default function ProfileScreen({ navigation }) {
               </View>
             </View>
           )}
+        </View>
+
+        {/* Wishlist Section */}
+        <View style={styles.sectionContainer}>
+          <TouchableOpacity
+            style={styles.wishlistButton}
+            onPress={() => navigation.navigate('WishlistScreen')}
+          >
+            <Feather name="heart" size={24} color="#000" />
+            <Text style={styles.wishlistTitle}>My Wishlist</Text>
+            <View style={styles.wishlistRight}>
+              <Text style={styles.wishlistCount}>View saved jobs</Text>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Settings Section */}
@@ -1762,5 +1777,33 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e9ecef',
     marginHorizontal: 16,
+  },
+  wishlistButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  wishlistTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    marginLeft: 16,
+    flex: 1,
+  },
+  wishlistRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  wishlistCount: {
+    fontSize: 14,
+    color: '#666',
+    marginRight: 8,
   },
 });

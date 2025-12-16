@@ -20,7 +20,7 @@ import { getAllJobs, getAllTags } from '../../store/thunks/jobThunk';
 import { getUserLocation, updateUserLocation } from '../../store/thunks/locationThunk';
 import { selectJobs, selectJobsLoading, selectLocationAddress, selectTags } from '../../store/selector';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const jobs = useSelector(selectJobs);
   const loading = useSelector(selectJobsLoading);
@@ -93,7 +93,7 @@ const HomeScreen = () => {
     <SafeAreaView style={styles.safeAreaBlack}>
        <MyStatusBar/>
        <View style={styles.appContainer}>
-        <Header />
+        <Header navigation={navigation} />
         {/* Row 3: Tags & Sort */}
         <View style={styles.tagRow}>
           <ScrollView

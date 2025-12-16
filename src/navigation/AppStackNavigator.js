@@ -14,6 +14,7 @@ import EditProfileScreen from '../screens/EditProfileScreen';
 import PreferencesScreen from '../screens/PreferencesScreen';
 import SavedAddressesScreen from '../screens/SavedAddressesScreen';
 import LocationPermissionScreen from '../screens/LocationPermissionScreen';
+import WishlistScreen from '../screens/WishlistScreen';
 const Stack = createStackNavigator();
 
 export default function AppStackNavigator() {
@@ -36,6 +37,7 @@ export default function AppStackNavigator() {
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="PreferencesScreen" component={PreferencesScreen} />
         <Stack.Screen name="SavedAddressesScreen" component={SavedAddressesScreen} />
+        <Stack.Screen name="WishlistScreen" component={WishlistScreen} />
         <Stack.Screen name="EditAddressScreen" component={AddNewAddressScreen} />
     </Stack.Navigator>
   );

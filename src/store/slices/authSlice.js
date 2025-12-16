@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sendOtp, verifyOtp, register } from '../thunks/authThunk';
 import {getUserProfile, updateUserDetails, updateProfilePic} from '../thunks/userThunk';
+import { getWishlist, addToWishlist, removeFromWishlist } from '../thunks/wishlistThunk';
 
 const authSlice = createSlice({
   name: 'auth',
@@ -12,6 +13,8 @@ const authSlice = createSlice({
     isGuest: false,
     token: null,
     isNewUser: null,
+    wishlist: [],
+    wishlistLoading: false,
   },
   reducers: {
     setGuestMode(state) {
@@ -165,6 +168,28 @@ const authSlice = createSlice({
       .addCase(updateUserDetails.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message;
+      })
+      
+      // Wishlist reducers
+      .addCase(getWishlist.pending, (state) => {
+        state.wishlistLoading = true;
+      })
+      .addCase(getWishlist.fulfilled, (state, action) => {
+        state.wishlistLoading = false;
+        state.wishlist = action.payload?.data || [];
+      })
+      .addCase(getWishlist.rejected, (state) => {
+        state.wishlistLoading = false;
+      })
+      
+      .addCase(addToWishlist.fulfilled, (state, action) => {
+        if (!state.wishlist.find(job => job._id === action.payload.jobId)) {
+          state.wishlist.push({ _id: action.payload.jobId });
+        }
+      })
+      
+      .addCase(removeFromWishlist.fulfilled, (state, action) => {
+        state.wishlist = state.wishlist.filter(job => job._id !== action.payload.jobId);
       })
       ;
   }
