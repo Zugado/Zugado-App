@@ -8,10 +8,14 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
+import { selectLocationAddress } from '../store/selector';
 
 const Header = ({ showSearch = true }) => {
+  const locationAddress = useSelector(selectLocationAddress);
+  
   return (
     <View style={styles.headerContainer}>
       {/* Row 1: Location, Logo & Icons */}
@@ -22,8 +26,12 @@ const Header = ({ showSearch = true }) => {
             style={styles.icon}
           />
           <View>
-            <Text style={styles.locationText}>Noida</Text>
-            <Text style={styles.pincodeText}>201301</Text>
+            <Text style={styles.locationText}>
+              {locationAddress?.city || 'Noida'}
+            </Text>
+            <Text style={styles.pincodeText}>
+              {locationAddress?.postcode || '201301'}
+            </Text>
           </View>
         </View>
 

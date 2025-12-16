@@ -1,11 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import authReducer from './slices/authSlice';
+import jobReducer from './slices/jobSlice';
+import locationReducer from './slices/locationSlice';
 import { getUserProfile } from './thunks/userThunk';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    job: jobReducer,
+    location: locationReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({ serializableCheck: false }),

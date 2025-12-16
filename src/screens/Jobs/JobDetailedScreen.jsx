@@ -1,9 +1,11 @@
-import React from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../../components/MyStatusbar';
+import { getJobById } from '../../store/thunks/jobThunk';
 
 // Mock data for Job Details section
 const jobDetailsData = [
@@ -39,7 +41,126 @@ const Tag = ({ text }) => (
   </View>
 );
 
-export default function JobDetailedScreen({navigation}) {
+// Helper functions
+const formatTime = (time) => {
+  if (!time) return '';
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minutes} ${ampm}`;
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { 
+    weekday: 'short', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+};
+
+const getTimingText = (timingType, timingDetails) => {
+  if (!timingType || !timingDetails) return 'NA';
+  
+  switch (timingType) {
+    case 'fixed':
+      const formattedDate = formatDate(timingDetails.date);
+      const startTime = formatTime(timingDetails.startTime);
+      const endTime = formatTime(timingDetails.endTime);
+      return `${formattedDate}, ${startTime} - ${endTime}`;
+    case 'multiday':
+      const startDate = formatDate(timingDetails.startDate);
+      const endDate = formatDate(timingDetails.endDate);
+      return `${startDate} to ${endDate} (${timingDetails.dailyHours}h daily)`;
+    case 'deadline':
+      const deadlineDate = new Date(timingDetails.deadline);
+      const formattedDeadline = deadlineDate.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+      return `Due by ${formattedDeadline}`;
+    case 'flexible':
+      return `Flexible timing (${timingDetails.estimatedHours} hours total)`;
+    default:
+      return 'NA';
+  }
+};
+
+const getExperienceText = (level) => {
+  switch (level) {
+    case 'entry': return 'Entry Level (0-2 years)';
+    case 'intermediate': return 'Intermediate (2-5 years)';
+    case 'expert': return 'Expert Level (5+ years)';
+    default: return 'NA';
+  }
+};
+
+const getLocationIcon = (locationType) => {
+  switch (locationType) {
+    case 'remote': return 'home';
+    case 'onsite': return 'map-pin';
+    case 'hybrid': return 'globe';
+    default: return 'map-pin';
+  }
+};
+
+export default function JobDetailedScreen({ navigation, route }) {
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+  const [jobData, setJobData] = useState(null);
+  const jobId = route.params?.jobId;
+
+  useEffect(() => {
+    if (jobId) {
+      fetchJobDetails();
+    }
+  }, [jobId]);
+
+  const fetchJobDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await dispatch(getJobById(jobId));
+      if (response.payload?.success) {
+        setJobData(response.payload.data);
+      }
+    } catch (error) {
+      console.log('Error fetching job details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <MyStatusBar />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#000" />
+          <Text style={styles.loadingText}>Loading job details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!jobData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <MyStatusBar />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Job not found</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -68,53 +189,60 @@ export default function JobDetailedScreen({navigation}) {
         <View style={styles.content}>
           {/* Job Title and Status */}
           <View style={styles.titleRow}>
-            <Text style={styles.jobTitle}>Website Design Needed</Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>Urgent</Text>
-            </View>
+            <Text style={styles.jobTitle}>{jobData.title || 'NA'}</Text>
+            {jobData.jobType === 'quick' && (
+              <View style={styles.statusBadge}>
+                <Text style={styles.statusText}>Urgent</Text>
+              </View>
+            )}
           </View>
 
           {/* Metadata Row */}
           <View style={styles.metaRow}>
-            <MetaItem icon="clock" text="2 days left" />
-            <MetaItem icon="map-pin" text="Remote" />
-            <MetaItem icon="star" text="4.8" />
+            <MetaItem icon="clock" text={jobData.timingType? jobData.timingType.charAt(0).toUpperCase() + jobData.timingType.slice(1):'NA'} />
+            <MetaItem icon={getLocationIcon(jobData.locationType)} text={jobData.locationType ? jobData.locationType.charAt(0).toUpperCase() + jobData.locationType.slice(1) : 'NA'} />
+            <MetaItem icon="user" text={jobData.createdBy?.firstName && jobData.createdBy?.lastName ? `${jobData.createdBy.firstName} ${jobData.createdBy.lastName}` : 'NA'} />
           </View>
 
           {/* Tags Row */}
           <View style={styles.tagsRow}>
-            <Tag text="Design" />
-            <Tag text="UI/UX" />
-            <Tag text="Remote" />
+            {jobData.tags?.length > 0 ? (
+              jobData.tags.map((tagItem, index) => (
+                <Tag key={index} text={tagItem.tag || 'NA'} />
+              ))
+            ) : (
+              <Tag text="NA" />
+            )}
           </View>
 
           {/* Description */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Description</Text>
             <Text style={styles.sectionText}>
-              Need a professional UI designer to create a modern website interface for a tech startup.
-              The project involves designing 5-7 pages including landing page, about us, services, and contact pages.
-              Looking for a clean, minimalist design that appeals to a tech audience.
+              {jobData.description || 'NA'}
             </Text>
           </View>
 
+
+
           {/* Requirements */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Requirements</Text>
-            <View style={styles.list}>
-              <Text style={styles.listItem}>• At least 3 years of UI/UX design experience</Text>
-              <Text style={styles.listItem}>• Proficient with Figma or Adobe XD</Text>
-              <Text style={styles.listItem}>• Portfolio of previous website designs</Text>
-              <Text style={styles.listItem}>• Good communication skills</Text>
+          {jobData.requirements && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Requirements</Text>
+              <Text style={styles.sectionText}>
+                {jobData.requirements}
+              </Text>
             </View>
-          </View>
+          )}
 
           {/* Job Details */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Job Details</Text>
-            {jobDetailsData.map((item) => (
-              <DetailRow key={item.key} icon={item.icon} label={item.key} value={item.value} />
-            ))}
+            <DetailRow icon="briefcase" label="Job For" value={jobData.jobFor ? jobData.jobFor.charAt(0).toUpperCase() + jobData.jobFor.slice(1) : 'NA'} />
+            <DetailRow icon="zap" label="Job Type" value={jobData.jobType ? jobData.jobType.charAt(0).toUpperCase() + jobData.jobType.slice(1) : 'NA'} />
+            <DetailRow icon="award" label="Experience" value={getExperienceText(jobData.experienceLevel)} />
+            <DetailRow icon={getLocationIcon(jobData.locationType)} label="Location Type" value={jobData.locationType ? jobData.locationType.charAt(0).toUpperCase() + jobData.locationType.slice(1) : 'NA'} />
+            <DetailRow icon="clock" label="Timing" value={getTimingText(jobData.timingType, jobData.timingDetails)} />
           </View>
         </View>
       </ScrollView>
@@ -125,7 +253,7 @@ export default function JobDetailedScreen({navigation}) {
         <View>
           <Text style={styles.budgetLabel}>Budget</Text>
           <Text style={styles.budgetValue}>
-            <FontAwesome name="dollar" size={16} color="#16A34A" /> 10,000
+            <FontAwesome name="dollar" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min > 0 || jobData.amount?.max > 0) ? `${jobData.amount.min}-${jobData.amount.max}` : 'NA'}
           </Text>
         </View>
 
@@ -191,4 +319,11 @@ const styles = StyleSheet.create({
   applyButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#111827', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 999 },
   applyText: { color: '#fff', fontSize: 16, fontWeight: '700', marginRight: 6 },
   applyArrow: { color: '#fff', fontSize: 18, lineHeight: 18 },
+
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 16, fontSize: 16, color: '#666' },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  errorText: { fontSize: 18, color: '#666', marginBottom: 20 },
+  backButton: { backgroundColor: '#000', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 },
+  backButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });

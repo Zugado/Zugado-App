@@ -216,29 +216,6 @@ export default function ProfileScreen({ navigation }) {
   const { showSnackbar } = useSnackbar();
   const { openCamera, openGallery } = useImagePicker();
 
-  // Set status bar when screen comes into focus - MUST be at top
-  useFocusEffect(
-    React.useCallback(() => {
-      StatusBar.setBarStyle(isGuest ? 'dark-content' : 'light-content');
-      StatusBar.setBackgroundColor(isGuest ? '#ffffff' : '#000000');
-    }, [isGuest])
-  );
-
-  const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
-  const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [verificationModalVisible, setVerificationModalVisible] = useState(false);
-  const [verificationData, setVerificationData] = useState({
-    documentType: '',
-    documentNumber: '',
-    documentImage: null
-  });
-  const [showDocumentDropdown, setShowDocumentDropdown] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
-
   // Mapping functions for backend API - MUST be before useState
   const mapToBackend = (field, value) => {
     const mappings = {
@@ -271,8 +248,20 @@ export default function ProfileScreen({ navigation }) {
     return age;
   };
 
-  // Remove edit profile functionality - using separate EditProfileScreen 
-
+  const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
+  const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [verificationModalVisible, setVerificationModalVisible] = useState(false);
+  const [verificationData, setVerificationData] = useState({
+    documentType: '',
+    documentNumber: '',
+    documentImage: null
+  });
+  const [showDocumentDropdown, setShowDocumentDropdown] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
   const [editedUser, setEditedUser] = useState({
     firstName: user?.firstName || '',
     middleName: user?.middleName || '',
@@ -285,6 +274,16 @@ export default function ProfileScreen({ navigation }) {
     dateOfBirth: user?.dateOfBirth || null,
   });
   const [showDropdown, setShowDropdown] = useState(null);
+
+  // Set status bar when screen comes into focus - MUST be at top
+  useFocusEffect(
+    React.useCallback(() => {
+      StatusBar.setBarStyle(isGuest ? 'dark-content' : 'light-content');
+      StatusBar.setBackgroundColor(isGuest ? '#ffffff' : '#000000');
+    }, [isGuest])
+  );
+
+  // Remove edit profile functionality - using separate EditProfileScreen
 
   // Field name formatting
   const formatFieldName = (field) => {

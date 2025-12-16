@@ -13,11 +13,17 @@ import SelectAddressScreen from '../screens/mapAndAddress/SelectAddressScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import PreferencesScreen from '../screens/PreferencesScreen';
 import SavedAddressesScreen from '../screens/SavedAddressesScreen';
+import LocationPermissionScreen from '../screens/LocationPermissionScreen';
 const Stack = createStackNavigator();
 
 export default function AppStackNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ headerShown: false }}
+      initialRouteName="LocationPermission"
+    >
+      {/* Location Permission Screen */}
+      <Stack.Screen name="LocationPermission" component={LocationPermissionScreen} />
       {/* Main bottom tabs */}
       <Stack.Screen name="MainTabs" component={TabNavigator} />
       <Stack.Screen name="CreateJobScreen2" component={CreateJobScreen2} />

@@ -37,6 +37,7 @@
     "react-native-localize": "^3.6.0",
     "react-native-maps": "^1.26.20",
     "react-native-modal-datetime-picker": "^18.0.0",
+    "react-native-permissions": "^5.4.4",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.18.0",
     "react-native-vector-icons": "^10.3.0",

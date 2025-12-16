@@ -6,25 +6,89 @@ import {
   View,
   Text,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import Geolocation from '@react-native-community/geolocation';
 import MyStatusBar from '../../components/MyStatusbar';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Header from '../../components/Header';
 import JobCard from './JobCard';
 import JobCardSkeleton from '../../components/JobCardSkeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getAllJobs, getAllTags } from '../../store/thunks/jobThunk';
+import { getUserLocation, updateUserLocation } from '../../store/thunks/locationThunk';
+import { selectJobs, selectJobsLoading, selectLocationAddress, selectTags } from '../../store/selector';
 
 const HomeScreen = () => {
-  const [loading, setLoading] = useState(true);
-  const tags = ['Tag-1', 'Tag-2', 'Tag-3', 'Tag-4', 'Tag-5', 'Tag-6', 'Tag-7', 'Tag-8', 'Tag-9', 'Tag-10'];
+  const dispatch = useDispatch();
+  const jobs = useSelector(selectJobs);
+  const loading = useSelector(selectJobsLoading);
+  const locationAddress = useSelector(selectLocationAddress);
+  const tags = useSelector(selectTags);
+  
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
+    loadInitialData();
   }, []);
+
+  const loadInitialData = () => {
+    dispatch(getAllJobs({ pageNo: 1, limit: 20 }));
+    dispatch(getAllTags());
+  };
+
+  const updateLocation = () => {
+    return new Promise((resolve) => {
+      Geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            await dispatch(updateUserLocation({ latitude, longitude }));
+            await dispatch(getUserLocation());
+            resolve();
+          } catch (error) {
+            console.log('Location update error:', error);
+            resolve();
+          }
+        },
+        (error) => {
+          console.log('High accuracy failed, trying fallback:', error);
+          // Fallback with lower accuracy
+          Geolocation.getCurrentPosition(
+            async (position) => {
+              try {
+                const { latitude, longitude } = position.coords;
+                await dispatch(updateUserLocation({ latitude, longitude }));
+                await dispatch(getUserLocation());
+                resolve();
+              } catch (error) {
+                console.log('Location fallback error:', error);
+                resolve();
+              }
+            },
+            (fallbackError) => {
+              console.log('Location fallback failed:', fallbackError);
+              resolve();
+            },
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+          );
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+      );
+    });
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([
+      dispatch(getAllJobs({ pageNo: 1, limit: 20 })),
+      dispatch(getAllTags()),
+      updateLocation()
+    ]);
+    setRefreshing(false);
+  };
+  
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
        <MyStatusBar/>
@@ -36,9 +100,9 @@ const HomeScreen = () => {
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.tagScroll}>
-            {tags.map((tag, index) => (
-              <TouchableOpacity key={index} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
+            {tags.map((tagItem, index) => (
+              <TouchableOpacity key={tagItem._id || index} style={styles.tag}>
+                <Text style={styles.tagText}>{tagItem.tag}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -55,7 +119,10 @@ const HomeScreen = () => {
 
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}>
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }>
           {loading ? (
             // Show skeleton loaders
             <>
@@ -63,21 +130,21 @@ const HomeScreen = () => {
               <JobCardSkeleton />
               <JobCardSkeleton />
             </>
+          ) : jobs.length > 0 ? (
+            // Show actual job cards from API
+            jobs.map((job, index) => (
+              <JobCard 
+                key={job._id || job.id || index}
+                jobData={job}
+                urgent={job.type === 'Quick'}
+                saved={true}
+              />
+            ))
           ) : (
-            // Show actual job cards
-            <>
-             
-              <JobCard urgent={true} />
-               <JobCard saved={false} urgent={true}/>
-              <JobCard />
-              <JobCard />
-               <JobCard saved={false}/>
-              <JobCard />
-              <JobCard />
-              <JobCard />
-              <JobCard />
-              <JobCard />
-               </>
+            // Show empty state
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No jobs available</Text>
+            </View>
           )}
         </ScrollView>
       </View>

@@ -8,11 +8,11 @@ import { logout } from '../../store/slices/authSlice';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../../styles/commonStyles';
 
-const JobCard = ({saved=true ,urgent=false}) => {
+const JobCard = ({saved=true, urgent=false, jobData}) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   return (
-    <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen')}>
+    <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })}>
       {/* Image */}
       {saved?(<Image
         source={require('../../assets/jobImage.png')} 
@@ -43,24 +43,32 @@ const JobCard = ({saved=true ,urgent=false}) => {
       <View style={styles.contentContainer}>
         {/* Title & Price */}
         <View style={styles.row}>
-          <Text style={styles.title}>Job Title</Text>
-          <Text style={styles.price}>₹ 500</Text>
+          <Text style={styles.title}>{jobData?.title || 'Job Title'}</Text>
+          <Text style={styles.price}>
+            {jobData?.amount?.disclose && jobData?.amount?.min 
+              ? `₹ ${jobData.amount.min}${jobData.amount.max ? ` - ${jobData.amount.max}` : ''}` 
+              : 'Price on request'}
+          </Text>
         </View>
 
         {/* Description */}
         <Text style={styles.description}>
-          Etiam tincidunt, ex id vestibulum ultrices, libero...
+          {jobData?.description || 'No description available'}
         </Text>
 
         {/* Location */}
         <View style={styles.locationRow}>
           <MaterialIcons name="location-on" style={styles.locationIcon} />
-          <Text style={styles.locationText}>22 Km left</Text>
+          <Text style={styles.locationText}>
+            {typeof jobData?.location === 'string' ? jobData.location : 'Location not specified'}
+          </Text>
         </View>
 
         {/* Vendor & Rating */}
         <View style={styles.row}>
-          <Text style={styles.vendorName}>Vendor Name</Text>
+          <Text style={styles.vendorName}>
+            {jobData?.createdBy ? `${jobData.createdBy.firstName} ${jobData.createdBy.lastName}` : 'Unknown'}
+          </Text>
           <View style={styles.ratingContainer}>
             <FontAwesome name="star" style={styles.starIcon} />
             <Text style={styles.ratingText}>4.9 (2.2K)</Text>
