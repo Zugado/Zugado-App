@@ -1,5 +1,5 @@
 // components/Header.js
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { selectLocationAddress } from '../store/selector';
 
 const Header = ({ showSearch = true }) => {
   const locationAddress = useSelector(selectLocationAddress);
-  
+  const [isQuickJobFirst, setIsQuickJobFirst] = useState(true);
   return (
     <View style={styles.headerContainer}>
       {/* Row 1: Location, Logo & Icons */}
@@ -71,10 +71,24 @@ const Header = ({ showSearch = true }) => {
               style={styles.searchInput}
             />
           </View>
-          <TouchableOpacity style={styles.jobButton}>
-            <Entypo name="flash" style={styles.jobIcon} />
-            <Text style={styles.jobText}>Job</Text>
+          <TouchableOpacity 
+            style={[styles.jobButton, { backgroundColor: isQuickJobFirst ? '#000' : '#22c55e' }]}
+            onPress={() => setIsQuickJobFirst(!isQuickJobFirst)}
+            activeOpacity={0.8}
+          >
+            {isQuickJobFirst ? (
+              <>
+                <Entypo name="flash" style={styles.jobIcon} />
+                <Text style={styles.jobText}>Job</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.jobText}>Job</Text>
+                <Entypo name="flash" style={styles.jobIcon} />
+              </>
+            )}
           </TouchableOpacity>
+
         </View>
       )}
     </View>
@@ -174,22 +188,33 @@ const styles = StyleSheet.create({
   },
   jobButton: {
     flexDirection: 'row',
+    gap: 4,
+    borderColor: '#000000ff',
+    borderWidth: 1,
     alignItems: 'center',
-    backgroundColor: '#000',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
     borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     marginRight: 5,
     marginVertical: 5,
   },
   jobIcon: {
-    color: '#fff',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 5,
+    color: '#000',
     fontSize: 16,
-    marginRight: 5,
+    // marginHorizontal: 5,
   },
   jobText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 12,
   },
 });
 
