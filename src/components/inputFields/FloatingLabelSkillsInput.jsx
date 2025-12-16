@@ -101,7 +101,7 @@ const FloatingLabelSkillsInput = ({
         uniqueFiltered.unshift(inputValue.trim());
       }
 
-      setFilteredSuggestions(uniqueFiltered.slice(0, 8));
+      setFilteredSuggestions(uniqueFiltered);
       setShowSuggestions(true);
     } else {
       setFilteredSuggestions([]);
@@ -177,7 +177,8 @@ const FloatingLabelSkillsInput = ({
           <ScrollView 
             style={styles.suggestionsList}
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}
           >
             {filteredSuggestions.map((suggestion, index) => {
               const isUserTyped = suggestion === inputValue.trim() && 
