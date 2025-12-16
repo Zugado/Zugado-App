@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, FlatList, Dimensions } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
@@ -10,7 +10,7 @@ import Video from 'react-native-video';
 import { selectToken } from '../../store/selector';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Mock data for Job Details section
+// Mock data for Task Details section
 const jobDetailsData = [
   { key: 'Timing Type', value: 'Fixed', icon: 'clock' },
   { key: 'Experience', value: 'Intermediate', icon: 'briefcase' },
@@ -121,17 +121,38 @@ export default function JobDetailedScreen({ navigation, route }) {
   const [jobData, setJobData] = useState(null);
   const [previewModal, setPreviewModal] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef(null);
+  const intervalRef = useRef(null);
   const jobId = route.params?.jobId;
-  console.log("Token = ", AsyncStorage.getItem('token'));
-  console.log("jobData = ", JSON.stringify(jobData, null, 2))
   useEffect(() => {
     if (jobId) {
       fetchJobDetails();
     }
   }, [jobId]);
 
-   console.log("Token = ", AsyncStorage.getItem('token'));
-  console.log("jobData = ", JSON.stringify(jobData, null, 2));
+  console.log("Token = ", AsyncStorage.getItem('token'));
+  console.log("jobData = ", JSON.stringify(jobData, null, 2))
+
+  // Auto-scroll disabled
+  // useEffect(() => {
+  //   if (jobData?.attachments && jobData.attachments.length > 1) {
+  //     intervalRef.current = setInterval(() => {
+  //       setCurrentIndex(prevIndex => {
+  //         const nextIndex = (prevIndex + 1) % jobData.attachments.length;
+  //         flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+  //         return nextIndex;
+  //       });
+  //     }, 3000);
+  //     return () => {
+  //       if (intervalRef.current) {
+  //         clearInterval(intervalRef.current);
+  //       }
+  //     };
+  //   }
+  // }, [jobData?.attachments?.length]);
+
+
   const fetchJobDetails = async () => {
     try {
       setLoading(true);
@@ -155,7 +176,7 @@ export default function JobDetailedScreen({ navigation, route }) {
     return url.toLowerCase().includes('.mp4') || url.toLowerCase().includes('.mov') || url.toLowerCase().includes('.avi');
   };
 
-  const renderAttachment = ({ item }) => (
+  const renderAttachment = useCallback(({ item }) => (
     <TouchableOpacity 
       style={styles.attachmentItem}
       onPress={() => openPreview(item)}
@@ -176,7 +197,7 @@ export default function JobDetailedScreen({ navigation, route }) {
         <Image source={{ uri: item.url }} style={styles.attachmentImage} />
       )}
     </TouchableOpacity>
-  );
+  ), []);
 
   if (loading) {
     return (
@@ -195,7 +216,7 @@ export default function JobDetailedScreen({ navigation, route }) {
       <SafeAreaView style={styles.container}>
         <MyStatusBar />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Job not found</Text>
+          <Text style={styles.errorText}>Task not found</Text>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
@@ -224,6 +245,7 @@ export default function JobDetailedScreen({ navigation, route }) {
         {jobData.attachments && jobData.attachments.length > 0 ? (
           <View style={styles.attachmentsContainer}>
             <FlatList
+              ref={flatListRef}
               data={jobData.attachments}
               renderItem={renderAttachment}
               keyExtractor={(item) => item._id}
@@ -232,6 +254,20 @@ export default function JobDetailedScreen({ navigation, route }) {
               pagingEnabled
               snapToInterval={width}
               decelerationRate="fast"
+              getItemLayout={(data, index) => ({
+                length: width,
+                offset: width * index,
+                index,
+              })}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={3}
+              windowSize={3}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.round(event.nativeEvent.contentOffset.x / width);
+                if (index !== currentIndex) {
+                  setCurrentIndex(index);
+                }
+              }}
             />
             <TouchableOpacity style={styles.bookmarkButton}>
               <Feather name="bookmark" size={20} color="#fff" />
@@ -249,8 +285,23 @@ export default function JobDetailedScreen({ navigation, route }) {
           </View>
         )}
 
+        {/* Pagination Dots - Outside Image */}
+        {jobData.attachments && jobData.attachments.length > 1 && (
+          <View style={styles.paginationContainerExternal}>
+            {jobData.attachments.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.paginationDotExternal,
+                  index === currentIndex && styles.paginationDotExternalActive
+                ]}
+              />
+            ))}
+          </View>
+        )}
+
         <View style={styles.content}>
-          {/* Job Title and Status */}
+          {/* Task Title and Status */}
           <View style={styles.titleRow}>
             <Text style={styles.jobTitle}>{jobData.title || 'NA'}</Text>
             {jobData.jobType === 'quick' && (
@@ -271,7 +322,7 @@ export default function JobDetailedScreen({ navigation, route }) {
           <View style={styles.tagsRow}>
             {jobData.tags?.length > 0 ? (
               jobData.tags.map((tagItem, index) => (
-                <Tag key={index} text={tagItem.tag || 'NA'} />
+                <Tag key={index} text={tagItem || 'NA'} />
               ))
             ) : (
               <Tag text="NA" />
@@ -298,11 +349,11 @@ export default function JobDetailedScreen({ navigation, route }) {
             </View>
           )}
 
-          {/* Job Details */}
+          {/* Task Details */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Job Details</Text>
-            <DetailRow icon="briefcase" label="Job For" value={jobData.jobFor ? jobData.jobFor.charAt(0).toUpperCase() + jobData.jobFor.slice(1) : 'NA'} />
-            <DetailRow icon="zap" label="Job Type" value={jobData.jobType ? jobData.jobType.charAt(0).toUpperCase() + jobData.jobType.slice(1) : 'NA'} />
+            <Text style={styles.sectionTitle}>Task Details</Text>
+            <DetailRow icon="briefcase" label="Task For" value={jobData.jobFor ? jobData.jobFor.charAt(0).toUpperCase() + jobData.jobFor.slice(1) : 'NA'} />
+            <DetailRow icon="zap" label="Task Type" value={jobData.jobType ? jobData.jobType.charAt(0).toUpperCase() + jobData.jobType.slice(1) : 'NA'} />
             <DetailRow icon="award" label="Experience" value={getExperienceText(jobData.experienceLevel)} />
             <DetailRow icon={getLocationIcon(jobData.locationType)} label="Location Type" value={jobData.locationType ? jobData.locationType.charAt(0).toUpperCase() + jobData.locationType.slice(1) : 'NA'} />
             <DetailRow icon="clock" label="Timing" value={getTimingText(jobData.timingType, jobData.timingDetails)} />
@@ -316,7 +367,7 @@ export default function JobDetailedScreen({ navigation, route }) {
         <View>
           <Text style={styles.budgetLabel}>Budget</Text>
           <Text style={styles.budgetValue}>
-            <FontAwesome name="dollar" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min > 0 || jobData.amount?.max > 0) ? `${jobData.amount.min}-${jobData.amount.max}` : 'NA'}
+            <FontAwesome name="dollar" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min > 0 || jobData.amount?.max > 0) ? `${jobData.amount.min}-${jobData.amount.max}` : 'Not Disclosed'}
           </Text>
         </View>
 
@@ -355,6 +406,10 @@ export default function JobDetailedScreen({ navigation, route }) {
                   style={styles.modalVideo}
                   controls={true}
                   resizeMode="contain"
+                  paused={false}
+                  muted={false}
+                  playInBackground={false}
+                  playWhenInactive={false}
                 />
               ) : (
                 <Image 
@@ -397,6 +452,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     borderRadius: 20,
     padding: 8,
+  },
+  
+  // External Pagination Dots
+  paginationContainerExternal: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  paginationDotExternal: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#e5e7eb',
+  },
+  paginationDotExternalActive: {
+    backgroundColor: '#111827',
+    width: 24,
   },
   
   // Modal Styles

@@ -43,7 +43,7 @@ export default function CreateJob({ navigation }) {
   ];
    const typeOptions = [
     { label: 'Standard', value: 'standard' },
-    { label: 'Quick', value: 'quick' },
+    { label: 'Urgent', value: 'quick' },
   ];
   // Load tags on component mount
   useEffect(() => {
