@@ -20,10 +20,10 @@ import { useImagePicker } from '../utils/useImagePicker';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { updateUserDetails, updateProfilePic } from '../store/thunks/userThunk';
 import ImagePreviewModal from '../components/ImagePreviewModal';
-
+import FloatingLabelInput from '../components/inputFields/FloatingLabelInput';
 const EditProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector(state => state.auth);
   const { showSnackbar } = useSnackbar();
   const { openCamera, openGallery } = useImagePicker();
 
@@ -53,18 +53,34 @@ const EditProfileScreen = ({ navigation }) => {
   // Mapping functions
   const mapToBackend = (field, value) => {
     const mappings = {
-      workMode: { 'Remote': 'remote', 'On-Site': 'onsite', 'Hybrid': 'hybrid' },
-      jobType: { 'Full-Time': 'fulltime', 'Part-Time': 'parttime', 'Casually': 'casually' },
-      level: { 'Beginner': 'beginner', 'Intermediate': 'intermediate', 'Experienced': 'advanced' }
+      workMode: { Remote: 'remote', 'On-Site': 'onsite', Hybrid: 'hybrid' },
+      jobType: {
+        'Full-Time': 'fulltime',
+        'Part-Time': 'parttime',
+        Casually: 'casually',
+      },
+      level: {
+        Beginner: 'beginner',
+        Intermediate: 'intermediate',
+        Experienced: 'advanced',
+      },
     };
     return mappings[field]?.[value] || value;
   };
 
   const mapFromBackend = (field, value) => {
     const mappings = {
-      workMode: { 'remote': 'Remote', 'onsite': 'On-Site', 'hybrid': 'Hybrid' },
-      jobType: { 'fulltime': 'Full-Time', 'parttime': 'Part-Time', 'casually': 'Casually' },
-      level: { 'beginner': 'Beginner', 'intermediate': 'Intermediate', 'advanced': 'Experienced' }
+      workMode: { remote: 'Remote', onsite: 'On-Site', hybrid: 'Hybrid' },
+      jobType: {
+        fulltime: 'Full-Time',
+        parttime: 'Part-Time',
+        casually: 'Casually',
+      },
+      level: {
+        beginner: 'Beginner',
+        intermediate: 'Intermediate',
+        advanced: 'Experienced',
+      },
     };
     return mappings[field]?.[value] || value;
   };
@@ -104,7 +120,7 @@ const EditProfileScreen = ({ navigation }) => {
     }
   };
 
-  const uploadProfilePicture = async (imageData) => {
+  const uploadProfilePicture = async imageData => {
     setLoading(true);
     try {
       const extension = imageData.fileName
@@ -114,15 +130,18 @@ const EditProfileScreen = ({ navigation }) => {
       const data = {
         uri: imageData.uri,
         type: imageData.type,
-        name: `avatar.${extension}`
+        name: `avatar.${extension}`,
       };
 
       const response = await dispatch(updateProfilePic(data));
-      
+
       if (updateProfilePic.fulfilled.match(response)) {
         showSnackbar('Profile picture updated successfully!', 'success');
       } else {
-        showSnackbar(response?.payload?.message || 'Failed to update profile picture', 'error');
+        showSnackbar(
+          response?.payload?.message || 'Failed to update profile picture',
+          'error',
+        );
       }
     } catch (error) {
       showSnackbar('Error uploading image', 'error');
@@ -141,16 +160,19 @@ const EditProfileScreen = ({ navigation }) => {
         email: email.trim(),
         workingModel: mapToBackend('workMode', workMode),
         jobType: mapToBackend('jobType', jobType),
-        level: mapToBackend('level', level)
+        level: mapToBackend('level', level),
       };
-      
+
       const response = await dispatch(updateUserDetails(updateData));
-      
+
       if (updateUserDetails.fulfilled.match(response)) {
         showSnackbar('Profile updated successfully!', 'success');
         navigation.goBack();
       } else {
-        showSnackbar(response?.payload?.message || 'Failed to update profile', 'error');
+        showSnackbar(
+          response?.payload?.message || 'Failed to update profile',
+          'error',
+        );
       }
     } catch (error) {
       showSnackbar('Error updating profile', 'error');
@@ -184,11 +206,11 @@ const EditProfileScreen = ({ navigation }) => {
       showSnackbar('Please enter valid 6-digit OTP', 'error');
       return;
     }
-    
+
     setOtpLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       if (otpType === 'email') {
         setEmailVerified(true);
         showSnackbar('Email verified successfully!', 'success');
@@ -196,7 +218,7 @@ const EditProfileScreen = ({ navigation }) => {
         setPhoneVerified(true);
         showSnackbar('Phone verified successfully!', 'success');
       }
-      
+
       setShowOtpModal(false);
       setOtp('');
     } catch (error) {
@@ -231,7 +253,10 @@ const EditProfileScreen = ({ navigation }) => {
                   />
                 </View>
               )}
-              <TouchableOpacity onPress={() => setPickerSheetVisible(true)} style={styles.editIcon}>
+              <TouchableOpacity
+                onPress={() => setPickerSheetVisible(true)}
+                style={styles.editIcon}
+              >
                 <Feather name="camera" size={16} color={Colors.whiteColor} />
               </TouchableOpacity>
             </View>
@@ -240,110 +265,80 @@ const EditProfileScreen = ({ navigation }) => {
           {/* Professional Form Sections */}
           <View style={styles.formContainer}>
             {/* Personal Information Section */}
-           <View style={[styles.formSection,{ paddingTop: 80,}]}>
+            <View style={[styles.formSection, { paddingTop: 80 }]}>
               <Text style={styles.sectionTitle}>Personal Information</Text>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>First Name<Text style={styles.required}>*</Text></Text>
-                <View style={styles.inputContainer}>
-                  <Feather name="user" size={16} color={Colors.grayColor} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.textInput}
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    placeholder="Enter first name"
-                    placeholderTextColor={Colors.grayColor}
-                  />
-                </View>
-              </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Middle Name</Text>
-                <View style={styles.inputContainer}>
-                  <Feather name="user" size={16} color={Colors.grayColor} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.textInput}
-                    value={middleName}
-                    onChangeText={setMiddleName}
-                    placeholder="Enter middle name (optional)"
-                    placeholderTextColor={Colors.grayColor}
-                  />
-                </View>
-              </View>
+              <FloatingLabelInput
+                label="First Name *"
+                value={firstName}
+                onChangeText={setFirstName}
+              />
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Last Name<Text style={styles.required}>*</Text></Text>
-                <View style={styles.inputContainer}>
-                  <Feather name="user" size={16} color={Colors.grayColor} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.textInput}
-                    value={lastName}
-                    onChangeText={setLastName}
-                    placeholder="Enter last name"
-                    placeholderTextColor={Colors.grayColor}
-                  />
-                </View>
-              </View>
+              <FloatingLabelInput
+                label="Middle Name (Optional)"
+                value={middleName}
+                onChangeText={setMiddleName}
+              />
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email Address<Text style={styles.required}>*</Text></Text>
-                <View style={styles.inputContainer}>
-                  <Feather name="mail" size={16} color={Colors.grayColor} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.textInput}
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter email address"
-                    placeholderTextColor={Colors.grayColor}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                  {emailVerified ? (
-                    <View style={styles.verifiedBadge}>
-                      <Feather name="check-circle" size={16} color={Colors.greenColor} />
-                    </View>
-                  ) : (
-                    <TouchableOpacity style={styles.verifyButton} onPress={handleVerifyEmail}>
-                      <Text style={styles.verifyButtonText}>Verify</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {emailVerified && <Text style={styles.verifiedText}>Email verified</Text>}
-              </View>
+              <FloatingLabelInput
+                label="Last Name *"
+                value={lastName}
+                onChangeText={setLastName}
+              />
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Contact Number<Text style={styles.required}>*</Text></Text>
-                <View style={styles.inputContainer}>
-                  <Feather name="phone" size={16} color={Colors.grayColor} style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.textInput}
-                    value={mobNumber}
-                    onChangeText={setMobNumber}
-                    placeholder="Enter contact number"
-                    placeholderTextColor={Colors.grayColor}
-                    keyboardType="phone-pad"
+              <FloatingLabelInput
+                label="Email Address *"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                showButton={!emailVerified}
+                buttonText="Verify"
+                onButtonPress={handleVerifyEmail}
+              />
+              {emailVerified && (
+                <View style={styles.verifiedBadge}>
+                  <Feather
+                    name="check-circle"
+                    size={16}
+                    color={Colors.greenColor}
                   />
-                  {phoneVerified ? (
-                    <View style={styles.verifiedBadge}>
-                      <Feather name="check-circle" size={16} color={Colors.greenColor} />
-                    </View>
-                  ) : (
-                    <TouchableOpacity style={styles.verifyButton} onPress={handleVerifyPhone}>
-                      <Text style={styles.verifyButtonText}>Verify</Text>
-                    </TouchableOpacity>
-                  )}
+                  <Text style={styles.verifiedText}>Email verified</Text>
                 </View>
-                {phoneVerified && <Text style={styles.verifiedText}>Phone verified</Text>}
-              </View>
+              )}
+
+              <FloatingLabelInput
+                label="Contact Number *"
+                value={mobNumber}
+                onChangeText={setMobNumber}
+                keyboardType="phone-pad"
+                showButton={!phoneVerified}
+                buttonText="Verify"
+                onButtonPress={handleVerifyPhone}
+              />
+              {phoneVerified && (
+                <View style={styles.verifiedBadge}>
+                  <Feather
+                    name="check-circle"
+                    size={16}
+                    color={Colors.greenColor}
+                  />
+                  <Text style={styles.verifiedText}>Phone verified</Text>
+                </View>
+              )}
             </View>
 
             {/* Professional Preferences Section */}
-            <View style={[styles.formSection,{}]}>
+            <View style={[styles.formSection, {}]}>
               <Text style={styles.sectionTitle}>Professional Preferences</Text>
-              
+
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Job Type<Text style={styles.required}>*</Text></Text>
-                <Text style={styles.helperText}>Select your preferred job type</Text>
+                <Text style={styles.label}>
+                  Job Type<Text style={styles.required}>*</Text>
+                </Text>
+                <Text style={styles.helperText}>
+                  Select your preferred job type
+                </Text>
                 <View style={styles.optionGrid}>
                   {jobTypeOptions.map(option => (
                     <TouchableOpacity
@@ -355,21 +350,31 @@ const EditProfileScreen = ({ navigation }) => {
                       onPress={() => setJobType(option)}
                     >
                       <View style={styles.optionContent}>
-                        <Feather 
-                          name="briefcase" 
-                          size={20} 
-                          color={jobType === option ? Colors.primary : Colors.grayColor} 
+                        <Feather
+                          name="briefcase"
+                          size={20}
+                          color={
+                            jobType === option
+                              ? Colors.primary
+                              : Colors.grayColor
+                          }
                         />
-                        <Text style={[
-                          styles.optionText,
-                          jobType === option && styles.selectedOptionText,
-                        ]}>
+                        <Text
+                          style={[
+                            styles.optionText,
+                            jobType === option && styles.selectedOptionText,
+                          ]}
+                        >
                           {option}
                         </Text>
                       </View>
                       {jobType === option && (
                         <View style={styles.checkmark}>
-                          <Feather name="check" size={14} color={Colors.whiteColor} />
+                          <Feather
+                            name="check"
+                            size={14}
+                            color={Colors.whiteColor}
+                          />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -378,8 +383,12 @@ const EditProfileScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Working Model<Text style={styles.required}>*</Text></Text>
-                <Text style={styles.helperText}>Select your preferred working arrangement</Text>
+                <Text style={styles.label}>
+                  Working Model<Text style={styles.required}>*</Text>
+                </Text>
+                <Text style={styles.helperText}>
+                  Select your preferred working arrangement
+                </Text>
                 <View style={styles.optionGrid}>
                   {workModeOptions.map(option => (
                     <TouchableOpacity
@@ -391,21 +400,37 @@ const EditProfileScreen = ({ navigation }) => {
                       onPress={() => setWorkMode(option)}
                     >
                       <View style={styles.optionContent}>
-                        <Feather 
-                          name={option === 'Remote' ? 'home' : option === 'On-Site' ? 'briefcase' : 'shuffle'} 
-                          size={20} 
-                          color={workMode === option ? Colors.primary : Colors.grayColor} 
+                        <Feather
+                          name={
+                            option === 'Remote'
+                              ? 'home'
+                              : option === 'On-Site'
+                              ? 'briefcase'
+                              : 'shuffle'
+                          }
+                          size={20}
+                          color={
+                            workMode === option
+                              ? Colors.primary
+                              : Colors.grayColor
+                          }
                         />
-                        <Text style={[
-                          styles.optionText,
-                          workMode === option && styles.selectedOptionText,
-                        ]}>
+                        <Text
+                          style={[
+                            styles.optionText,
+                            workMode === option && styles.selectedOptionText,
+                          ]}
+                        >
                           {option}
                         </Text>
                       </View>
                       {workMode === option && (
                         <View style={styles.checkmark}>
-                          <Feather name="check" size={14} color={Colors.whiteColor} />
+                          <Feather
+                            name="check"
+                            size={14}
+                            color={Colors.whiteColor}
+                          />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -414,8 +439,12 @@ const EditProfileScreen = ({ navigation }) => {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Experience Level<Text style={styles.required}>*</Text></Text>
-                <Text style={styles.helperText}>Choose your current skill level</Text>
+                <Text style={styles.label}>
+                  Experience Level<Text style={styles.required}>*</Text>
+                </Text>
+                <Text style={styles.helperText}>
+                  Choose your current skill level
+                </Text>
                 <View style={styles.optionGrid}>
                   {levelOptions.map(option => (
                     <TouchableOpacity
@@ -427,21 +456,29 @@ const EditProfileScreen = ({ navigation }) => {
                       onPress={() => setLevel(option)}
                     >
                       <View style={styles.optionContent}>
-                        <Feather 
-                          name="trending-up" 
-                          size={20} 
-                          color={level === option ? Colors.primary : Colors.grayColor} 
+                        <Feather
+                          name="trending-up"
+                          size={20}
+                          color={
+                            level === option ? Colors.primary : Colors.grayColor
+                          }
                         />
-                        <Text style={[
-                          styles.optionText,
-                          level === option && styles.selectedOptionText,
-                        ]}>
+                        <Text
+                          style={[
+                            styles.optionText,
+                            level === option && styles.selectedOptionText,
+                          ]}
+                        >
                           {option}
                         </Text>
                       </View>
                       {level === option && (
                         <View style={styles.checkmark}>
-                          <Feather name="check" size={14} color={Colors.whiteColor} />
+                          <Feather
+                            name="check"
+                            size={14}
+                            color={Colors.whiteColor}
+                          />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -491,11 +528,14 @@ const EditProfileScreen = ({ navigation }) => {
       >
         <View style={styles.otpModalOverlay}>
           <View style={styles.otpModalContent}>
-            <Text style={styles.otpModalTitle}>Verify {otpType === 'email' ? 'Email' : 'Phone'}</Text>
-            <Text style={styles.otpModalSubtitle}>
-              Enter the 6-digit OTP sent to your {otpType === 'email' ? 'email' : 'phone number'}
+            <Text style={styles.otpModalTitle}>
+              Verify {otpType === 'email' ? 'Email' : 'Phone'}
             </Text>
-            
+            <Text style={styles.otpModalSubtitle}>
+              Enter the 6-digit OTP sent to your{' '}
+              {otpType === 'email' ? 'email' : 'phone number'}
+            </Text>
+
             <TextInput
               style={styles.otpInput}
               value={otp}
@@ -505,9 +545,9 @@ const EditProfileScreen = ({ navigation }) => {
               maxLength={6}
               textAlign="center"
             />
-            
+
             <View style={styles.otpModalActions}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.otpCancelButton}
                 onPress={() => {
                   setShowOtpModal(false);
@@ -516,8 +556,8 @@ const EditProfileScreen = ({ navigation }) => {
               >
                 <Text style={styles.otpCancelText}>Cancel</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.otpVerifyButton, otpLoading && { opacity: 0.7 }]}
                 onPress={handleOtpVerification}
                 disabled={otpLoading}
@@ -588,12 +628,11 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     marginTop: 60,
-    
   },
   formSection: {
     backgroundColor: Colors.whiteColor,
     borderRadius: 16,
-   
+
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
@@ -743,12 +782,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   verifiedBadge: {
-    marginLeft: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: -10,
   },
   verifiedText: {
     fontSize: 12,
     color: Colors.greenColor,
-    marginTop: 4,
     fontWeight: '500',
   },
   otpModalOverlay: {
