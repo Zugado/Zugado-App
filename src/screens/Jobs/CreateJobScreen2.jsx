@@ -228,20 +228,21 @@ export default function CreateJob({ navigation, route }) {
                   </TouchableOpacity>
                   
                   <FloatingLabelInput
-                    label="Address (Optional)"
+                    label="Address"
+                    required={true}
                     value={address}
                     onChangeText={setAddress}
                     multiline
                     numberOfLines={2}
                     placeholder="Enter or edit address manually"
                   />
-                  
-                  <View style={styles.coordinatesInfo}>
+                  {/* Location Point */}
+                  {/* <View style={styles.coordinatesInfo}>
                     <Feather name="map-pin" size={14} color="#666" />
                     <Text style={styles.coordinatesText}>
                       Location: {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
                     </Text>
-                  </View>
+                  </View> */}
                 </>
               )}
             </View>
