@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   RefreshControl,
+  FlatList,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Geolocation from '@react-native-community/geolocation';
@@ -15,11 +16,13 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Header from '../../components/Header';
 import JobCard from './JobCard';
 import JobCardSkeleton from '../../components/JobCardSkeleton';
+import LoaderCard from '../../components/LoaderCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllJobs, getAllTags } from '../../store/thunks/jobThunk';
 import { getWishlist } from '../../store/thunks/wishlistThunk';
 import { getUserLocation, updateUserLocation } from '../../store/thunks/locationThunk';
 import { selectJobs, selectJobsLoading, selectLocationAddress, selectTags } from '../../store/selector';
+import { FaddedIcon } from '../../components/CommonComponents';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -27,8 +30,27 @@ const HomeScreen = ({ navigation }) => {
   const loading = useSelector(selectJobsLoading);
   const locationAddress = useSelector(selectLocationAddress);
   const tags = useSelector(selectTags);
-  
+  const [selectedFilter, setSelectedFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Create tag filter list from tags and subtags
+  const tagFilterList = ['All'];
+  tags.forEach(tagItem => {
+    tagFilterList.push(tagItem.tag);
+    if (tagItem.subTags && Array.isArray(tagItem.subTags)) {
+      tagFilterList.push(...tagItem.subTags);
+    }
+  });
+  
+  // Filter jobs based on selected filter
+  const filteredJobs = selectedFilter === 'All' 
+    ? jobs 
+    : jobs.filter(job => {
+        if (job.tags && typeof job.tags === 'string') {
+          return job.tags.toLowerCase().includes(selectedFilter.toLowerCase());
+        }
+        return false;
+      });
 
   useEffect(() => {
     loadInitialData();
@@ -41,9 +63,9 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const updateLocation = () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       Geolocation.getCurrentPosition(
-        async (position) => {
+        async position => {
           try {
             const { latitude, longitude } = position.coords;
             await dispatch(updateUserLocation({ latitude, longitude }));
@@ -54,11 +76,11 @@ const HomeScreen = ({ navigation }) => {
             resolve();
           }
         },
-        (error) => {
+        error => {
           console.log('High accuracy failed, trying fallback:', error);
           // Fallback with lower accuracy
           Geolocation.getCurrentPosition(
-            async (position) => {
+            async position => {
               try {
                 const { latitude, longitude } = position.coords;
                 await dispatch(updateUserLocation({ latitude, longitude }));
@@ -69,14 +91,14 @@ const HomeScreen = ({ navigation }) => {
                 resolve();
               }
             },
-            (fallbackError) => {
+            fallbackError => {
               console.log('Location fallback failed:', fallbackError);
               resolve();
             },
-            { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 },
           );
         },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 },
       );
     });
   };
@@ -91,21 +113,45 @@ const HomeScreen = ({ navigation }) => {
     ]);
     setRefreshing(false);
   };
-  
+
+  const renderJob = ({ item }) => (
+    <JobCard job={item} />
+  );
+
+  const EmptyList = ({ message }) => (
+    <View style={styles.emptyContainer}>
+      <FaddedIcon />
+      <Text style={styles.emptyText}>{message}</Text>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
-       <MyStatusBar/>
-       <View style={styles.appContainer}>
+      <MyStatusBar />
+      <View style={styles.appContainer}>
         <Header navigation={navigation} />
         {/* Row 3: Tags & Sort */}
         <View style={styles.tagRow}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.tagScroll}>
-            {tags.map((tagItem, index) => (
-              <TouchableOpacity key={tagItem._id || index} style={styles.tag}>
-                <Text style={styles.tagText}>{tagItem.tag}</Text>
+            style={styles.tagScroll}
+          >
+            {tagFilterList.map((tag, index) => (
+              <TouchableOpacity 
+                key={index} 
+                style={[
+                  styles.tag,
+                  selectedFilter === tag && styles.selectedTag
+                ]}
+                onPress={() => setSelectedFilter(tag)}
+              >
+                <Text style={[
+                  styles.tagText,
+                  selectedFilter === tag && styles.selectedTagText
+                ]}>
+                  {tag}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -120,38 +166,38 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }>
-          {loading ? (
-            // Show skeleton loaders
-            <>
-              <JobCardSkeleton />
-              <JobCardSkeleton />
-              <JobCardSkeleton />
-            </>
-          ) : jobs.length > 0 ? (
-            // Show actual job cards from API
-            jobs.map((job, index) => (
-              <JobCard 
-                key={job._id || job.id || index}
-                jobData={job}
-                urgent={job.jobType !== 'standard'}
-                saved={true}
+        {loading ? (
+          <ScrollView>
+            <LoaderCard count={5} cardHeight={12} />
+          </ScrollView>
+        ) : (
+          <FlatList
+            data={filteredJobs}
+            renderItem={renderJob}
+            keyExtractor={item => item._id || item.id}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <EmptyList 
+                message={
+                  selectedFilter === 'All' 
+                    ? 'No jobs available' 
+                    : `No jobs found for "${selectedFilter}"`
+                }
               />
-            ))
-          ) : (
-            // Show empty state
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No jobs available</Text>
-            </View>
-          )}
-        </ScrollView>
+            }
+            ListFooterComponent={<>{filteredJobs.length >= 2 && <FaddedIcon />}</>}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor="#666"
+                colors={['#666']}
+              />
+            }
+          />
+        )}
       </View>
-
     </SafeAreaView>
   );
 };
@@ -165,58 +211,77 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f4f4f4',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
+  listContainer: {
+    flexGrow: 1,
     paddingBottom: 80,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ccc',
+    textAlign: 'center',
+    marginTop: 0,
   },
 
   tagRow: {
-  padding: 6,
-  paddingRight:0,
-  flexDirection: 'row',
-  alignItems: 'center',
+    padding: 6,
+    paddingRight: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
 
-  backgroundColor: '#fff',
-  shadowColor: '#000',
-  shadowOpacity: 0.1,
-  shadowRadius: 5,
-  elevation: 3,
-},
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
   tagScroll: {
     flex: 1,
     // marginRight: 10,
   },
   tag: {
-    borderWidth: 1, // Reduced border thickness
-    borderColor: '#ddd', // Softer border color
-    borderRadius: 8, // Reduced border radius for a slightly sharper look
-    paddingHorizontal: 12, // Reduced padding
-    paddingVertical: 6,  // Reduced padding
-    marginRight: 8,
-    backgroundColor: '#fff', // Added background for better contrast
-  },
-  tagText: {
-    color: '#666', // Softer text color
-    fontWeight: '500', // Adjusted font weight
-    fontSize: 13,
-  },
- sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 5, // Added padding for better hit area
-//     borderRadius: 5,
-borderLeftWidth:1,
-// borderTopWidth:1,
-// borderBottomWidth:1,
-borderColor:"#838181ff"
-  },
-  sortText: {
-    color: '#444', // Slightly darker for better visibility
-    fontWeight: '600',
-    fontSize: 14,
-  },
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    backgroundColor: '#fff',
+  },
+  selectedTag: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  tagText: {
+    color: '#666',
+    fontWeight: '500',
+    fontSize: 13,
+  },
+  selectedTagText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 5, // Added padding for better hit area
+    //     borderRadius: 5,
+    borderLeftWidth: 1,
+    // borderTopWidth:1,
+    // borderBottomWidth:1,
+    borderColor: '#838181ff',
+  },
+  sortText: {
+    color: '#444', // Slightly darker for better visibility
+    fontWeight: '600',
+    fontSize: 14,
+  },
 });
 
 export default HomeScreen;
