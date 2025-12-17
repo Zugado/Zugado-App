@@ -64,9 +64,9 @@ export default function WishlistScreen({ navigation }) {
 
   const renderJob = ({ item }) => (
     <JobCard
-      job={item}
-      onRemove={handleRemoveFromWishlist}
-      onPress={() => handleJobPress(item)}
+      jobData={item}
+      urgent={item.jobType === 'quick'}
+      saved={true}
     />
   );
   const EmptyList = ({ message }) => (

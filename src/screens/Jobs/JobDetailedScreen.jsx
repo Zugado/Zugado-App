@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../../components/MyStatusbar';
 import { getJobById } from '../../store/thunks/jobThunk';
 import { addToWishlist, removeFromWishlist, getWishlist } from '../../store/thunks/wishlistThunk';
-import { selectWishlist } from '../../store/selector';
+import { selectWishlistIds } from '../../store/selector';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import Video from 'react-native-video';
 import { selectToken } from '../../store/selector';
@@ -121,7 +121,7 @@ const { width } = Dimensions.get('window');
 
 export default function JobDetailedScreen({ navigation, route }) {
   const dispatch = useDispatch();
-  const wishlist = useSelector(selectWishlist) || [];
+  const wishlistIds = useSelector(selectWishlistIds);
   const { showSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(true);
   const [jobData, setJobData] = useState(null);
@@ -132,7 +132,7 @@ export default function JobDetailedScreen({ navigation, route }) {
   const intervalRef = useRef(null);
   const jobId = route.params?.jobId;
   
-  const isWishlisted = Array.isArray(wishlist) ? wishlist.some(job => job._id === jobId) : false;
+  const isWishlisted = wishlistIds.includes(jobId);
   useEffect(() => {
     if (jobId) {
       fetchJobDetails();
@@ -190,6 +190,8 @@ export default function JobDetailedScreen({ navigation, route }) {
         await dispatch(addToWishlist(jobId)).unwrap();
         showSnackbar('Job added to wishlist', 'success');
       }
+      // Refresh wishlist to sync state
+      dispatch(getWishlist());
     } catch (error) {
       showSnackbar('Failed to update wishlist', 'error');
     }
@@ -287,7 +289,10 @@ export default function JobDetailedScreen({ navigation, route }) {
               }}
             />
             <TouchableOpacity style={styles.bookmarkButton} onPress={handleWishlistToggle}>
-              <Feather name="heart" size={20} color={isWishlisted ? "#ff4444" : "#fff"} />
+              <Image
+                source={isWishlisted ? require('../../assets/Icons/SavedGolden.png') : require('../../assets/Icons/Saved.png')}
+                style={styles.bookmarkIcon}
+              />
             </TouchableOpacity>
           </View>
         ) : (
@@ -297,7 +302,10 @@ export default function JobDetailedScreen({ navigation, route }) {
               style={styles.image} 
             />
             <TouchableOpacity style={styles.bookmarkButton} onPress={handleWishlistToggle}>
-              <Feather name="heart" size={20} color={isWishlisted ? "#ff4444" : "#fff"} />
+              <Image
+                source={isWishlisted ? require('../../assets/Icons/SavedGolden.png') : require('../../assets/Icons/Saved.png')}
+                style={styles.bookmarkIcon}
+              />
             </TouchableOpacity>
           </View>
         )}
@@ -455,6 +463,7 @@ const styles = StyleSheet.create({
   imageContainer: { position: 'relative', height: 200 },
   image: { width: '100%', height: '100%' },
   bookmarkButton: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 999, zIndex: 10 },
+  bookmarkIcon: { width: 20, height: 23, resizeMode: 'contain' },
   
   // Attachments Carousel Styles
   attachmentsContainer: { position: 'relative', height: 200 },

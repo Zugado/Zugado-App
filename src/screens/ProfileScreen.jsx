@@ -26,6 +26,8 @@ import { useSnackbar } from '../contexts/SnackbarContext';
 import { useImagePicker } from '../utils/useImagePicker';
 import { updateProfilePicAPI } from '../store/api/userApi';
 import { updateUserDetails, getUserProfile, updateProfilePic } from '../store/thunks/userThunk';
+import { getWishlist } from '../store/thunks/wishlistThunk';
+import { selectWishlist } from '../store/selector';
 import Header from '../components/Header';
 import MyStatusBar from '../components/MyStatusbar';
 import ImagePreviewModal from '../components/ImagePreviewModal';
@@ -213,6 +215,7 @@ const GuestFeature = ({ icon, title, desc }) => (
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const { user, isGuest } = useSelector((state) => state.auth);
+  const wishlist = useSelector(selectWishlist);
   const { showSnackbar } = useSnackbar();
   const { openCamera, openGallery } = useImagePicker();
 
@@ -280,7 +283,10 @@ export default function ProfileScreen({ navigation }) {
     React.useCallback(() => {
       StatusBar.setBarStyle(isGuest ? 'dark-content' : 'light-content');
       StatusBar.setBackgroundColor(isGuest ? '#ffffff' : '#000000');
-    }, [isGuest])
+      if (!isGuest) {
+        dispatch(getWishlist());
+      }
+    }, [isGuest, dispatch])
   );
 
   // Remove edit profile functionality - using separate EditProfileScreen
@@ -401,7 +407,10 @@ export default function ProfileScreen({ navigation }) {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await dispatch(getUserProfile());
+      await Promise.all([
+        dispatch(getUserProfile()),
+        dispatch(getWishlist())
+      ]);
       showSnackbar('Profile refreshed successfully', 'success');
     } catch (error) {
       showSnackbar('Failed to refresh profile', 'error');
@@ -661,20 +670,7 @@ export default function ProfileScreen({ navigation }) {
           )}
         </View>
 
-        {/* Wishlist Section */}
-        <View style={styles.sectionContainer}>
-          <TouchableOpacity
-            style={styles.wishlistButton}
-            onPress={() => navigation.navigate('WishlistScreen')}
-          >
-            <Feather name="heart" size={24} color="#000" />
-            <Text style={styles.wishlistTitle}>My Wishlist</Text>
-            <View style={styles.wishlistRight}>
-              <Text style={styles.wishlistCount}>View saved jobs</Text>
-              <Feather name="chevron-right" size={16} color="#666" />
-            </View>
-          </TouchableOpacity>
-        </View>
+        
 
         {/* Settings Section */}
         <View style={styles.settingsContainer}>
@@ -709,6 +705,22 @@ export default function ProfileScreen({ navigation }) {
             
             <View style={styles.settingsDivider} />
             
+            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate('WishlistScreen')}>
+              <View style={styles.settingsIconContainer}>
+                <Image
+                  source={require('../assets/Icons/SavedGolden.png')}
+                  style={styles.settingsWishlistIcon}
+                />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>My Wishlist</Text>
+                <Text style={styles.settingsItemSubtitle}>{wishlist.length} saved tasks</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+            
+            {/* <View style={styles.settingsDivider} />
+            
             <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("SavedAddressesScreen")}>
               <View style={styles.settingsIconContainer}>
                 <Feather name="map-pin" size={20} color="#666" />
@@ -718,7 +730,7 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.settingsItemSubtitle}>Manage your saved locations</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {/* Resources Group */}
@@ -1805,5 +1817,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginRight: 8,
+  },
+  wishlistIcon: {
+    width: 24,
+    height: 27,
+    resizeMode: 'contain',
+    marginRight: 16,
+  },
+  settingsWishlistIcon: {
+    width: 20,
+    height: 23,
+    resizeMode: 'contain',
   },
 });

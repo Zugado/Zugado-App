@@ -3,14 +3,17 @@ import React from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../../styles/commonStyles';
+import { selectWishlistIds } from '../../store/selector';
 
 const JobCard = ({saved=true, urgent=false, jobData}) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const wishlistIds = useSelector(selectWishlistIds);
+  const isWishlisted = wishlistIds.includes(jobData?._id);
   console.log("job card = ", JSON.stringify(jobData, null, 2));
   return (
     <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })}>
@@ -32,13 +35,15 @@ const JobCard = ({saved=true, urgent=false, jobData}) => {
      
         <Text style={{position:"absolute",fontSize:10,right:20,top:1,color:Colors.whiteColor,fontWeight:"700"}}>Urgent</Text>
       </View>   ) }
-       <View style={styles.saveTag}>
-        <Image
-          source={require('../../assets/Icons/SavedGolden.png')} 
-          style={styles.saveTagImage}
-          resizeMode='cover'
-        />
-      </View>
+       {isWishlisted && (
+         <View style={styles.saveTag}>
+          <Image
+            source={require('../../assets/Icons/SavedGolden.png')} 
+            style={styles.saveTagImage}
+            resizeMode='cover'
+          />
+        </View>
+       )}
        
       {/* Content */}
       <View style={styles.contentContainer}>

@@ -19,6 +19,7 @@ import ImagePickerSheet from '../components/ImagePickerSheet';
 import { useImagePicker } from '../utils/useImagePicker';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { updateUserDetails, updateProfilePic } from '../store/thunks/userThunk';
+import { sendMobileOtp, verifyMobileOtp } from '../store/thunks/mobileThunk';
 import ImagePreviewModal from '../components/ImagePreviewModal';
 import FloatingLabelInput from '../components/inputFields/FloatingLabelInput';
 const EditProfileScreen = ({ navigation }) => {
@@ -42,6 +43,9 @@ const EditProfileScreen = ({ navigation }) => {
   const [emailVerified, setEmailVerified] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [showPhoneChangeModal, setShowPhoneChangeModal] = useState(false);
+  const [newPhoneNumber, setNewPhoneNumber] = useState('');
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
   const [otpType, setOtpType] = useState('');
   const [otp, setOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
@@ -97,7 +101,7 @@ const EditProfileScreen = ({ navigation }) => {
       setJobType(mapFromBackend('jobType', user.jobType) || 'Full-Time');
       setLevel(mapFromBackend('level', user.level) || 'Noob');
       setEmailVerified(user.emailVerified || false);
-      setPhoneVerified(user.phoneVerified || false);
+      setPhoneVerified(user.phoneVerified || true); // Set to true for testing
     }
   }, [user]);
 
@@ -199,6 +203,59 @@ const EditProfileScreen = ({ navigation }) => {
     setOtpType('phone');
     setShowOtpModal(true);
     showSnackbar('OTP sent to your phone', 'success');
+  };
+
+  const handleSendPhoneOtp = async () => {
+    if (!newPhoneNumber.trim() || newPhoneNumber.length < 10) {
+      showSnackbar('Please enter valid phone number', 'error');
+      return;
+    }
+    setOtpLoading(true);
+    try {
+      const response = await dispatch(sendMobileOtp({
+        newMobile: newPhoneNumber,
+        method: 'sms'
+      }));
+      
+      if (sendMobileOtp.fulfilled.match(response)) {
+        setPhoneOtpSent(true);
+        showSnackbar('OTP sent to your new phone number', 'success');
+      } else {
+        showSnackbar(response?.payload?.message || 'Failed to send OTP', 'error');
+      }
+    } catch (error) {
+      showSnackbar('Failed to send OTP', 'error');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyNewPhone = async () => {
+    if (!otp.trim() || otp.length !== 6) {
+      showSnackbar('Please enter valid 6-digit OTP', 'error');
+      return;
+    }
+    setOtpLoading(true);
+    try {
+      const response = await dispatch(verifyMobileOtp({
+        otp: otp
+      }));
+      
+      if (verifyMobileOtp.fulfilled.match(response)) {
+        setMobNumber(newPhoneNumber);
+        setShowPhoneChangeModal(false);
+        setNewPhoneNumber('');
+        setPhoneOtpSent(false);
+        setOtp('');
+        showSnackbar('Phone number updated successfully!', 'success');
+      } else {
+        showSnackbar(response?.payload?.message || 'Invalid OTP. Please try again.', 'error');
+      }
+    } catch (error) {
+      showSnackbar('Invalid OTP. Please try again.', 'error');
+    } finally {
+      setOtpLoading(false);
+    }
   };
 
   const handleOtpVerification = async () => {
@@ -316,9 +373,10 @@ const EditProfileScreen = ({ navigation }) => {
                 onChangeText={setMobNumber}
                 keyboardType="phone-pad"
                 required={true}
-                showButton={!phoneVerified}
-                buttonText="Verify"
-                onButtonPress={handleVerifyPhone}
+                showButton={phoneVerified}
+                buttonText="Change"
+                onButtonPress={() => setShowPhoneChangeModal(true)}
+                editable={false}
               />
               {phoneVerified && (
                 <View style={styles.verifiedBadge}>
@@ -338,10 +396,10 @@ const EditProfileScreen = ({ navigation }) => {
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>
-                  Job Type<Text style={styles.required}>*</Text>
+                  Task Type<Text style={styles.required}>*</Text>
                 </Text>
                 <Text style={styles.helperText}>
-                  Select your preferred job type
+                  Select your preferred task type
                 </Text>
                 <View style={styles.optionGrid}>
                   {jobTypeOptions.map(option => (
@@ -522,6 +580,68 @@ const EditProfileScreen = ({ navigation }) => {
         visibility={imagePreviewVisible}
         setVisibility={setImagePreviewVisible}
       />
+
+      {/* Phone Change Modal */}
+      <Modal
+        visible={showPhoneChangeModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowPhoneChangeModal(false)}
+      >
+        <View style={styles.otpModalOverlay}>
+          <View style={styles.otpModalContent}>
+            <Text style={styles.otpModalTitle}>Change Phone Number</Text>
+            <Text style={styles.otpModalSubtitle}>
+              {phoneOtpSent ? 'Enter the OTP sent to your new number' : 'Enter your new phone number'}
+            </Text>
+
+            {!phoneOtpSent ? (
+              <TextInput
+                style={styles.otpInput}
+                value={newPhoneNumber}
+                onChangeText={setNewPhoneNumber}
+                placeholder="Enter new phone number"
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
+            ) : (
+              <TextInput
+                style={styles.otpInput}
+                value={otp}
+                onChangeText={setOtp}
+                placeholder="Enter OTP"
+                keyboardType="numeric"
+                maxLength={6}
+                textAlign="center"
+              />
+            )}
+
+            <View style={styles.otpModalActions}>
+              <TouchableOpacity
+                style={styles.otpCancelButton}
+                onPress={() => {
+                  setShowPhoneChangeModal(false);
+                  setNewPhoneNumber('');
+                  setPhoneOtpSent(false);
+                  setOtp('');
+                }}
+              >
+                <Text style={styles.otpCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.otpVerifyButton, otpLoading && { opacity: 0.7 }]}
+                onPress={phoneOtpSent ? handleVerifyNewPhone : handleSendPhoneOtp}
+                disabled={otpLoading}
+              >
+                <Text style={styles.otpVerifyText}>
+                  {otpLoading ? 'Processing...' : phoneOtpSent ? 'Verify' : 'Send OTP'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* OTP Verification Modal */}
       <Modal

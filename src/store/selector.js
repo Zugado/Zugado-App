@@ -1,10 +1,16 @@
+import { createSelector } from '@reduxjs/toolkit';
+
 // Auth selectors
 export const selectUser = state => state.auth.user;
 export const selectAuthLoader = state => state.auth.loading;
 export const selectAuthError = state => state.auth.error;
 export const selectIsNewUser = state => state.auth.isNewUser;
 export const selectToken = state => state.auth.token;
-export const selectWishlist = state => state.auth.wishlist?.wishlist || [];
+export const selectWishlist = state => state.auth.wishlist || [];
+export const selectWishlistIds = createSelector(
+  [selectWishlist],
+  (wishlist) => wishlist.map(job => job._id)
+);
 export const selectWishlistLoading = state => state.auth.wishlistLoading;
 
 // Job selectors

@@ -19,16 +19,9 @@ import JobCardSkeleton from '../../components/JobCardSkeleton';
 import LoaderCard from '../../components/LoaderCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllJobs, getAllTags } from '../../store/thunks/jobThunk';
-import {
-  getUserLocation,
-  updateUserLocation,
-} from '../../store/thunks/locationThunk';
-import {
-  selectJobs,
-  selectJobsLoading,
-  selectLocationAddress,
-  selectTags,
-} from '../../store/selector';
+import { getWishlist } from '../../store/thunks/wishlistThunk';
+import { getUserLocation, updateUserLocation } from '../../store/thunks/locationThunk';
+import { selectJobs, selectJobsLoading, selectLocationAddress, selectTags } from '../../store/selector';
 import { FaddedIcon } from '../../components/CommonComponents';
 
 const HomeScreen = ({ navigation }) => {
@@ -72,6 +65,7 @@ const HomeScreen = ({ navigation }) => {
   const loadInitialData = () => {
     dispatch(getAllJobs({ pageNo: 1, limit: 20 }));
     dispatch(getAllTags());
+    dispatch(getWishlist());
   };
 
   const updateLocation = () => {
@@ -117,21 +111,17 @@ const HomeScreen = ({ navigation }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    try {
-      await Promise.all([
-        dispatch(getAllJobs({ pageNo: 1, limit: 20 })),
-        dispatch(getAllTags()),
-        updateLocation(),
-      ]);
-    } catch (error) {
-      console.log('Refresh error:', error);
-    } finally {
-      setRefreshing(false);
-    }
+    await Promise.all([
+      dispatch(getAllJobs({ pageNo: 1, limit: 20 })),
+      dispatch(getAllTags()),
+      dispatch(getWishlist()),
+      updateLocation()
+    ]);
+    setRefreshing(false);
   };
 
   const renderJob = ({ item }) => (
-      <JobCard 
+    <JobCard 
       jobData={item}
       urgent={item.jobType === 'quick'}
       saved={true}
