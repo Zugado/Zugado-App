@@ -176,20 +176,23 @@ const authSlice = createSlice({
       })
       .addCase(getWishlist.fulfilled, (state, action) => {
         state.wishlistLoading = false;
-        state.wishlist = action.payload?.data || [];
+        state.wishlist = action.payload?.data?.wishlist || [];
       })
       .addCase(getWishlist.rejected, (state) => {
         state.wishlistLoading = false;
       })
       
       .addCase(addToWishlist.fulfilled, (state, action) => {
-        if (!state.wishlist.find(job => job._id === action.payload.jobId)) {
-          state.wishlist.push({ _id: action.payload.jobId });
+        const jobId = action.payload.jobId;
+        if (!state.wishlist.find(job => job._id === jobId)) {
+          // Add minimal job object - will be populated on next getWishlist call
+          state.wishlist.push({ _id: jobId });
         }
       })
       
       .addCase(removeFromWishlist.fulfilled, (state, action) => {
-        state.wishlist = state.wishlist.filter(job => job._id !== action.payload.jobId);
+        const jobId = action.payload.jobId;
+        state.wishlist = state.wishlist.filter(job => job._id !== jobId);
       })
       ;
   }

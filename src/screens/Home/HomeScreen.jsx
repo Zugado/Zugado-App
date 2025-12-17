@@ -17,6 +17,7 @@ import JobCard from './JobCard';
 import JobCardSkeleton from '../../components/JobCardSkeleton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllJobs, getAllTags } from '../../store/thunks/jobThunk';
+import { getWishlist } from '../../store/thunks/wishlistThunk';
 import { getUserLocation, updateUserLocation } from '../../store/thunks/locationThunk';
 import { selectJobs, selectJobsLoading, selectLocationAddress, selectTags } from '../../store/selector';
 
@@ -36,6 +37,7 @@ const HomeScreen = ({ navigation }) => {
   const loadInitialData = () => {
     dispatch(getAllJobs({ pageNo: 1, limit: 20 }));
     dispatch(getAllTags());
+    dispatch(getWishlist());
   };
 
   const updateLocation = () => {
@@ -84,6 +86,7 @@ const HomeScreen = ({ navigation }) => {
     await Promise.all([
       dispatch(getAllJobs({ pageNo: 1, limit: 20 })),
       dispatch(getAllTags()),
+      dispatch(getWishlist()),
       updateLocation()
     ]);
     setRefreshing(false);

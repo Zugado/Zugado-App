@@ -26,7 +26,8 @@ const FloatingLabelInput = ({
   ...props 
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const animated = useState(new Animated.Value(value ? 1 : 0))[0];
+  const animatedRef = React.useRef(new Animated.Value(value ? 1 : 0));
+  const animated = animatedRef.current;
   const inputRef = React.useRef(null);
    React.useEffect(() => {
     if (value && value.trim() !== '') {
