@@ -69,20 +69,20 @@ const Header = ({ showSearch = true, navigation, isUrgentEnabled ,setUrgentEnabl
           <TouchableOpacity
             style={[
               styles.jobButton,
-              { backgroundColor: isUrgentEnabled ? '#000' : '#22c55e' },
+              { backgroundColor: isUrgentEnabled ?  '#22c55e' :'#000' },
             ]}
             onPress={() => setUrgentEnabled(!isUrgentEnabled)}
             activeOpacity={0.8}
           >
             {isUrgentEnabled ? (
               <>
-                <Entypo name="flash" style={styles.jobIcon} />
                 <Text style={styles.jobText}>Job</Text>
+                <Entypo name="flash" style={styles.jobIcon} />
               </>
             ) : (
               <>
-                <Text style={styles.jobText}>Job</Text>
                 <Entypo name="flash" style={styles.jobIcon} />
+                <Text style={styles.jobText}>Job</Text>
               </>
             )}
           </TouchableOpacity>

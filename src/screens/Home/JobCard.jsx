@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../../styles/commonStyles';
 import { selectWishlistIds } from '../../store/selector';
 
-const JobCard = ({saved=true, urgent=false, jobData}) => {
+const JobCard = ({ urgent, jobData}) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const wishlistIds = useSelector(selectWishlistIds);
@@ -18,7 +18,7 @@ const JobCard = ({saved=true, urgent=false, jobData}) => {
   return (
     <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })}>
       {/* Image */}
-      {saved?(<Image
+      {true?(<Image
         source={require('../../assets/jobImage.png')} 
         style={styles.cardImage}
         resizeMode='cover'

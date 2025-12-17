@@ -36,7 +36,7 @@ const HomeScreen = ({ navigation }) => {
   
   // First layer: Filter urgent jobs
   const jobs = isUrgentEnabled 
-    ? allJobs.filter(job => job.jobType === 'quick' || job.jobType !== 'standard')
+    ? allJobs.filter(job => job.jobType !== 'standard')
     : allJobs;
   
   // Create tag filter list from tags and subtags
@@ -123,7 +123,7 @@ const HomeScreen = ({ navigation }) => {
   const renderJob = ({ item }) => (
     <JobCard 
       jobData={item}
-      urgent={item.jobType === 'quick'}
+      urgent={ item.jobType !== 'standard'}
       saved={true}
     />
   );
