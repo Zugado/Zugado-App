@@ -155,14 +155,9 @@ const HomeScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const renderJob = ({ item }) => {
-    const jobWithExtras = {
-      ...item,
-      urgent: item.jobType === 'quick' || item.jobType !== 'standard',
-      imageUrl: item.attachments && item.attachments.length > 0 ? item.attachments[0].url : null
-    };
-    return <JobCard job={jobWithExtras} />;
-  };
+  const renderJob = ({ item }) => (
+    <JobCard job={item} />
+  );
 
   const EmptyList = ({ message }) => (
     <View style={styles.emptyContainer}>

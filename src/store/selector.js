@@ -6,10 +6,17 @@ export const selectAuthLoader = state => state.auth.loading;
 export const selectAuthError = state => state.auth.error;
 export const selectIsNewUser = state => state.auth.isNewUser;
 export const selectToken = state => state.auth.token;
-export const selectWishlist = state => state.auth.wishlist || [];
+export const selectWishlist = state => {
+  const wishlist = state.auth.wishlist || [];
+  // Handle both direct array and nested object structure
+  return Array.isArray(wishlist) ? wishlist : wishlist.wishlist || [];
+};
 export const selectWishlistIds = createSelector(
   [selectWishlist],
-  (wishlist) => wishlist.map(job => job._id)
+  (wishlist) => {
+    if (!Array.isArray(wishlist)) return [];
+    return wishlist.map(job => job._id).filter(Boolean);
+  }
 );
 export const selectWishlistLoading = state => state.auth.wishlistLoading;
 

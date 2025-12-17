@@ -17,7 +17,9 @@ const JobCard = ({ job }) => {
   const wishlistIds = useSelector(selectWishlistIds);
   const { showSnackbar } = useSnackbar();
   const isWishlisted = wishlistIds.includes(job?._id);
-  const hasImage = job?.imageUrl;
+  const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
+  const imageUrl = job?.attachments && job.attachments.length > 0 ? job.attachments[0].url : null;
+  const hasImage = !!imageUrl;
   
   const onWishlistToggle = () => {
     handleWishlistToggle(dispatch, job?._id, isWishlisted, showSnackbar);
@@ -27,7 +29,7 @@ const JobCard = ({ job }) => {
       {/* Image */}
       {hasImage ? (
         <Image
-          source={{ uri: job.imageUrl }} 
+          source={{ uri: imageUrl }} 
           style={styles.cardImage}
           resizeMode='cover'
         />
@@ -35,7 +37,7 @@ const JobCard = ({ job }) => {
         <View style={styles.empltyImage}></View>
       )}
       {/* Urgent Tag */}
-      {job?.urgent && ( <View style={styles.urgentTag}>
+      {isUrgent && ( <View style={styles.urgentTag}>
        
           <Image
             source={require('../../assets/Icons/urgentTag.png')} 

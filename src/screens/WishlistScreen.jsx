@@ -36,18 +36,7 @@ export default function WishlistScreen({ navigation }) {
   // console.log('Wishlist loading:', loading);
   // console.log('Wishlist length:', wishlist?.length);
 
-  const handleRemoveFromWishlist = async jobId => {
-    try {
-      await dispatch(removeFromWishlist(jobId)).unwrap();
-      showSnackbar('Job removed from wishlist', 'success');
-    } catch (error) {
-      showSnackbar('Failed to remove job from wishlist', 'error');
-    }
-  };
 
-  const handleJobPress = job => {
-    navigation.navigate('JobDetailedScreen', { jobId: job._id });
-  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -63,11 +52,7 @@ export default function WishlistScreen({ navigation }) {
   };
 
   const renderJob = ({ item }) => (
-    <JobCard
-      jobData={item}
-      urgent={item.jobType === 'quick'}
-      saved={true}
-    />
+    <JobCard job={item} />
   );
   const EmptyList = ({ message }) => (
     <View style={styles.emptyContainer}>
