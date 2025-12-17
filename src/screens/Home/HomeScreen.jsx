@@ -115,7 +115,11 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const renderJob = ({ item }) => (
-    <JobCard job={item} />
+    <JobCard 
+      jobData={item}
+      urgent={item.jobType === 'quick'}
+      saved={true}
+    />
   );
 
   const EmptyList = ({ message }) => (
