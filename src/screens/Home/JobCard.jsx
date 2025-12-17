@@ -154,7 +154,7 @@ urgentTagImage: {
   saveTag: {
     position: 'absolute',
     top: 12,
-    left: 12,
+    left: 15,
    
   },
   
