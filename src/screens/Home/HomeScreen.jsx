@@ -33,12 +33,18 @@ import { FaddedIcon } from '../../components/CommonComponents';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const jobs = useSelector(selectJobs);
+  const allJobs = useSelector(selectJobs);
   const loading = useSelector(selectJobsLoading);
   const locationAddress = useSelector(selectLocationAddress);
   const tags = useSelector(selectTags);
+  const [isUrgentEnabled, setUrgentEnabled] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
+  
+  // First layer: Filter urgent jobs
+  const jobs = isUrgentEnabled 
+    ? allJobs.filter(job => job.jobType === 'quick' || job.jobType !== 'standard')
+    : allJobs;
   
   // Create tag filter list from tags and subtags
   const tagFilterList = ['All'];
@@ -125,7 +131,11 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const renderJob = ({ item }) => (
-    <JobCard job={item} />
+      <JobCard 
+      jobData={item}
+      urgent={item.jobType === 'quick'}
+      saved={true}
+    />
   );
 
   const EmptyList = ({ message }) => (
@@ -139,7 +149,7 @@ const HomeScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeAreaBlack}>
       <MyStatusBar />
       <View style={styles.appContainer}>
-        <Header navigation={navigation} />
+        <Header navigation={navigation} isUrgentEnabled={isUrgentEnabled} setUrgentEnabled={setUrgentEnabled} />
         {/* Row 3: Tags & Sort */}
         <View style={styles.tagRow}>
           <ScrollView

@@ -14,9 +14,8 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import { selectLocationAddress } from '../store/selector';
 import NotificationIcon from './NotificationIcon';
 
-const Header = ({ showSearch = true, navigation }) => {
+const Header = ({ showSearch = true, navigation, isUrgentEnabled ,setUrgentEnabled}) => {
   const locationAddress = useSelector(selectLocationAddress);
-  const [isQuickJobFirst, setIsQuickJobFirst] = useState(true);
   return (
     <View style={styles.headerContainer}>
       {/* Row 1: Location, Logo & Icons */}
@@ -70,12 +69,12 @@ const Header = ({ showSearch = true, navigation }) => {
           <TouchableOpacity
             style={[
               styles.jobButton,
-              { backgroundColor: isQuickJobFirst ? '#000' : '#22c55e' },
+              { backgroundColor: isUrgentEnabled ? '#000' : '#22c55e' },
             ]}
-            onPress={() => setIsQuickJobFirst(!isQuickJobFirst)}
+            onPress={() => setUrgentEnabled(!isUrgentEnabled)}
             activeOpacity={0.8}
           >
-            {isQuickJobFirst ? (
+            {isUrgentEnabled ? (
               <>
                 <Entypo name="flash" style={styles.jobIcon} />
                 <Text style={styles.jobText}>Job</Text>
