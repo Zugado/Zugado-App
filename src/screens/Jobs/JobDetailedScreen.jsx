@@ -6,9 +6,10 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../../components/MyStatusbar';
 import { getJobById } from '../../store/thunks/jobThunk';
-import { addToWishlist, removeFromWishlist, getWishlist } from '../../store/thunks/wishlistThunk';
+import { getWishlist } from '../../store/thunks/wishlistThunk';
 import { selectWishlistIds } from '../../store/selector';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import { handleWishlistToggle } from '../../utils/wishlistUtils';
 import Video from 'react-native-video';
 import { selectToken } from '../../store/selector';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -181,20 +182,8 @@ export default function JobDetailedScreen({ navigation, route }) {
     setPreviewModal(true);
   };
 
-  const handleWishlistToggle = async () => {
-    try {
-      if (isWishlisted) {
-        await dispatch(removeFromWishlist(jobId)).unwrap();
-        showSnackbar('Job removed from wishlist', 'success');
-      } else {
-        await dispatch(addToWishlist(jobId)).unwrap();
-        showSnackbar('Job added to wishlist', 'success');
-      }
-      // Refresh wishlist to sync state
-      dispatch(getWishlist());
-    } catch (error) {
-      showSnackbar('Failed to update wishlist', 'error');
-    }
+  const onWishlistToggle = () => {
+    handleWishlistToggle(dispatch, jobId, isWishlisted, showSnackbar);
   };
 
   const isVideo = (url) => {
@@ -288,7 +277,7 @@ export default function JobDetailedScreen({ navigation, route }) {
                 }
               }}
             />
-            <TouchableOpacity style={styles.bookmarkButton} onPress={handleWishlistToggle}>
+            <TouchableOpacity style={styles.bookmarkButton} onPress={onWishlistToggle}>
               <Image
                 source={isWishlisted ? require('../../assets/Icons/SavedGolden.png') : require('../../assets/Icons/Saved.png')}
                 style={styles.bookmarkIcon}
@@ -301,7 +290,7 @@ export default function JobDetailedScreen({ navigation, route }) {
               source={require('../../assets/jobImage.png')} 
               style={styles.image} 
             />
-            <TouchableOpacity style={styles.bookmarkButton} onPress={handleWishlistToggle}>
+            <TouchableOpacity style={styles.bookmarkButton} onPress={onWishlistToggle}>
               <Image
                 source={isWishlisted ? require('../../assets/Icons/SavedGolden.png') : require('../../assets/Icons/Saved.png')}
                 style={styles.bookmarkIcon}

@@ -30,13 +30,14 @@ const HomeScreen = ({ navigation }) => {
   const loading = useSelector(selectJobsLoading);
   const locationAddress = useSelector(selectLocationAddress);
   const tags = useSelector(selectTags);
-  const [isUrgentEnabled, setUrgentEnabled] = useState(true);
-  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [isUrgentEnabled, setUrgentEnabled] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState(['All']);
+  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   
   // First layer: Filter urgent jobs
   const jobs = isUrgentEnabled 
-    ? allJobs.filter(job => job.jobType !== 'standard')
+    ? allJobs.filter(job => job.jobType === 'quick' || job.jobType !== 'standard')
     : allJobs;
   
   // Create tag filter list from tags and subtags
@@ -48,15 +49,49 @@ const HomeScreen = ({ navigation }) => {
     }
   });
   
-  // Filter jobs based on selected filter
-  const filteredJobs = selectedFilter === 'All' 
+  // Apply search filter
+  const searchFilteredJobs = searchQuery.trim() === '' 
     ? jobs 
     : jobs.filter(job => {
+        const query = searchQuery.toLowerCase();
+        return (
+          job.title?.toLowerCase().includes(query) ||
+          job.description?.toLowerCase().includes(query) ||
+          job.tags?.toLowerCase().includes(query) ||
+          job.requirements?.toLowerCase().includes(query) ||
+          job.location?.address?.toLowerCase().includes(query) ||
+          job.createdBy?.firstName?.toLowerCase().includes(query) ||
+          job.createdBy?.lastName?.toLowerCase().includes(query)
+        );
+      });
+  
+  // Apply tag filters (multiselect with OR logic)
+  const filteredJobs = selectedFilters.includes('All') 
+    ? searchFilteredJobs 
+    : searchFilteredJobs.filter(job => {
         if (job.tags && typeof job.tags === 'string') {
-          return job.tags.toLowerCase().includes(selectedFilter.toLowerCase());
+          return selectedFilters.some(filter => 
+            job.tags.toLowerCase().includes(filter.toLowerCase())
+          );
         }
         return false;
       });
+  
+  const handleTagPress = (tag) => {
+    if (tag === 'All') {
+      setSelectedFilters(['All']);
+    } else {
+      setSelectedFilters(prev => {
+        const newFilters = prev.filter(f => f !== 'All');
+        if (newFilters.includes(tag)) {
+          const updated = newFilters.filter(f => f !== tag);
+          return updated.length === 0 ? ['All'] : updated;
+        } else {
+          return [...newFilters, tag];
+        }
+      });
+    }
+  };
 
   useEffect(() => {
     loadInitialData();
@@ -120,13 +155,14 @@ const HomeScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const renderJob = ({ item }) => (
-    <JobCard 
-      jobData={item}
-      urgent={ item.jobType !== 'standard'}
-      saved={true}
-    />
-  );
+  const renderJob = ({ item }) => {
+    const jobWithExtras = {
+      ...item,
+      urgent: item.jobType === 'quick' || item.jobType !== 'standard',
+      imageUrl: item.attachments && item.attachments.length > 0 ? item.attachments[0].url : null
+    };
+    return <JobCard job={jobWithExtras} />;
+  };
 
   const EmptyList = ({ message }) => (
     <View style={styles.emptyContainer}>
@@ -139,7 +175,13 @@ const HomeScreen = ({ navigation }) => {
     <SafeAreaView style={styles.safeAreaBlack}>
       <MyStatusBar />
       <View style={styles.appContainer}>
-        <Header navigation={navigation} isUrgentEnabled={isUrgentEnabled} setUrgentEnabled={setUrgentEnabled} />
+        <Header 
+          navigation={navigation} 
+          isUrgentEnabled={isUrgentEnabled} 
+          setUrgentEnabled={setUrgentEnabled}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
         {/* Row 3: Tags & Sort */}
         <View style={styles.tagRow}>
           <ScrollView
@@ -152,13 +194,13 @@ const HomeScreen = ({ navigation }) => {
                 key={index} 
                 style={[
                   styles.tag,
-                  selectedFilter === tag && styles.selectedTag
+                  selectedFilters.includes(tag) && styles.selectedTag
                 ]}
-                onPress={() => setSelectedFilter(tag)}
+                onPress={() => handleTagPress(tag)}
               >
                 <Text style={[
                   styles.tagText,
-                  selectedFilter === tag && styles.selectedTagText
+                  selectedFilters.includes(tag) && styles.selectedTagText
                 ]}>
                   {tag}
                 </Text>
@@ -190,9 +232,11 @@ const HomeScreen = ({ navigation }) => {
             ListEmptyComponent={
               <EmptyList 
                 message={
-                  selectedFilter === 'All' 
-                    ? 'No jobs available' 
-                    : `No jobs found for "${selectedFilter}"`
+                  searchQuery.trim() !== '' 
+                    ? `No jobs found for "${searchQuery}"` 
+                    : selectedFilters.includes('All') 
+                      ? 'No jobs available' 
+                      : `No jobs found for selected tags`
                 }
               />
             }

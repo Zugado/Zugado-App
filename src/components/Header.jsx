@@ -14,7 +14,7 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import { selectLocationAddress } from '../store/selector';
 import NotificationIcon from './NotificationIcon';
 
-const Header = ({ showSearch = true, navigation, isUrgentEnabled ,setUrgentEnabled}) => {
+const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabled, searchQuery, setSearchQuery }) => {
   const locationAddress = useSelector(selectLocationAddress);
   return (
     <View style={styles.headerContainer}>
@@ -64,6 +64,8 @@ const Header = ({ showSearch = true, navigation, isUrgentEnabled ,setUrgentEnabl
               placeholder="Search Here..."
               placeholderTextColor="#888"
               style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
           <TouchableOpacity

@@ -8,24 +8,34 @@ import { logout } from '../../store/slices/authSlice';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../../styles/commonStyles';
 import { selectWishlistIds } from '../../store/selector';
+import { handleWishlistToggle } from '../../utils/wishlistUtils';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
-const JobCard = ({ urgent, jobData}) => {
+const JobCard = ({ job }) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const wishlistIds = useSelector(selectWishlistIds);
-  const isWishlisted = wishlistIds.includes(jobData?._id);
-  console.log("job card = ", JSON.stringify(jobData, null, 2));
+  const { showSnackbar } = useSnackbar();
+  const isWishlisted = wishlistIds.includes(job?._id);
+  const hasImage = job?.imageUrl;
+  
+  const onWishlistToggle = () => {
+    handleWishlistToggle(dispatch, job?._id, isWishlisted, showSnackbar);
+  };
   return (
-    <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })}>
+    <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen', { jobId: job?._id })}>
       {/* Image */}
-      {true?(<Image
-        source={require('../../assets/jobImage.png')} 
-        style={styles.cardImage}
-        resizeMode='cover'
-      />):(
-      <View style={styles.empltyImage}></View>)}
+      {hasImage ? (
+        <Image
+          source={{ uri: job.imageUrl }} 
+          style={styles.cardImage}
+          resizeMode='cover'
+        />
+      ) : (
+        <View style={styles.empltyImage}></View>
+      )}
       {/* Urgent Tag */}
-      {urgent && ( <View style={styles.urgentTag}>
+      {job?.urgent && ( <View style={styles.urgentTag}>
        
           <Image
             source={require('../../assets/Icons/urgentTag.png')} 
@@ -35,45 +45,46 @@ const JobCard = ({ urgent, jobData}) => {
      
         <Text style={{position:"absolute",fontSize:10,right:20,top:1,color:Colors.whiteColor,fontWeight:"700"}}>Urgent</Text>
       </View>   ) }
-       {isWishlisted && (
-         <View style={styles.saveTag}>
+       <TouchableOpacity style={styles.saveTag} onPress={onWishlistToggle}>
           <Image
-            source={require('../../assets/Icons/SavedGolden.png')} 
+            source={isWishlisted 
+              ? require('../../assets/Icons/SavedGolden.png')
+              : require('../../assets/Icons/SavedBlack.png')
+            }
             style={styles.saveTagImage}
             resizeMode='cover'
           />
-        </View>
-       )}
+        </TouchableOpacity>
        
       {/* Content */}
       <View style={styles.contentContainer}>
         {/* Title & Price */}
         <View style={styles.row}>
-          <Text style={styles.title}>{jobData?.title || 'Job Title'}</Text>
+          <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
           <Text style={styles.price}>
-            {jobData?.amount?.disclose && jobData?.amount?.min 
-              ? `₹ ${jobData.amount.min}${jobData.amount.max ? ` - ${jobData.amount.max}` : ''}` 
+            {job?.amount?.disclose && job?.amount?.min 
+              ? `₹ ${job.amount.min}${job.amount.max ? ` - ${job.amount.max}` : ''}` 
               : 'Price on request'}
           </Text>
         </View>
 
         {/* Description */}
         <Text style={styles.description}>
-          {jobData?.description || 'No description available'}
+          {job?.description || 'No description available'}
         </Text>
 
         {/* Location */}
         <View style={styles.locationRow}>
           <MaterialIcons name="location-on" style={styles.locationIcon} />
           <Text style={styles.locationText}>
-            {typeof jobData?.location === 'string' ? jobData.location : 'Location not specified'}
+            {job?.location?.address || 'Location not specified'}
           </Text>
         </View>
 
         {/* Vendor & Rating */}
         <View style={styles.row}>
           <Text style={styles.vendorName}>
-            {jobData?.createdBy ? `${jobData.createdBy.firstName} ${jobData.createdBy.lastName}` : 'Unknown'}
+            {job?.createdBy ? `${job.createdBy.firstName} ${job.createdBy.lastName}` : 'Unknown'}
           </Text>
           <View style={styles.ratingContainer}>
             <FontAwesome name="star" style={styles.starIcon} />
@@ -137,7 +148,7 @@ urgentTagImage: {
   urgentTag: {
     position: 'absolute',
     top: 12,
-    right: 0,
+    right: -1,
   
   },
   saveTag: {
