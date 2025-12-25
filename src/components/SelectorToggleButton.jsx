@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     borderColor: '#dadada',
     backgroundColor: '#000',
     padding: 5,
-    marginTop: 10,
+    marginVertical: 10,
   },
   button: {
     flex: 1,

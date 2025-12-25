@@ -19,6 +19,7 @@ import { selectTags, selectTagsLoading } from '../../store/selector';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { scrollToInput } from '../../utils/commonMethods';
 import { FaddedIcon } from '../../components/CommonComponents';
+import SelectorToggleButton from '../../components/SelectorToggleButton';
 export default function CreateJob({ navigation }) {
   const dispatch = useDispatch();
   const availableTags = useSelector(selectTags);
@@ -240,6 +241,7 @@ export default function CreateJob({ navigation }) {
               </View>
             </View>
             {/* Experience Level */}
+           
             <View style={styles.selectorContainer}>
               <Text style={styles.selectorLabel}>Experience Level</Text>
               <Text style={styles.selectorHelper}>Select the required experience level</Text>
@@ -282,8 +284,14 @@ export default function CreateJob({ navigation }) {
                 ))}
               </View>
             </View>
+             <SelectorToggleButton
+              options={['Level 1', 'Level 2', 'Level 3']}
+              selectedValue={experienceLevel[0] || 'Level 1'}
+              onValueChange={(value) => setExperienceLevel([value])}
+            />
             <FaddedIcon/>
           </View>
+
         </ScrollView>
 
         {/* --- Next Button --- */}
