@@ -33,13 +33,6 @@ const JobCard = ({ job }) => {
   const { width } = Dimensions.get('window');
   const cardWidth = width - 30; // Account for margins
 
-  // ******** IMAGE SLIDER SOURCE ********
-  // const imageList = [
-  //     "https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80",
-  //       "https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80",
-  //       "https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80"
-  //    ];
-
   const imageList =
     job?.attachments?.length > 0
       ? job.attachments.map(a => a.url)
@@ -97,71 +90,26 @@ const JobCard = ({ job }) => {
           {/* Dots */}
           <LinearGradient
             colors={['transparent', 'rgba(0, 0, 0, 0.91)']}
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 60,
-              justifyContent: 'flex-end',
-              paddingBottom: 10,
-            }}
+            style={styles.gradientOverlay}
           >
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                paddingHorizontal: 10,
-                alignItems: 'center',
-              }}
-            >
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-              >
+            <View style={styles.overlayContent}>
+              <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.locationIcon} />
-                <Text
-                  style={{
-                    color: Colors.whiteColor,
-                    fontWeight: '700',
-                    fontSize: 12,
-                  }}
-                >
-                  23 hrs left
-                </Text>
+                <Text style={styles.overlayText}>23 hrs left</Text>
               </View>
               {imageList.length > 1 && (
-                <View style={[styles.dotsWrapper, {}]}>
+                <View style={styles.dotsWrapper}>
                   {imageList.map((_, index) => (
                     <View
                       key={index}
-                      style={[
-                        styles.dot,
-                        index === currentIndex && styles.activeDot,
-                      ]}
+                      style={[styles.dot, index === currentIndex && styles.activeDot]}
                     />
                   ))}
                 </View>
               )}
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-              >
+              <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.locationIcon} />
-                <Text
-                  style={{
-                    color: Colors.whiteColor,
-                    fontWeight: '700',
-                    fontSize: 12,
-                  }}
-                >
+                <Text style={styles.overlayText}>
                   {job?.location?.address || 'Location 500 m'}
                 </Text>
               </View>
@@ -170,7 +118,7 @@ const JobCard = ({ job }) => {
         </View>
       )}
       {/* ---------- This is to make height ---------- */}
-      {imageList.length === 0 && <View style={{ height: 30 }}></View>}
+      {imageList.length === 0 && <View style={styles.emptyImageHeight} />}
       {/* ---------- URGENT TAG ---------- */}
       {isUrgent && (
         <View style={styles.urgentTag}>
@@ -222,61 +170,16 @@ const JobCard = ({ job }) => {
 
           {/* this is the place to put location for without image card */}
           {imageList.length === 0 && (
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                // justifyContent: 'center',
-                alignItems: 'center',
-                gap: 10,
-              }}
-            >
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-              >
-                <MaterialIcons
-                  name="watch-later"
-                  style={[
-                    styles.locationIcon,
-                    { color: Colors.blackColor, fontSize: 16 },
-                  ]}
-                />
-                <Text
-                  style={{
-                    color: Colors.grayColor,
-                    fontWeight: '700',
-                    fontSize: 12,
-                  }}
-                >
-                  23 hrs left
-                </Text>
+            <View style={styles.noImageInfoContainer}>
+              <View style={styles.infoRow}>
+                <MaterialIcons name="watch-later" style={styles.noImageIcon} />
+                <Text style={styles.noImageText}>23 hrs left</Text>
               </View>
-
-              <View
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-              >
-                <MaterialIcons
-                  name="location-on"
-                  style={[
-                    styles.locationIcon,
-                    { color: Colors.blackColor, fontSize: 16 },
-                  ]}
-                />
-                <Text
-                  style={{
-                    color: Colors.grayColor,
-                    fontWeight: '700',
-                    fontSize: 12,
-                  }}
-                >
+              <View style={styles.infoRow}>
+                <MaterialIcons name="location-on" style={styles.noImageIcon} />
+                <Text style={styles.noImageText}>
+                    
+                
                   {job?.location?.address || 'Location 500 m'}
                 </Text>
               </View>
@@ -297,6 +200,7 @@ const JobCard = ({ job }) => {
           </View>
 
           {/* Buttons */}
+        
           <View style={styles.buttonRow}>
             <TouchableOpacity
               style={styles.bidButton}
@@ -343,7 +247,58 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    // marginBottom: 4,
+  },
+
+  // ---------- GRADIENT OVERLAY ----------
+  gradientOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    justifyContent: 'flex-end',
+    paddingBottom: 10,
+  },
+
+  overlayContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    alignItems: 'center',
+  },
+
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  overlayText: {
+    color: Colors.whiteColor,
+    fontWeight: '700',
+    fontSize: 12,
+  },
+
+  // ---------- NO IMAGE STYLES ----------
+  emptyImageHeight: {
+    height: 30,
+  },
+
+  noImageInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  noImageIcon: {
+    color: Colors.blackColor,
+    fontSize: 16,
+    marginRight: 5,
+  },
+
+  noImageText: {
+    color: Colors.grayColor,
+    fontWeight: '700',
+    fontSize: 12,
   },
 
   dot: {
@@ -445,7 +400,7 @@ const styles = StyleSheet.create({
   },
 
   starIcon: {
-    color: '#ffc400ff',
+    color: '#ff8808ff',
     fontSize: 12,
     marginRight: 4,
   },
