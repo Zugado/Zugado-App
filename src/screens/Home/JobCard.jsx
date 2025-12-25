@@ -1,11 +1,21 @@
 // components/JobCard.js
-import React from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  Dimensions,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../store/slices/authSlice';
 import { useNavigation } from '@react-navigation/native';
+
 import { Colors } from '../../styles/commonStyles';
 import { selectWishlistIds } from '../../store/selector';
 import { handleWishlistToggle } from '../../utils/wishlistUtils';
@@ -16,249 +26,471 @@ const JobCard = ({ job }) => {
   const navigation = useNavigation();
   const wishlistIds = useSelector(selectWishlistIds);
   const { showSnackbar } = useSnackbar();
+  const [isScrolling, setIsScrolling] = useState(false);
+
   const isWishlisted = wishlistIds.includes(job?._id);
   const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
-  const imageUrl = job?.attachments && job.attachments.length > 0 ? job.attachments[0].url : null;
-  const hasImage = !!imageUrl;
-  
+  const { width } = Dimensions.get('window');
+  const cardWidth = width - 30; // Account for margins
+
+  // ******** IMAGE SLIDER SOURCE ********
+  // const imageList = [
+  //     "https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80",
+  //       "https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80",
+  //       "https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80"
+  //    ];
+
+  const imageList =
+    job?.attachments?.length > 0
+      ? job.attachments.map(a => a.url)
+      : [
+          'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
+          'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
+          'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
+        ];
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const sliderRef = useRef(null);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      setCurrentIndex(viewableItems[0].index);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({
+    viewAreaCoveragePercentThreshold: 60,
+  }).current;
+
   const onWishlistToggle = () => {
     handleWishlistToggle(dispatch, job?._id, isWishlisted, showSnackbar);
   };
+
   return (
-    <TouchableOpacity  activeOpacity={0.8} style={styles.cardContainer} onPress={()=>navigation.navigate('JobDetailedScreen', { jobId: job?._id })}>
-      {/* Image */}
-      {hasImage ? (
-        <Image
-          source={{ uri: imageUrl }} 
-          style={styles.cardImage}
-          resizeMode='cover'
-        />
-      ) : (
-        <View style={styles.empltyImage}></View>
-      )}
-      {/* Urgent Tag */}
-      {isUrgent && ( <View style={styles.urgentTag}>
-       
-          <Image
-            source={require('../../assets/Icons/urgentTag.png')} 
-            style={styles.urgentTagImage}
-            resizeMode='cover'
+    <View style={styles.cardContainer}>
+      {/* ---------- IMAGE SLIDER ---------- */}
+      {imageList.length > 0 && (
+        <View>
+          <FlatList
+            ref={sliderRef}
+            data={imageList}
+            keyExtractor={(item, index) => index.toString()}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => {
+                  navigation.navigate('JobDetailedScreen', { jobId: job?._id  });
+                }}
+              >
+                <Image
+                  source={{ uri: item }}
+                  style={[styles.cardImage, { width: cardWidth }]}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            )}
           />
-     
-        <Text style={{position:"absolute",fontSize:10,right:20,top:1,color:Colors.whiteColor,fontWeight:"700"}}>Urgent</Text>
-      </View>   ) }
-       <TouchableOpacity style={styles.saveTag} onPress={onWishlistToggle}>
+          {/* Dots */}
+          <LinearGradient
+            colors={['transparent', 'rgba(0, 0, 0, 0.91)']}
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 60,
+              justifyContent: 'flex-end',
+              paddingBottom: 10,
+            }}
+          >
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                paddingHorizontal: 10,
+                alignItems: 'center',
+              }}
+            >
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <MaterialIcons name="watch-later" style={styles.locationIcon} />
+                <Text
+                  style={{
+                    color: Colors.whiteColor,
+                    fontWeight: '700',
+                    fontSize: 12,
+                  }}
+                >
+                  23 hrs left
+                </Text>
+              </View>
+              {imageList.length > 1 && (
+                <View style={[styles.dotsWrapper, {}]}>
+                  {imageList.map((_, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.dot,
+                        index === currentIndex && styles.activeDot,
+                      ]}
+                    />
+                  ))}
+                </View>
+              )}
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <MaterialIcons name="location-on" style={styles.locationIcon} />
+                <Text
+                  style={{
+                    color: Colors.whiteColor,
+                    fontWeight: '700',
+                    fontSize: 12,
+                  }}
+                >
+                  {job?.location?.address || 'Location 500 m'}
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+      )}
+      {/* ---------- This is to make height ---------- */}
+      {imageList.length === 0 && <View style={{ height: 30 }}></View>}
+      {/* ---------- URGENT TAG ---------- */}
+      {isUrgent && (
+        <View style={styles.urgentTag}>
           <Image
-            source={isWishlisted 
+            source={require('../../assets/Icons/urgentTag.png')}
+            style={styles.urgentTagImage}
+          />
+          <Text style={styles.urgentText}>Urgent</Text>
+        </View>
+      )}
+
+      {/* ---------- SAVE BUTTON ---------- */}
+      <TouchableOpacity style={styles.saveTag} onPress={onWishlistToggle}>
+        <Image
+          source={
+            isWishlisted
               ? require('../../assets/Icons/SavedGolden.png')
               : require('../../assets/Icons/SavedBlack.png')
-            }
-            style={styles.saveTagImage}
-            resizeMode='cover'
-          />
-        </TouchableOpacity>
-       
-      {/* Content */}
-      <View style={styles.contentContainer}>
-        {/* Title & Price */}
-        <View style={styles.row}>
-          <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
-          <Text style={styles.price}>
-            {job?.amount?.disclose && job?.amount?.min 
-              ? `₹ ${job.amount.min}${job.amount.max ? ` - ${job.amount.max}` : ''}` 
-              : 'Price on request'}
-          </Text>
-        </View>
+          }
+          style={styles.saveTagImage}
+        />
+      </TouchableOpacity>
 
-        {/* Description */}
-        <Text style={styles.description}>
-          {job?.description || 'No description available'}
-        </Text>
+      {/* ---------- CONTENT ---------- */}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() =>
+          navigation.navigate('JobDetailedScreen', { jobId: job?._id })
+        }
+      >
+        <View style={styles.contentContainer}>
+          {/* Title + Price */}
+          <View style={styles.row}>
+            <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
 
-        {/* Location */}
-        <View style={styles.locationRow}>
-          <MaterialIcons name="location-on" style={styles.locationIcon} />
-          <Text style={styles.locationText}>
-            {job?.location?.address || 'Location not specified'}
-          </Text>
-        </View>
+            <Text style={styles.price}>
+              {job?.amount?.disclose && job?.amount?.min
+                ? `₹ ${job.amount.min}${
+                    job.amount.max ? ` - ${job.amount.max}` : ''
+                  }`
+                : 'Price on request'}
+            </Text>
+          </View>
 
-        {/* Vendor & Rating */}
-        <View style={styles.row}>
-          <Text style={styles.vendorName}>
-            {job?.createdBy ? `${job.createdBy.firstName} ${job.createdBy.lastName}` : 'Unknown'}
+          {/* Description */}
+          <Text style={styles.description}>
+            {job?.description || 'No description available'}
           </Text>
-          <View style={styles.ratingContainer}>
-            <FontAwesome name="star" style={styles.starIcon} />
-            <Text style={styles.ratingText}>4.9 (2.2K)</Text>
+
+          {/* this is the place to put location for without image card */}
+          {imageList.length === 0 && (
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                // justifyContent: 'center',
+                alignItems: 'center',
+                gap: 10,
+              }}
+            >
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <MaterialIcons
+                  name="watch-later"
+                  style={[
+                    styles.locationIcon,
+                    { color: Colors.blackColor, fontSize: 16 },
+                  ]}
+                />
+                <Text
+                  style={{
+                    color: Colors.grayColor,
+                    fontWeight: '700',
+                    fontSize: 12,
+                  }}
+                >
+                  23 hrs left
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <MaterialIcons
+                  name="location-on"
+                  style={[
+                    styles.locationIcon,
+                    { color: Colors.blackColor, fontSize: 16 },
+                  ]}
+                />
+                <Text
+                  style={{
+                    color: Colors.grayColor,
+                    fontWeight: '700',
+                    fontSize: 12,
+                  }}
+                >
+                  {job?.location?.address || 'Location 500 m'}
+                </Text>
+              </View>
+            </View>
+          )}
+          {/* Vendor + Ratings */}
+          <View style={styles.row}>
+            <Text style={styles.vendorName}>
+              {job?.createdBy
+                ? `${job.createdBy.firstName} ${job.createdBy.lastName}`
+                : 'Unknown'}
+            </Text>
+
+            <View style={styles.ratingContainer}>
+              <FontAwesome name="star" style={styles.starIcon} />
+              <Text style={styles.ratingText}>4.9 (2.2K)</Text>
+            </View>
+          </View>
+
+          {/* Buttons */}
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.bidButton}
+              onPress={() => console.log('Bid clicked')}
+            >
+              <Text style={styles.bidButtonText}>Bid</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.chatButton}
+              onPress={() => console.log('Chat clicked')}
+            >
+              <Text style={styles.chatButtonText}>Chat</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        {/* Buttons */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.bidButton}
-           onPress={() => console.log('Bid button pressed')}
-          >
-            <Text style={styles.bidButtonText}>Bid</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.chatButton}
-          onPress={() => console.log('Chat button pressed')}
-          >
-            <Text style={styles.chatButtonText}>Chat</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  cardContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 24, 
-    marginHorizontal: 15,
-    marginVertical: 8,
-    elevation: 5, 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-  },
-  cardImage: {
-    width: '100%',
-    height: 120, 
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  empltyImage:{
+  cardContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    marginHorizontal: 15,
+    marginVertical: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+  },
+
+  // ---------- IMAGE SLIDER ----------
+  cardImage: {
     width: '100%',
-    height: 30,
+    height: 160,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    // backgroundColor: '#f2f2f2',
   },
- saveTagImage: {
-    width:20,
-    height: 23,
-  
-  },
-urgentTagImage: {
-    width:75,
-    height: 16,
-  
-  },
-  urgentTag: {
-    position: 'absolute',
-    top: 12,
-    right: -1,
-  
-  },
-  saveTag: {
-    position: 'absolute',
-    top: 12,
-    left: 15,
-   
-  },
-  
-  contentContainer: {
-    padding: 12, 
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6, 
-  },
-  title: {
-    fontSize: 14, 
-    fontWeight: '700', 
-    color: '#1a1a1a', 
-  },
-  price: {
-    fontSize: 14, 
-    fontWeight: '700',
-    color: '#1a1a1a', 
-  },
-  description: {
-    color: '#555', 
-    fontSize: 12, 
-    marginBottom: 6, 
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6, 
-  },
-  locationIcon: {
-    color: '#888',
-    fontSize: 12, 
-    marginRight: 5,
-  },
-  locationText: {
-    color: '#888',
-    fontSize: 12, 
-  },
-  vendorName: {
-    fontSize: 12, 
-    fontWeight: '600', 
-    color: '#333',
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  starIcon: {
-    color: '#FFD700',
-    fontSize: 12, 
-    marginRight: 4, 
-  },
-  ratingText: {
-    color: '#666',
-    fontSize: 12, 
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12, 
-  },
-  bidButton: {
-    flex: 1,
-    backgroundColor: '#000000ff', 
-    borderRadius: 25, 
-    paddingVertical: 8, 
-    alignItems: 'center',
-    marginRight: 8, 
-    shadowColor: '#000000ff', 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  bidButtonText: {
-    color: '#fff',
-    fontWeight: '700',
-    fontSize: 14, 
-  },
-  chatButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc', 
-    shadowColor: '#000000ff',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
-    borderRadius: 25, 
-    paddingVertical: 8, 
-    alignItems: 'center',
-    marginLeft: 8, 
-    backgroundColor: '#fff',
-  },
-  chatButtonText: {
-    color: '#444', 
-    fontWeight: '700',
-    fontSize: 14, 
-  },
+
+  dotsWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // marginBottom: 4,
+  },
+
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.whiteColor,
+    marginHorizontal: 4,
+  },
+
+  activeDot: {
+    width: 9,
+    height: 9,
+    backgroundColor: '#ff8808ff',
+  },
+
+  // ---------- TAGS ----------
+  urgentTag: {
+    position: 'absolute',
+    top: 12,
+    right: -1,
+  },
+
+  urgentTagImage: {
+    width: 75,
+    height: 16,
+  },
+
+  urgentText: {
+    position: 'absolute',
+    right: 20,
+    top: 1,
+    fontSize: 10,
+    color: Colors.whiteColor,
+    fontWeight: '700',
+  },
+
+  saveTag: {
+    position: 'absolute',
+    top: 12,
+    left: 15,
+  },
+
+  saveTagImage: {
+    width: 18,
+    height: 20,
+  },
+
+  // ---------- CONTENT ----------
+  contentContainer: {
+    padding: 12,
+  },
+
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+
+  title: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+
+  price: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+
+  description: {
+    color: '#555',
+    fontSize: 12,
+    marginBottom: 6,
+  },
+
+  locationIcon: {
+    color: '#ffffffff',
+    fontSize: 20,
+    marginRight: 5,
+  },
+
+  locationText: {
+    color: '#888',
+    fontSize: 12,
+  },
+
+  vendorName: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
+  },
+
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  starIcon: {
+    color: '#ffc400ff',
+    fontSize: 12,
+    marginRight: 4,
+  },
+
+  ratingText: {
+    color: '#666',
+    fontSize: 12,
+  },
+
+  buttonRow: {
+    flexDirection: 'row',
+    marginTop: 12,
+  },
+
+  bidButton: {
+    flex: 1,
+    backgroundColor: '#000',
+    borderRadius: 25,
+    paddingVertical: 8,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+
+  bidButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+
+  chatButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 25,
+    paddingVertical: 8,
+    alignItems: 'center',
+    marginLeft: 8,
+    backgroundColor: '#fff',
+  },
+
+  chatButtonText: {
+    color: '#444',
+    fontWeight: '700',
+    fontSize: 14,
+  },
 });
 
 export default JobCard;
