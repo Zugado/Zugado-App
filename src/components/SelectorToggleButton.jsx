@@ -4,32 +4,23 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 const SelectorToggleButton = ({ 
   options, 
   selectedValue, 
-  onValueChange, 
-  containerStyle,
-  buttonStyle,
-  selectedButtonStyle,
-  textStyle,
-  selectedTextStyle 
+  onValueChange
 }) => {
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View style={styles.container}>
       {options.map((option, index) => (
         <TouchableOpacity
           key={index}
           style={[
             styles.button,
-            buttonStyle,
-            selectedValue === option && styles.selectedButton,
-            selectedValue === option && selectedButtonStyle
+            selectedValue === option && styles.selectedButton
           ]}
           onPress={() => onValueChange(option)}
         >
           <Text
             style={[
               styles.buttonText,
-              textStyle,
-              selectedValue === option && styles.selectedText,
-              selectedValue === option && selectedTextStyle
+              selectedValue === option && styles.selectedText
             ]}
           >
             {option}
