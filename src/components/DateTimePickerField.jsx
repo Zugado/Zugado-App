@@ -10,16 +10,54 @@ export default function DateTimePickerField({
   onChange,
 }) {
   const [open, setOpen] = useState(false);
+  const [showTime, setShowTime] = useState(false);
+  const [tempDate, setTempDate] = useState(null);
 
   const handleChange = (event, selected) => {
-    setOpen(false);
+    if (event.type === 'dismissed') {
+      setOpen(false);
+      setShowTime(false);
+      setTempDate(null);
+      return;
+    }
 
     if (!selected) return;
 
-    let v =
-      mode === "date"
-        ? selected.toISOString().split("T")[0] // YYYY-MM-DD
-        : selected.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    if (mode === "datetime") {
+      if (!showTime) {
+        // First pick date
+        setTempDate(selected);
+        setShowTime(true);
+        return;
+      } else {
+        // Then pick time and combine
+        const combinedDateTime = new Date(tempDate);
+        combinedDateTime.setHours(selected.getHours());
+        combinedDateTime.setMinutes(selected.getMinutes());
+        
+        // Convert to IST
+        const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+        const istDateTime = new Date(combinedDateTime.getTime() + istOffset);
+        onChange(istDateTime.toISOString());
+        setOpen(false);
+        setShowTime(false);
+        setTempDate(null);
+        return;
+      }
+    }
+
+    setOpen(false);
+    
+    let v;
+    if (mode === "date") {
+      v = selected.toISOString().split("T")[0];
+    } else if (mode === "time") {
+      v = selected.toLocaleTimeString('en-IN', { 
+        hour: "2-digit", 
+        minute: "2-digit",
+        timeZone: 'Asia/Kolkata'
+      });
+    }
 
     onChange(v);
   };
@@ -46,7 +84,7 @@ export default function DateTimePickerField({
       {open && (
         <DateTimePicker
           value={new Date()}
-          mode={mode}
+          mode={mode === "datetime" ? (showTime ? "time" : "date") : mode}
           display={Platform.OS === "ios" ? "spinner" : "default"}
           is24Hour={true}
           onChange={handleChange}

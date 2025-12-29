@@ -75,8 +75,7 @@ export default function CreateJob({ navigation, route }) {
     setTimingType(newType);
   };
 
-  const [amountMin, setAmountMin] = useState('');
-  const [amountMax, setAmountMax] = useState('');
+  const [amount, setAmount] = useState('');
 
   const CheckboxButton = ({ label, selected, onPress }) => (
     <TouchableOpacity
@@ -91,12 +90,15 @@ export default function CreateJob({ navigation, route }) {
     </TouchableOpacity>
   );
 
-  const RoundRadioButton = ({ label, selected, onPress }) => (
+  const RoundRadioButton = ({ label, selected, onPress, description }) => (
     <TouchableOpacity style={styles.roundOption} onPress={onPress}>
       <View style={styles.roundRadio}>
         {selected && <View style={styles.roundRadioSelected} />}
       </View>
-      <Text style={styles.roundOptionText}>{label}</Text>
+      <View style={styles.roundOptionContent}>
+        <Text style={styles.roundOptionText}>{label}</Text>
+        {description && <Text style={styles.roundOptionDesc}>{description}</Text>}
+      </View>
     </TouchableOpacity>
   );
 
@@ -156,42 +158,19 @@ export default function CreateJob({ navigation, route }) {
             <View style={styles.selectorContainer}>
               <Text style={styles.selectorLabel}>Job Location</Text>
               <Text style={styles.selectorHelper}>Where will the work be performed?</Text>
-              <View style={styles.locationGrid}>
+              <View style={styles.radioRow}>
                 {[
-                  { value: 'onsite', label: 'On-site', icon: 'map-pin', desc: 'At specific location' },
-                  { value: 'remote', label: 'Remote', icon: 'home', desc: 'Work from anywhere' },
-                  { value: 'hybrid', label: 'Hybrid', icon: 'globe', desc: 'Mix of both' }
+                  { value: 'onsite', label: 'On-site', desc: 'At specific location' },
+                  { value: 'remote', label: 'Remote', desc: 'Work from anywhere' },
+                  { value: 'hybrid', label: 'Hybrid', desc: 'Mix of both' }
                 ].map(option => (
-                  <TouchableOpacity
+                  <RoundRadioButton
                     key={option.value}
-                    style={[
-                      styles.locationCard,
-                      jobLocationType === option.value && styles.selectedLocationCard,
-                    ]}
+                    label={option.label}
+                    description={option.desc}
+                    selected={jobLocationType === option.value}
                     onPress={() => setJobLocationType(option.value)}
-                  >
-                    <View style={styles.locationContent}>
-                      <Feather
-                        name={option.icon}
-                        size={20}
-                        color={jobLocationType === option.value ? '#000' : '#666'}
-                      />
-                      <View style={styles.locationText}>
-                        <Text style={[
-                          styles.locationLabel,
-                          jobLocationType === option.value && styles.selectedLocationLabel,
-                        ]}>
-                          {option.label}
-                        </Text>
-                        <Text style={styles.locationDesc}>{option.desc}</Text>
-                      </View>
-                    </View>
-                    {jobLocationType === option.value && (
-                      <View style={styles.locationCheckmark}>
-                        <Feather name="check" size={12} color="#fff" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
+                  />
                 ))}
               </View>
             </View>
@@ -248,29 +227,25 @@ export default function CreateJob({ navigation, route }) {
             </View>
 
             {/* Timing Type */}
-            <Text style={styles.label}>Timing Type</Text>
-
-            <View style={{ marginBottom: 20 }}>
-              <RoundRadioButton
-                label="Fixed"
-                selected={timingType === 'fixed'}
-                onPress={() => handleTimingTypeChange('fixed')}
-              />
-              <RoundRadioButton
-                label="Multi-day"
-                selected={timingType === 'multiday'}
-                onPress={() => handleTimingTypeChange('multiday')}
-              />
-              <RoundRadioButton
-                label="Deadline"
-                selected={timingType === 'deadline'}
-                onPress={() => handleTimingTypeChange('deadline')}
-              />
-              <RoundRadioButton
-                label="Flexible"
-                selected={timingType === 'flexible'}
-                onPress={() => handleTimingTypeChange('flexible')}
-              />
+            <View style={styles.selectorContainer}>
+              <Text style={styles.selectorLabel}>Timing Type</Text>
+              <Text style={styles.selectorHelper}>Choose how you want to schedule this task</Text>
+              <View style={styles.radioRow}>
+                {[
+                  { value: 'fixed', label: 'Fixed', desc: 'Specific date & time' },
+                  { value: 'multiday', label: 'Multi-day', desc: 'Multiple days' },
+                  { value: 'deadline', label: 'Deadline', desc: 'Complete by date' },
+                  { value: 'flexible', label: 'Flexible', desc: 'Anytime' }
+                ].map(option => (
+                  <RoundRadioButton
+                    key={option.value}
+                    label={option.label}
+                    description={option.desc}
+                    selected={timingType === option.value}
+                    onPress={() => handleTimingTypeChange(option.value)}
+                  />
+                ))}
+              </View>
             </View>
 
             {/* Input forms based on timing type */}
@@ -347,51 +322,34 @@ export default function CreateJob({ navigation, route }) {
             )}
 
             {/* Amount Disclosure */}
-            <Text style={[styles.label, { marginTop: 15 }]}>
-              Would you like to disclose the amount?
-            </Text>
-
-            <View style={styles.disclosureOptionsContainer}>
-              <RoundRadioButton
-                label="Yes"
-                selected={discloseAmount === true}
-                onPress={() => setDiscloseAmount(true)}
-              />
-              <RoundRadioButton
-                label="No"
-                selected={discloseAmount === false}
-                onPress={() => {
-                  setDiscloseAmount(false);
-                  setAmountMin('');
-                  setAmountMax('');
-                }}
-              />
+            <View style={styles.selectorContainer}>
+              <Text style={styles.selectorLabel}>Would you like to disclose the amount?</Text>
+              <Text style={styles.selectorHelper}>Choose whether to show payment range</Text>
+              <View style={styles.disclosureOptionsContainer}>
+                <RoundRadioButton
+                  label="Yes"
+                  selected={discloseAmount === true}
+                  onPress={() => setDiscloseAmount(true)}
+                />
+                <RoundRadioButton
+                  label="No"
+                  selected={discloseAmount === false}
+                  onPress={() => {
+                    setDiscloseAmount(false);
+                    setAmount('');
+                  }}
+                />
+              </View>
             </View>
 
             {discloseAmount && (
-              <>
-                <Text style={styles.label}>Amount Range (INR)</Text>
-                <View style={styles.amountRangeContainer}>
-                  <View style={styles.rangeInputWrapper}>
-                    <FloatingLabelInput
-                      label="Min Amount ₹"
-                      value={amountMin}
-                      onChangeText={setAmountMin}
-                      keyboardType="numeric"
-                      placeholder="0"
-                    />
-                  </View>
-                  <View style={styles.rangeInputWrapper}>
-                    <FloatingLabelInput
-                      label="Max Amount ₹"
-                      value={amountMax}
-                      onChangeText={setAmountMax}
-                      keyboardType="numeric"
-                      placeholder="0"
-                    />
-                  </View>
-                </View>
-              </>
+              <FloatingLabelInput
+                label="Amount (INR) ₹"
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="numeric"
+                placeholder="Enter amount"
+              />
             )}
           
           </View>
@@ -421,8 +379,8 @@ export default function CreateJob({ navigation, route }) {
                 showSnackbar('Flexible timing requires estimated hours', 'error');
                 return;
               }
-              if (discloseAmount && amountMin && amountMax && Number(amountMin) > Number(amountMax)) {
-                showSnackbar('Minimum amount cannot be greater than maximum amount', 'error');
+              if (discloseAmount && !amount.trim()) {
+                showSnackbar('Please enter an amount', 'error');
                 return;
               }
               
@@ -438,8 +396,7 @@ export default function CreateJob({ navigation, route }) {
                   timingType,
                   timingDetails,
                   amount: {
-                    min: Number(amountMin) || 0,
-                    max: Number(amountMax) || 0,
+                    value: Number(amount) || 0,
                     disclose: discloseAmount,
                   },
                 },
@@ -660,13 +617,17 @@ const styles = StyleSheet.create({
   },
   optionText: { fontSize: 12, color: '#000' },
 
-  // Round Radios
-  disclosureOptionsContainer: { flexDirection: 'row', marginBottom: 20 },
-  roundOption: {
+  // Radio Button Styles
+  radioRow: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  disclosureOptionsContainer: { flexDirection: 'row', marginBottom: 20, justifyContent: 'space-around' },
+  roundOption: {
+    flexDirection: 'column',
     alignItems: 'center',
     marginVertical: 6,
-    marginRight: 30,
+    padding: 8,
   },
   roundRadio: {
     width: 20,
@@ -674,7 +635,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000',
     borderRadius: 10,
-    marginRight: 10,
+    marginBottom: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -684,7 +645,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     borderRadius: 5,
   },
-  roundOptionText: { fontSize: 12, color: '#000' },
+  roundOptionContent: {
+    alignItems: 'center',
+  },
+  roundOptionText: {
+    fontSize: 13,
+    color: '#000',
+    fontWeight: '500',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  roundOptionDesc: {
+    fontSize: 11,
+    color: '#666',
+    textAlign: 'center',
+  },
 
   // Amount input
   amountInputContainer: {

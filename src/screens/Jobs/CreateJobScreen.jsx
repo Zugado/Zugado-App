@@ -20,6 +20,18 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 import { scrollToInput } from '../../utils/commonMethods';
 import { FaddedIcon } from '../../components/CommonComponents';
 import SelectorToggleButton from '../../components/SelectorToggleButton';
+
+const RoundRadioButton = ({ label, selected, onPress, description }) => (
+  <TouchableOpacity style={styles.roundOption} onPress={onPress}>
+    <View style={styles.roundRadio}>
+      {selected && <View style={styles.roundRadioSelected} />}
+    </View>
+    <View style={styles.roundOptionContent}>
+      <Text style={styles.roundOptionText}>{label}</Text>
+      {description && <Text style={styles.roundOptionDesc}>{description}</Text>}
+    </View>
+  </TouchableOpacity>
+);
 export default function CreateJob({ navigation }) {
   const dispatch = useDispatch();
   const availableTags = useSelector(selectTags);
@@ -29,8 +41,9 @@ export default function CreateJob({ navigation }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [skill, setSkill] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState([]);
+  const [experienceLevel, setExperienceLevel] = useState('');
   const [selectedSkills, setSelectedSkills] = useState([]);
+  const [requiresExperience, setRequiresExperience] = useState('no');
 
   // Task For
   const [jobFor, setJobFor] = useState('person');
@@ -64,13 +77,7 @@ export default function CreateJob({ navigation }) {
 
   const scrollViewRef = useRef(null);
 
-  const toggleExperienceLevel = (level) => {
-    setExperienceLevel(prev => 
-      prev.includes(level) 
-        ? prev.filter(item => item !== level)
-        : [...prev, level]
-    );
-  };
+
 
   return (
     <KeyboardAvoidingView
@@ -208,87 +215,44 @@ export default function CreateJob({ navigation }) {
             <View style={styles.selectorContainer}>
               <Text style={styles.selectorLabel}>Task Type <Text style={styles.required}>*</Text></Text>
               <Text style={styles.selectorHelper}>Choose the urgency level</Text>
-              <View style={styles.selectorGrid}>
-                {typeOptions.map(option => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.selectorCard,
-                      jobType === option.value && styles.selectedCard,
-                    ]}
-                    onPress={() => setJobType(option.value)}
-                  >
-                    <View style={styles.selectorContent}>
-                      <Feather
-                        name={option.value === 'quick' ? 'zap' : 'clock'}
-                        size={24}
-                        color={jobType === option.value ? '#000' : '#666'}
-                      />
-                      <Text style={[
-                        styles.selectorText,
-                        jobType === option.value && styles.selectedText,
-                      ]}>
-                        {option.label}
-                      </Text>
-                    </View>
-                    {jobType === option.value && (
-                      <View style={styles.checkmark}>
-                        <Feather name="check" size={14} color="#fff" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <SelectorToggleButton
+                options={['Standard', 'Urgent']}
+                selectedValue={jobType === 'standard' ? 'Standard' : 'Urgent'}
+                onValueChange={(value) => setJobType(value === 'Standard' ? 'standard' : 'quick')}
+              />
             </View>
             {/* Experience Level */}
-           
             <View style={styles.selectorContainer}>
-              <Text style={styles.selectorLabel}>Experience Level</Text>
-              <Text style={styles.selectorHelper}>Select the required experience level</Text>
-              <View style={styles.experienceGrid}>
-                {[
-                  { value: 'entry', label: 'Entry Level', desc: '0-2 years', icon: 'user-plus' },
-                  { value: 'intermediate', label: 'Intermediate', desc: '2-5 years', icon: 'user' },
-                  { value: 'expert', label: 'Expert', desc: '5+ years', icon: 'award' }
-                ].map(option => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.experienceCard,
-                      experienceLevel.includes(option.value) && styles.selectedExperienceCard,
-                    ]}
-                    onPress={() => toggleExperienceLevel(option.value)}
-                  >
-                    <View style={styles.experienceContent}>
-                      <Feather
-                        name={option.icon}
-                        size={20}
-                        color={experienceLevel.includes(option.value) ? '#000' : '#666'}
-                      />
-                      <View style={styles.experienceText}>
-                        <Text style={[
-                          styles.experienceLabel,
-                          experienceLevel.includes(option.value) && styles.selectedExperienceLabel,
-                        ]}>
-                          {option.label}
-                        </Text>
-                        <Text style={styles.experienceDesc}>{option.desc}</Text>
-                      </View>
-                    </View>
-                    {experienceLevel.includes(option.value) && (
-                      <View style={styles.experienceCheckmark}>
-                        <Feather name="check" size={12} color="#fff" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <Text style={styles.selectorLabel}>Requires Specific Experience Level?</Text>
+              <Text style={styles.selectorHelper}>Do you need candidates with specific experience?</Text>
+              <SelectorToggleButton
+                options={['No', 'Yes']}
+                selectedValue={requiresExperience === 'no' ? 'No' : 'Yes'}
+                onValueChange={(value) => setRequiresExperience(value === 'No' ? 'no' : 'yes')}
+              />
             </View>
-             <SelectorToggleButton
-              options={['Level 1', 'Level 2', 'Level 3']}
-              selectedValue={experienceLevel[0] || 'Level 1'}
-              onValueChange={(value) => setExperienceLevel([value])}
-            />
+
+            {requiresExperience === 'yes' && (
+              <View style={styles.selectorContainer}>
+                <Text style={styles.selectorLabel}>Experience Level <Text style={styles.required}>*</Text></Text>
+                <Text style={styles.selectorHelper}>Select the required experience level</Text>
+                <View style={styles.experienceRow}>
+                  {[
+                    { value: 'entry', label: 'Entry Level', desc: '0-2 years experience' },
+                    { value: 'intermediate', label: 'Intermediate', desc: '2-5 years experience' },
+                    { value: 'expert', label: 'Expert', desc: '5+ years experience' }
+                  ].map(option => (
+                    <RoundRadioButton
+                      key={option.value}
+                      label={option.label}
+                      description={option.desc}
+                      selected={experienceLevel === option.value}
+                      onPress={() => setExperienceLevel(option.value)}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
             <FaddedIcon/>
           </View>
 
@@ -302,6 +266,10 @@ export default function CreateJob({ navigation }) {
               // Validation
               if (!jobFor || !title.trim() || !description.trim() || !jobType) {
                 showSnackbar('Please fill all required fields', 'error');
+                return;
+              }
+              if (requiresExperience === 'yes' && !experienceLevel) {
+                showSnackbar('Please select an experience level', 'error');
                 return;
               }
               if (selectedSkills.length === 0) {
@@ -328,7 +296,7 @@ export default function CreateJob({ navigation }) {
                   description: description.trim(),
                   category: selectedSkills, // Single array of skills/categories
                   requirements: skill.trim(),
-                  experienceLevel: experienceLevel.length > 0 ? experienceLevel[0] : 'entry',
+                  experienceLevel: requiresExperience === 'yes' ? experienceLevel : null,
                   jobType,
                 },
               })
@@ -440,58 +408,46 @@ const styles = StyleSheet.create({
   },
   
   // Experience Level Styles
-  experienceGrid: {
-    gap: 12,
+  experienceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-  experienceCard: {
-    backgroundColor: '#f8f9fa',
+  roundOption: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginVertical: 6,
+    padding: 8,
+  },
+  roundRadio: {
+    width: 20,
+    height: 20,
     borderWidth: 2,
-    borderColor: '#e9ecef',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  selectedExperienceCard: {
-    backgroundColor: '#fff',
     borderColor: '#000',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  experienceContent: {
-    flexDirection: 'row',
+    borderRadius: 10,
+    marginBottom: 8,
+    justifyContent: 'center',
     alignItems: 'center',
-    flex: 1,
-    gap: 12,
   },
-  experienceText: {
-    flex: 1,
+  roundRadioSelected: {
+    width: 10,
+    height: 10,
+    backgroundColor: '#000',
+    borderRadius: 5,
   },
-  experienceLabel: {
-    fontSize: 14,
+  roundOptionContent: {
+    alignItems: 'center',
+  },
+  roundOptionText: {
+    fontSize: 13,
+    color: '#000',
     fontWeight: '500',
-    color: '#666',
+    textAlign: 'center',
     marginBottom: 2,
   },
-  selectedExperienceLabel: {
-    color: '#000',
-    fontWeight: '600',
-  },
-  experienceDesc: {
-    fontSize: 12,
-    color: '#999',
-  },
-  experienceCheckmark: {
-    backgroundColor: '#000',
-    borderRadius: 8,
-    width: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+  roundOptionDesc: {
+    fontSize: 11,
+    color: '#666',
+    textAlign: 'center',
   },
 
   buttonContainer: {
