@@ -10,18 +10,21 @@ import {
   PermissionsAndroid,
   TextInput,
   FlatList,
+  Modal,
   Keyboard,
   Linking,
-  Image,
+  ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../../components/MyStatusbar';
-
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Key } from '../../constants/key';
 import { Colors } from '../../styles/commonStyles';
+import Feather from 'react-native-vector-icons/Feather';
+import FloatingLabelInput from '../../components/inputFields/FloatingLabelInput';
 
 const AUTOCOMPLETE_URL =
   'https://maps.googleapis.com/maps/api/place/autocomplete/json';
@@ -41,11 +44,54 @@ const LocationPickerScreen = ({ navigation, route }) => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [address, setAddress] = useState('');
-
+  const [addressComponents, setAddressComponents] = useState({
+    country: '',
+    state: '',
+    city: '',
+    pincode: '',
+    formattedAddress: '',
+  });
+  const [name, setName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [landmark, setLandmark] = useState('');
+  const [addressType, setAddressType] = useState('Home');
+  const [isConfirmed, setConfirmed] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+
+  const addressTypes = ['Home', 'Office', 'Work', 'Other'];
+
+  const decodeAddress = addressComponents => {
+    const decoded = {
+      country: '',
+      state: '',
+      city: '',
+      pincode: '',
+      formattedAddress: '',
+    };
+
+    addressComponents.forEach(component => {
+      const types = component.types;
+
+      if (types.includes('country')) {
+        decoded.country = component.long_name;
+      } else if (types.includes('administrative_area_level_1')) {
+        decoded.state = component.long_name;
+      } else if (
+        types.includes('locality') ||
+        types.includes('administrative_area_level_2')
+      ) {
+        decoded.city = component.long_name;
+      } else if (types.includes('postal_code')) {
+        decoded.pincode = component.long_name;
+      }
+    });
+
+    return decoded;
+  };
+
   useEffect(() => {
     getUserLocation();
   }, []);
@@ -53,7 +99,6 @@ const LocationPickerScreen = ({ navigation, route }) => {
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
       try {
-        // Check if permission is already granted
         const hasPermission = await PermissionsAndroid.check(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
@@ -156,20 +201,30 @@ const LocationPickerScreen = ({ navigation, route }) => {
     try {
       const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${mapkey}`;
       console.log('[geo] API URL:', url);
-      
+
       const res = await fetch(url);
       const data = await res.json();
-      
+
       console.log('[geo] Full response:', JSON.stringify(data, null, 2));
       console.log('[geo] Status:', data?.status);
       console.log('[geo] Results count:', data?.results?.length);
-      
+
       if (data?.status === 'OK' && data?.results?.length > 0) {
-        const address = data.results[0].formatted_address;
+        const result = data.results[0];
+        const address = result.formatted_address;
+        const components = decodeAddress(result.address_components || []);
+        components.formattedAddress = address;
+
         console.log('[geo] Found address:', address);
+        console.log('[geo] Address components:', components);
         setAddress(address);
+        setAddressComponents(components);
       } else {
-        console.log('[geo] No results or error status:', data?.status, data?.error_message);
+        console.log(
+          '[geo] No results or error status:',
+          data?.status,
+          data?.error_message,
+        );
         setAddress(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
       }
     } catch (error) {
@@ -249,7 +304,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
       const url =
         `${DETAILS_URL}?key=${mapkey}` +
         `&place_id=${item.place_id}` +
-        `&fields=formatted_address,geometry`;
+        `&fields=formatted_address,geometry,address_components`;
       const res = await fetch(url);
       const data = await res.json();
       console.log('[details] status:', data?.status);
@@ -266,6 +321,14 @@ const LocationPickerScreen = ({ navigation, route }) => {
           setRegion(newRegion);
           setSelectedLocation({ latitude: loc.lat, longitude: loc.lng });
           setAddress(formatted);
+
+          // Decode address components
+          const components = decodeAddress(
+            data.result.address_components || [],
+          );
+          components.formattedAddress = formatted;
+          setAddressComponents(components);
+
           try {
             mapRef.current?.animateCamera({ center: newRegion, zoom: 15 });
           } catch (e) {
@@ -278,33 +341,41 @@ const LocationPickerScreen = ({ navigation, route }) => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log(
-      '[submit] selectedLocation:',
-      selectedLocation,
-      'address:',
-      address,
-    );
-    if (!selectedLocation || !address) {
-      Alert.alert('No Location Selected', 'Please select a location first.');
+  const handleAddAddress = () => {
+    if (!name.trim() || !mobileNumber.trim() || !address.trim()) {
+      Alert.alert(
+        'Missing Fields',
+        'Please fill Name, Mobile Number and ensure location is selected.',
+      );
       return;
     }
-    
+
+    const addressData = {
+      name: name.trim(),
+      mobileNumber: mobileNumber.trim(),
+      landmark: landmark.trim(),
+      addressType,
+      address: address.trim(),
+      coordinates: selectedLocation,
+      addressComponents,
+    };
+
+    console.log('Address Data:', JSON.stringify(addressData, null, 2));
+
     // Check if we need to return to CreateJobScreen2
     const { returnScreen, jobData } = route.params || {};
     if (returnScreen === 'CreateJobScreen2') {
       navigation.navigate('CreateJobScreen2', {
         jobData,
         selectedLocation: {
-          address,
+          address: address.trim(),
           coordinates: selectedLocation,
+          addressComponents,
         },
       });
     } else {
-      navigation.navigate('AddNewAddressScreen', {
-        address,
-        selectedLocation,
-      });
+      Alert.alert('Success', 'Address saved successfully!');
+      navigation.goBack();
     }
   };
 
@@ -324,102 +395,298 @@ const LocationPickerScreen = ({ navigation, route }) => {
     <SafeAreaView style={styles.safeAreaBlack}>
       <MyStatusBar />
       <View style={{ flex: 1 }}>
-      <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={20} color={Colors.grayColor} />
-        <TextInput
-          value={query}
-          onChangeText={onChangeQuery}
-          placeholder="Search location..."
-          placeholderTextColor={Colors.grayColor}
-          style={styles.searchInput}
-          returnKeyType="search"
-        />
-        {query?.length > 0 && (
-          <TouchableOpacity
-            onPress={() => {
-              setQuery('');
-              setSuggestions([]);
-            }}
-          >
-            <Ionicons name="close-circle" size={18} color={Colors.grayColor} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {(suggestions.length > 0 || isSearching) && (
-        <View style={styles.suggestionsContainer}>
-          {isSearching ? (
-            <View style={styles.suggestionLoading}>
-              <ActivityIndicator size="small" color={Colors.primary} />
-              <Text style={styles.loadingText}>Searching…</Text>
-            </View>
-          ) : (
-            <FlatList
-              keyboardShouldPersistTaps="handled"
-              data={suggestions}
-              keyExtractor={it => it.place_id}
-              renderItem={renderSuggestion}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
+        <View style={styles.searchContainer}>
+          <Ionicons name="search-outline" size={20} color={Colors.grayColor} />
+          <TextInput
+            value={query}
+            onChangeText={onChangeQuery}
+            placeholder="Search location..."
+            placeholderTextColor={Colors.grayColor}
+            style={styles.searchInput}
+            returnKeyType="search"
+          />
+          {query?.length > 0 && (
+            <TouchableOpacity
+              onPress={() => {
+                setQuery('');
+                setSuggestions([]);
+              }}
+            >
+              <Ionicons
+                name="close-circle"
+                size={18}
+                color={Colors.grayColor}
+              />
+            </TouchableOpacity>
           )}
         </View>
-      )}
 
-      <MapView
-        ref={mapRef}
-        provider={PROVIDER_GOOGLE}
-        style={{ flex: 1 }}
-        region={region}
-        onPress={handleMapPress}
-        showsUserLocation={!!currentLocation}
-        onMapReady={() => console.log('[map] ready')}
-      >
-        {selectedLocation && <Marker coordinate={selectedLocation} />}
-    
-      </MapView>
+        {(suggestions.length > 0 || isSearching) && (
+          <View style={styles.suggestionsContainer}>
+            {isSearching ? (
+              <View style={styles.suggestionLoading}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+                <Text style={styles.loadingText}>Searching…</Text>
+              </View>
+            ) : (
+              <FlatList
+                keyboardShouldPersistTaps="handled"
+                data={suggestions}
+                keyExtractor={it => it.place_id}
+                renderItem={renderSuggestion}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+            )}
+          </View>
+        )}
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={getUserLocation}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="locate-outline" size={22} color={Colors.whiteColor} />
-      </TouchableOpacity>
-      {address && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 110,
-            left: 16,
-            right: 16,
-            minHeight: 80,
-            padding: 10,
-            backgroundColor: Colors.whiteColor,
-            borderRadius: 12,
-            elevation: 3,
-            shadowColor: '#000',
-            shadowOpacity: 0.08,
-            shadowRadius: 6,
-          }}
+        <MapView
+          ref={mapRef}
+          provider={PROVIDER_GOOGLE}
+          style={{ flex: 1 }}
+          region={region}
+          onPress={handleMapPress}
+          showsUserLocation={!!currentLocation}
+          onMapReady={() => console.log('[map] ready')}
         >
-          <Text>
-            <Text style={{ fontWeight: '700' }}>Address:</Text> {address}
-          </Text>
-        </View>
-      )}
-      <TouchableOpacity
-        style={styles.bottomBtn}
-        onPress={handleSubmit}
-        activeOpacity={0.9}
-      >
-        <Text style={styles.bottomBtnText}>Select Location</Text>
-      </TouchableOpacity>
+          {selectedLocation && <Marker coordinate={selectedLocation} />}
+        </MapView>
 
-      {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
-      )}
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={getUserLocation}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="locate-outline" size={22} color={Colors.whiteColor} />
+        </TouchableOpacity>
+
+        {address && !isConfirmed && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              width: '100%',
+              backgroundColor: Colors.whiteColor,
+              borderTopRightRadius: 22,
+              borderTopLeftRadius: 22,
+              elevation: 3,
+              shadowColor: '#000',
+              shadowOpacity: 0.08,
+              shadowRadius: 6,
+              paddingTop: 10,
+              paddingBottom: Platform.OS === 'ios' ? 20 : 20,
+              paddingHorizontal: 16,
+              maxHeight: '70%',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Feather
+                name="map-pin"
+                size={20}
+                color="#000"
+                style={{ marginBottom: 1 }}
+              />
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  marginLeft: 4,
+                }}
+              >
+                Selected Location
+              </Text>
+            </View>
+
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '400',
+                marginVertical: 10,
+              }}
+            >
+              {address}
+            </Text>
+            <TouchableOpacity
+              style={styles.bottomBtn}
+              onPress={() => setConfirmed(true)}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.bottomBtnText}>
+                Confirm Location & Continue
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <Modal
+          visible={isConfirmed}
+          transparent
+          animationType="slide"
+          onPress={() => setConfirmed(false)}
+        >
+          <TouchableOpacity
+            style={styles.backdrop}
+            activeOpacity={1}
+            // onPress={() => setConfirmed(false)}    
+          >
+            {/* Prevent outside touch from closing when user interacts inside */}
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                width: '100%',
+                backgroundColor: Colors.whiteColor,
+                borderTopRightRadius: 22,
+                borderTopLeftRadius: 22,
+                elevation: 3,
+                shadowColor: '#000',
+                shadowOpacity: 0.08,
+                shadowRadius: 6,
+                paddingTop: 20,
+                maxHeight: '70%',
+              }}
+            >
+              {/* Drag indicator */}
+              <TouchableOpacity
+                 onPress={() => setConfirmed(false)}
+                style={{
+                  height: 8,
+                  width: 80,
+                  backgroundColor: '#969696ff',
+                  alignSelf: 'center',
+                  borderRadius: 4,
+                  marginBottom: 20,
+                }}
+              />
+
+              {/* Close button */}
+              <TouchableOpacity
+                style={{
+                  height: 30,
+                  width: 30,
+                  borderRadius: 54,
+                  backgroundColor: Colors.whiteColor,
+                  borderColor: Colors.blackColor,
+                  borderWidth: 1,
+                  position: 'absolute',
+                  top: 20,
+                  right: 20,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                onPress={() => setConfirmed(false)}
+                activeOpacity={0.8}
+              >
+                <Feather name="x" size={20} color="#000" />
+              </TouchableOpacity>
+
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                // style={{ paddingVertical: 20 }}
+              >
+                <View style={{ paddingHorizontal: 16 }}>
+                  {/* Header */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Feather name="map-pin" size={20} color="#000" />
+                    <Text
+                      style={{ fontSize: 16, fontWeight: '600', marginLeft: 4 }}
+                    >
+                      Selected Location
+                    </Text>
+                  </View>
+
+                  <Text style={{ fontSize: 12, marginVertical: 10 }}>
+                    {address}
+                  </Text>
+
+                  <View style={styles.addressComponentsContainer}>
+                    <Text style={styles.componentText}>
+                      Country: {addressComponents.country}
+                    </Text>
+                    <Text style={styles.componentText}>
+                      State: {addressComponents.state}
+                    </Text>
+                    <Text style={styles.componentText}>
+                      City: {addressComponents.city}
+                    </Text>
+                    <Text style={styles.componentText}>
+                      Pin Code: {addressComponents.pincode}
+                    </Text>
+                  </View>
+
+                  {/* Inputs */}
+                  <View style={{ marginTop: 16 }}>
+                    <FloatingLabelInput
+                      label="Name"
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Enter your name"
+                      required
+                    />
+
+                    <FloatingLabelInput
+                      label="Mobile Number"
+                      value={mobileNumber}
+                      onChangeText={setMobileNumber}
+                      placeholder="Enter mobile number"
+                      keyboardType="phone-pad"
+                      required
+                    />
+
+                    <FloatingLabelInput
+                      label="Landmark"
+                      value={landmark}
+                      onChangeText={setLandmark}
+                      placeholder="Enter landmark (optional)"
+                    />
+
+                    <Text style={styles.label}>Address Type</Text>
+
+                    <View style={styles.addressTypeContainer}>
+                      {addressTypes.map(type => (
+                        <TouchableOpacity
+                          key={type}
+                          style={[
+                            styles.typeButton,
+                            addressType === type && styles.selectedTypeButton,
+                          ]}
+                          onPress={() => setAddressType(type)}
+                        >
+                          <Text
+                            style={[
+                              styles.typeButtonText,
+                              addressType === type &&
+                                styles.selectedTypeButtonText,
+                            ]}
+                          >
+                            {type}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  {/* Save button */}
+                  <TouchableOpacity
+                    style={[styles.bottomBtn, { marginBottom: 40 }]}
+                    onPress={handleAddAddress}
+                    activeOpacity={0.9}
+                  >
+                    <Text style={styles.bottomBtnText}>Save Address</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </TouchableOpacity>
+        </Modal>
+
+        {isLoading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -428,6 +695,11 @@ const LocationPickerScreen = ({ navigation, route }) => {
 export default LocationPickerScreen;
 
 const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'flex-end',
+  },
   safeAreaBlack: {
     flex: 1,
     backgroundColor: '#000000',
@@ -510,10 +782,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   bottomBtn: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
     backgroundColor: Colors.primary,
     padding: 14,
     borderRadius: 10,
@@ -532,5 +800,47 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.08)',
+  },
+  addressComponentsContainer: {
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 8,
+  },
+  componentText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.blackColor,
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  addressTypeContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  typeButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: Colors.extraLightGrayColor,
+    borderRadius: 20,
+  },
+  selectedTypeButton: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  typeButtonText: {
+    fontSize: 12,
+    color: Colors.lightBlackColor,
+  },
+  selectedTypeButtonText: {
+    color: Colors.whiteColor,
+    fontWeight: '600',
   },
 });

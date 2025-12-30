@@ -10,6 +10,7 @@ import CreateJobScreen2 from '../screens/Jobs/CreateJobScreen2';
 import MessageScreen from '../screens/MessageScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TabLoadingOverlay from '../components/TabLoadingOverlay';
+import LocationPickerScreen from '../screens/mapAndAddress/LocationPickerScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -116,6 +117,7 @@ export default function TabNavigator() {
         <Tab.Screen name={t('Manage Job')} component={ManageJobScreen} />
         <Tab.Screen
           name="Add"
+          // component={LocationPickerScreen}
           component={CreateJobScreen}
           options={{
             tabBarStyle: { display: 'none' },
