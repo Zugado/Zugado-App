@@ -50,6 +50,9 @@ export default function CreateJob({ navigation }) {
   // Task For
   const [jobFor, setJobFor] = useState('person');
   
+  // Purpose (for thing job type)
+  const [purpose, setPurpose] = useState('');
+  
   // Task Type
   const [jobType, setJobType] = useState('standard');
   
@@ -174,9 +177,33 @@ export default function CreateJob({ navigation }) {
               </Text>
               <Feather name="chevron-down" size={20} color="#888" />
             </TouchableOpacity> */}
-            {/* Task Title */}
+            {/* Purpose (for thing job type) */}
+            {jobFor === 'thing' && (
+              <View style={styles.selectorContainer}>
+                <Text style={styles.selectorLabel}>Purpose <Text style={styles.required}>*</Text></Text>
+                <Text style={styles.selectorHelper}>What do you want to do with this item?</Text>
+                <View style={styles.experienceRow}>
+                  {[
+                    { value: 'buy', label: 'Buy' },
+                    { value: 'sell', label: 'Sell' },
+                    { value: 'rent_in', label: 'Rent In' },
+                    { value: 'rent_out', label: 'Rent Out' },
+                    { value: 'other', label: 'Other' }
+                  ].map(option => (
+                    <RoundRadioButton
+                      key={option.value}
+                      label={option.label}
+                      selected={purpose === option.value}
+                      onPress={() => setPurpose(option.value)}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Title */}
             <FloatingLabelInput
-              label="Task Title"
+              label={jobFor === 'thing' ? 'Title' : 'Task Title'}
               value={title}
               onChangeText={setTitle}
               placeholder="Enter a clear, descriptive title"
@@ -184,20 +211,19 @@ export default function CreateJob({ navigation }) {
               onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
             />
            
-            {/* Task Description */}
+            {/* Description */}
             <FloatingLabelInput
-              label="Task Description"
+              label="Description"
               value={description}
               onChangeText={setDescription}
               multiline
               numberOfLines={4}
-              placeholder="Describe the job requirements, deliverables, and expectations"
+              placeholder={jobFor === 'thing' ? 'Info add: item description, item attributes (Material, Color e.g)' : 'Describe the job requirements, deliverables, and expectations'}
               required={true}
               onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
             />
            
-            
-
+    
             {/* Task Skills/Category */}
             <FloatingLabelSkillsInput
               label="Task Skills & Categories"
@@ -279,6 +305,10 @@ export default function CreateJob({ navigation }) {
                 showSnackbar('Please fill all required fields', 'error');
                 return;
               }
+              if (jobFor === 'thing' && !purpose) {
+                showSnackbar('Please select a purpose for the item', 'error');
+                return;
+              }
               if (requiresExperience === 'yes' && !experienceLevel) {
                 showSnackbar('Please select an experience level', 'error');
                 return;
@@ -303,6 +333,7 @@ export default function CreateJob({ navigation }) {
               navigation.navigate('CreateJobScreen2', {
                 jobData: {
                   jobFor,
+                  purpose: jobFor === 'thing' ? purpose : null,
                   title: title.trim(),
                   description: description.trim(),
                   category: selectedSkills, // Single array of skills/categories
