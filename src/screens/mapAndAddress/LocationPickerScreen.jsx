@@ -544,7 +544,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
                 shadowOpacity: 0.08,
                 shadowRadius: 6,
                 paddingTop: 20,
-                maxHeight: '70%',
+                maxHeight: '80%',
               }}
             >
               {/* Drag indicator */}
