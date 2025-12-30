@@ -31,7 +31,7 @@ export default function CreateJob({ navigation, route }) {
       setCoordinates(route.params.selectedLocation.coordinates || null);
     }
   }, [route.params?.selectedLocation]);
-  
+
   // const [coordinate, setCoordinate] = useState(null);
   const [jobLocationType, setJobLocationType] = useState('onsite');
 
@@ -51,7 +51,7 @@ export default function CreateJob({ navigation, route }) {
 
   const [estimatedHours, setEstimatedHours] = useState('');
 
-  const clearTimingFields = (newType) => {
+  const clearTimingFields = newType => {
     if (newType !== 'fixed') {
       setDate('');
       setStartTime('');
@@ -70,12 +70,15 @@ export default function CreateJob({ navigation, route }) {
     }
   };
 
-  const handleTimingTypeChange = (newType) => {
+  const handleTimingTypeChange = newType => {
     clearTimingFields(newType);
     setTimingType(newType);
   };
 
   const [amount, setAmount] = useState('');
+  const [isNegotiable, setIsNegotiable] = useState(false);
+  const [minAmount, setMinAmount] = useState('');
+  const [maxAmount, setMaxAmount] = useState('');
 
   const CheckboxButton = ({ label, selected, onPress }) => (
     <TouchableOpacity
@@ -97,7 +100,9 @@ export default function CreateJob({ navigation, route }) {
       </View>
       <View style={styles.roundOptionContent}>
         <Text style={styles.roundOptionText}>{label}</Text>
-        {description && <Text style={styles.roundOptionDesc}>{description}</Text>}
+        {description && (
+          <Text style={styles.roundOptionDesc}>{description}</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -127,285 +132,407 @@ export default function CreateJob({ navigation, route }) {
       <SafeAreaView style={styles.safeAreaBlack}>
         <MyStatusBar />
         <View style={styles.container}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}
-            >
-              <Feather name="arrow-left" size={20} color="#000" />
-            </TouchableOpacity>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}
+              >
+                <Feather name="arrow-left" size={20} color="#000" />
+              </TouchableOpacity>
 
-            <View style={styles.progressContainer}>
-              <View style={[styles.progressBar, { width: '66.66%' }]} />
-            </View>
-
-            <Text style={styles.progressText}>2/3</Text>
-          </View>
-
-          <Text style={styles.title}>
-            Define Location & Payment Information
-          </Text>
-
-          <View style={styles.form}>
-            {/* Job Location */}
-            <View style={styles.selectorContainer}>
-              <Text style={styles.selectorLabel}>Job Location</Text>
-              <Text style={styles.selectorHelper}>Where will the work be performed?</Text>
-              <View style={styles.radioRow}>
-                {[
-                  { value: 'onsite', label: 'On-site', desc: 'At specific location' },
-                  { value: 'remote', label: 'Remote', desc: 'Work from anywhere' },
-                  { value: 'hybrid', label: 'Hybrid', desc: 'Mix of both' }
-                ].map(option => (
-                  <RoundRadioButton
-                    key={option.value}
-                    label={option.label}
-                    description={option.desc}
-                    selected={jobLocationType === option.value}
-                    onPress={() => setJobLocationType(option.value)}
-                  />
-                ))}
+              <View style={styles.progressContainer}>
+                <View style={[styles.progressBar, { width: '66.66%' }]} />
               </View>
+
+              <Text style={styles.progressText}>2/3</Text>
             </View>
 
-            {/* Address Selection */}
-            <View style={styles.addressContainer}>
-              <Text style={styles.selectorLabel}>Job Address</Text>
-              <Text style={styles.selectorHelper}>Select location on map first, then edit address if needed</Text>
-              
-              {!coordinates ? (
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('LocationPickerScreen', { 
-                    returnScreen: 'CreateJobScreen2',
-                    jobData 
-                  })}
-                  style={styles.mapButton}
-                >
-                  <Feather name="map-pin" size={20} color="#000" />
-                  <Text style={styles.mapButtonText}>Select on Map</Text>
-                  <Feather name="chevron-right" size={16} color="#666" />
-                </TouchableOpacity>
-              ) : (
-                <>
+            <Text style={styles.title}>
+              Define Location & Payment Information
+            </Text>
+
+            <View style={styles.form}>
+              {/* Job Location */}
+              <View style={styles.selectorContainer}>
+                <Text style={styles.selectorLabel}>Job Location</Text>
+                <Text style={styles.selectorHelper}>
+                  Where will the work be performed?
+                </Text>
+                <View style={styles.radioRow}>
+                  {[
+                    {
+                      value: 'onsite',
+                      label: 'On-site',
+                      desc: 'At specific location',
+                    },
+                    {
+                      value: 'remote',
+                      label: 'Remote',
+                      desc: 'Work from anywhere',
+                    },
+                    { value: 'hybrid', label: 'Hybrid', desc: 'Mix of both' },
+                  ].map(option => (
+                    <RoundRadioButton
+                      key={option.value}
+                      label={option.label}
+                      description={option.desc}
+                      selected={jobLocationType === option.value}
+                      onPress={() => setJobLocationType(option.value)}
+                    />
+                  ))}
+                </View>
+              </View>
+
+              {/* Address Selection */}
+              <View style={styles.addressContainer}>
+                <Text style={styles.selectorLabel}>Job Address</Text>
+                <Text style={styles.selectorHelper}>
+                  Select location on map first, then edit address if needed
+                </Text>
+
+                {!coordinates ? (
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('LocationPickerScreen', { 
-                      returnScreen: 'CreateJobScreen2',
-                      jobData 
-                    })}
-                    style={styles.mapButtonSelected}
+                    onPress={() =>
+                      navigation.navigate('LocationPickerScreen', {
+                        returnScreen: 'CreateJobScreen2',
+                        jobData,
+                      })
+                    }
+                    style={styles.mapButton}
                   >
                     <Feather name="map-pin" size={20} color="#000" />
-                    <Text style={styles.mapButtonSelectedText}>Change Location</Text>
-                    <Feather name="edit-2" size={16} color="#666" />
+                    <Text style={styles.mapButtonText}>Select on Map</Text>
+                    <Feather name="chevron-right" size={16} color="#666" />
                   </TouchableOpacity>
-                  
-                  <FloatingLabelInput
-                    label="Address"
-                    required={true}
-                    value={address}
-                    onChangeText={setAddress}
-                    multiline
-                    numberOfLines={2}
-                    placeholder="Enter or edit address manually"
-                  />
-                  {/* Location Point */}
-                  {/* <View style={styles.coordinatesInfo}>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate('LocationPickerScreen', {
+                          returnScreen: 'CreateJobScreen2',
+                          jobData,
+                        })
+                      }
+                      style={styles.mapButtonSelected}
+                    >
+                      <Feather name="map-pin" size={20} color="#000" />
+                      <Text style={styles.mapButtonSelectedText}>
+                        Change Location
+                      </Text>
+                      <Feather name="edit-2" size={16} color="#666" />
+                    </TouchableOpacity>
+
+                    <FloatingLabelInput
+                      label="Address"
+                      required={true}
+                      value={address}
+                      onChangeText={setAddress}
+                      multiline
+                      numberOfLines={2}
+                      placeholder="Enter or edit address manually"
+                    />
+                    {/* Location Point */}
+                    {/* <View style={styles.coordinatesInfo}>
                     <Feather name="map-pin" size={14} color="#666" />
                     <Text style={styles.coordinatesText}>
                       Location: {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
                     </Text>
                   </View> */}
+                  </>
+                )}
+              </View>
+
+              {/* Timing Type */}
+              <View style={styles.selectorContainer}>
+                <Text style={styles.selectorLabel}>Timing Type</Text>
+                <Text style={styles.selectorHelper}>
+                  Choose how you want to schedule this task
+                </Text>
+                <View style={styles.radioRow}>
+                  {[
+                    {
+                      value: 'fixed',
+                      label: 'Fixed',
+                      desc: 'Specific date & time',
+                    },
+                    {
+                      value: 'multiday',
+                      label: 'Multi-day',
+                      desc: 'Multiple days',
+                    },
+                    {
+                      value: 'deadline',
+                      label: 'Deadline',
+                      desc: 'Complete by date',
+                    },
+                    { value: 'flexible', label: 'Flexible', desc: 'Anytime' },
+                  ].map(option => (
+                    <RoundRadioButton
+                      key={option.value}
+                      label={option.label}
+                      description={option.desc}
+                      selected={timingType === option.value}
+                      onPress={() => handleTimingTypeChange(option.value)}
+                    />
+                  ))}
+                </View>
+              </View>
+
+              {/* Input forms based on timing type */}
+              {timingType === 'fixed' && (
+                <>
+                  <DateTimePickerField
+                    label="Date"
+                    value={date}
+                    mode="date"
+                    onChange={setDate}
+                  />
+
+                  <DateTimePickerField
+                    label="Start Time"
+                    mode="time"
+                    value={startTime}
+                    onChange={setStartTime}
+                  />
+
+                  <DateTimePickerField
+                    label="End Time"
+                    mode="time"
+                    value={endTime}
+                    onChange={setEndTime}
+                  />
+                </>
+              )}
+
+              {timingType === 'multiday' && (
+                <>
+                  <DateTimePickerField
+                    label="Start Date"
+                    mode="date"
+                    value={startDate}
+                    onChange={setStartDate}
+                  />
+
+                  <DateTimePickerField
+                    label="End Date"
+                    mode="date"
+                    value={endDate}
+                    onChange={setEndDate}
+                  />
+
+                  <FloatingLabelInput
+                    label="Daily Hours"
+                    value={dailyHours}
+                    onChangeText={setDailyHours}
+                    keyboardType="numeric"
+                    placeholder="Enter daily working hours (e.g., 8)"
+                  />
+                </>
+              )}
+
+              {timingType === 'deadline' && (
+                <DateTimePickerField
+                  label="Deadline"
+                  mode="datetime"
+                  value={deadline}
+                  onChange={setDeadline}
+                />
+              )}
+
+              {timingType === 'flexible' && (
+                <>
+                  <FloatingLabelInput
+                    label="Estimated Hours"
+                    value={estimatedHours}
+                    onChangeText={setEstimatedHours}
+                    keyboardType="numeric"
+                    placeholder="Enter estimated total hours (e.g., 40)"
+                  />
+                </>
+              )}
+
+              {/* Amount Disclosure */}
+              <View style={[styles.selectorContainer, { marginBottom: 2 }]}>
+                <Text style={styles.selectorLabel}>
+                  Would you like to disclose the amount?
+                </Text>
+                <Text style={styles.selectorHelper}>
+                  Choose whether to show payment range
+                </Text>
+                <View style={styles.disclosureOptionsContainer}>
+                  <RoundRadioButton
+                    label="Yes"
+                    selected={discloseAmount === true}
+                    onPress={() => setDiscloseAmount(true)}
+                  />
+                  <RoundRadioButton
+                    label="No"
+                    selected={discloseAmount === false}
+                    onPress={() => {
+                      setDiscloseAmount(false);
+                      setAmount('');
+                    }}
+                  />
+                </View>
+              </View>
+
+              {discloseAmount && (
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <View style={{ flex: 3 }}>
+                    <Text style={styles.selectorLabel}>Amount</Text>
+                    <FloatingLabelInput
+                      label="Amount (INR) ₹"
+                      value={amount}
+                      onChangeText={setAmount}
+                      keyboardType="numeric"
+                      placeholder="Enter amount"
+                    />
+                  </View>
+                  <View style={{ marginLeft: 10 }}>
+                    <TouchableOpacity
+                      style={[
+                        styles.negotiableToggle,
+                        { backgroundColor: isNegotiable ? '#22c55e' : '#000' },
+                      ]}
+                      onPress={() => setIsNegotiable(!isNegotiable)}
+                      activeOpacity={0.8}
+                    >
+                      {isNegotiable ? (
+                        <>
+                          <Text style={styles.negotiableText}>Yes</Text>
+                          <View style={styles.negotiableIcon} />
+                        </>
+                      ) : (
+                        <>
+                          <View style={styles.negotiableIcon} />
+                          <Text style={styles.negotiableText}>No</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                    <Text style={styles.negotiableLabel}>Negotiable</Text>
+                  </View>
+                </View>
+              )}
+
+              {discloseAmount && isNegotiable && (
+                <>
+                  <Text style={styles.selectorLabel}>Amount Range</Text>
+                  <View style={styles.amountRangeContainer}>
+                    <View style={styles.rangeInputWrapper}>
+                      <FloatingLabelInput
+                        label="Min Amount (INR) ₹"
+                        value={minAmount}
+                        onChangeText={setMinAmount}
+                        keyboardType="numeric"
+                        placeholder="Enter minimum amount"
+                      />
+                    </View>
+                    <View style={styles.rangeInputWrapper}>
+                      <FloatingLabelInput
+                        label="Max Amount (INR) ₹"
+                        value={maxAmount}
+                        onChangeText={setMaxAmount}
+                        keyboardType="numeric"
+                        placeholder="Enter maximum amount"
+                      />
+                    </View>
+                  </View>
                 </>
               )}
             </View>
+            <FaddedIcon />
+          </ScrollView>
 
-            {/* Timing Type */}
-            <View style={styles.selectorContainer}>
-              <Text style={styles.selectorLabel}>Timing Type</Text>
-              <Text style={styles.selectorHelper}>Choose how you want to schedule this task</Text>
-              <View style={styles.radioRow}>
-                {[
-                  { value: 'fixed', label: 'Fixed', desc: 'Specific date & time' },
-                  { value: 'multiday', label: 'Multi-day', desc: 'Multiple days' },
-                  { value: 'deadline', label: 'Deadline', desc: 'Complete by date' },
-                  { value: 'flexible', label: 'Flexible', desc: 'Anytime' }
-                ].map(option => (
-                  <RoundRadioButton
-                    key={option.value}
-                    label={option.label}
-                    description={option.desc}
-                    selected={timingType === option.value}
-                    onPress={() => handleTimingTypeChange(option.value)}
-                  />
-                ))}
-              </View>
-            </View>
+          {/* NEXT BUTTON */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.nextButton}
+              onPress={() => {
+                // Validation
+                const timingDetails = getTimingDetails();
+                if (
+                  timingType === 'fixed' &&
+                  (!timingDetails.date ||
+                    !timingDetails.startTime ||
+                    !timingDetails.endTime)
+                ) {
+                  showSnackbar(
+                    'Fixed timing requires date, start time, and end time',
+                    'error',
+                  );
+                  return;
+                }
+                if (
+                  timingType === 'multiday' &&
+                  (!timingDetails.startDate ||
+                    !timingDetails.endDate ||
+                    !timingDetails.dailyHours)
+                ) {
+                  showSnackbar(
+                    'Multi-day timing requires start date, end date, and daily hours',
+                    'error',
+                  );
+                  return;
+                }
+                if (timingType === 'deadline' && !timingDetails.deadline) {
+                  showSnackbar('Deadline timing requires a deadline', 'error');
+                  return;
+                }
+                if (
+                  timingType === 'flexible' &&
+                  !timingDetails.estimatedHours
+                ) {
+                  showSnackbar(
+                    'Flexible timing requires estimated hours',
+                    'error',
+                  );
+                  return;
+                }
+                if (discloseAmount && !amount.trim()) {
+                  showSnackbar('Please enter an amount', 'error');
+                  return;
+                }
 
-            {/* Input forms based on timing type */}
-            {timingType === 'fixed' && (
-              <>
-                <DateTimePickerField
-                  label="Date"
-                  value={date}
-                  mode="date"
-                  onChange={setDate}
-                />
-
-                <DateTimePickerField
-                  label="Start Time"
-                  mode="time"
-                  value={startTime}
-                  onChange={setStartTime}
-                />
-
-                <DateTimePickerField
-                  label="End Time"
-                  mode="time"
-                  value={endTime}
-                  onChange={setEndTime}
-                />
-              </>
-            )}
-
-            {timingType === 'multiday' && (
-              <>
-                <DateTimePickerField
-                  label="Start Date"
-                  mode="date"
-                  value={startDate}
-                  onChange={setStartDate}
-                />
-
-                <DateTimePickerField
-                  label="End Date"
-                  mode="date"
-                  value={endDate}
-                  onChange={setEndDate}
-                />
-
-                <FloatingLabelInput
-                  label="Daily Hours"
-                  value={dailyHours}
-                  onChangeText={setDailyHours}
-                  keyboardType="numeric"
-                  placeholder="Enter daily working hours (e.g., 8)"
-                />
-              </>
-            )}
-
-            {timingType === 'deadline' && (
-              <DateTimePickerField
-                label="Deadline"
-                mode="datetime"
-                value={deadline}
-                onChange={setDeadline}
-              />
-            )}
-
-            {timingType === 'flexible' && (
-              <>
-                <FloatingLabelInput
-                  label="Estimated Hours"
-                  value={estimatedHours}
-                  onChangeText={setEstimatedHours}
-                  keyboardType="numeric"
-                  placeholder="Enter estimated total hours (e.g., 40)"
-                />
-              </>
-            )}
-
-            {/* Amount Disclosure */}
-            <View style={styles.selectorContainer}>
-              <Text style={styles.selectorLabel}>Would you like to disclose the amount?</Text>
-              <Text style={styles.selectorHelper}>Choose whether to show payment range</Text>
-              <View style={styles.disclosureOptionsContainer}>
-                <RoundRadioButton
-                  label="Yes"
-                  selected={discloseAmount === true}
-                  onPress={() => setDiscloseAmount(true)}
-                />
-                <RoundRadioButton
-                  label="No"
-                  selected={discloseAmount === false}
-                  onPress={() => {
-                    setDiscloseAmount(false);
-                    setAmount('');
-                  }}
-                />
-              </View>
-            </View>
-
-            {discloseAmount && (
-              <FloatingLabelInput
-                label="Amount (INR) ₹"
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-                placeholder="Enter amount"
-              />
-            )}
-          
-          </View>
-            <FaddedIcon/>
-        </ScrollView>
-
-        {/* NEXT BUTTON */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={() => {
-              // Validation
-              const timingDetails = getTimingDetails();
-              if (timingType === 'fixed' && (!timingDetails.date || !timingDetails.startTime || !timingDetails.endTime)) {
-                showSnackbar('Fixed timing requires date, start time, and end time', 'error');
-                return;
-              }
-              if (timingType === 'multiday' && (!timingDetails.startDate || !timingDetails.endDate || !timingDetails.dailyHours)) {
-                showSnackbar('Multi-day timing requires start date, end date, and daily hours', 'error');
-                return;
-              }
-              if (timingType === 'deadline' && !timingDetails.deadline) {
-                showSnackbar('Deadline timing requires a deadline', 'error');
-                return;
-              }
-              if (timingType === 'flexible' && !timingDetails.estimatedHours) {
-                showSnackbar('Flexible timing requires estimated hours', 'error');
-                return;
-              }
-              if (discloseAmount && !amount.trim()) {
-                showSnackbar('Please enter an amount', 'error');
-                return;
-              }
-              
-              navigation.navigate('CreateJobScreen3', {
-                jobData: {
-                  ...jobData,
-                  locationType: jobLocationType,
-                  location: coordinates ? {
-                    type: 'Point',
-                    coordinates: [coordinates.longitude, coordinates.latitude],
-                    address: address.trim() || ''
-                  } : null,
-                  timingType,
-                  timingDetails,
-                  amount: {
-                    value: Number(amount) || 0,
-                    disclose: discloseAmount,
+                navigation.navigate('CreateJobScreen3', {
+                  jobData: {
+                    ...jobData,
+                    locationType: jobLocationType,
+                    location: coordinates
+                      ? {
+                          type: 'Point',
+                          coordinates: [
+                            coordinates.longitude,
+                            coordinates.latitude,
+                          ],
+                          address: address.trim() || '',
+                        }
+                      : null,
+                    timingType,
+                    timingDetails,
+                    amount: {
+                      value: Number(amount) || 0,
+                      disclose: discloseAmount,
+                    },
                   },
-                },
-              })
-            }
-            }>
-            <Text style={styles.nextButtonText}>Next</Text>
-          </TouchableOpacity>
-        </View>
+                });
+              }}
+            >
+              <Text style={styles.nextButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     </KeyboardAvoidingView>
@@ -450,13 +577,13 @@ const styles = StyleSheet.create({
   },
   form: { width: '100%' },
   label: { fontSize: 14, color: '#000', marginBottom: 8, fontWeight: '600' },
-  
+
   // Professional Selector Styles
   selectorContainer: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   selectorLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#000',
     marginBottom: 4,
@@ -466,7 +593,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 12,
   },
-  
+
   // Location Grid Styles
   locationGrid: {
     gap: 12,
@@ -576,7 +703,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 
-
   squareOption: {
     flex: 1,
     marginHorizontal: 4,
@@ -622,7 +748,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  disclosureOptionsContainer: { flexDirection: 'row', marginBottom: 20, justifyContent: 'space-around' },
+  disclosureOptionsContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    justifyContent: 'space-around',
+  },
   roundOption: {
     flexDirection: 'column',
     alignItems: 'center',
@@ -688,7 +818,6 @@ const styles = StyleSheet.create({
   },
   negotiableSwitch: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
 
-
   amountRangeContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -715,4 +844,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  // Negotiable Toggle Button Styles
+  negotiableToggle: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'center',
+    borderRadius: 15,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    marginBottom: 4,
+  },
+  negotiableIcon: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 3,
+    width: 16,
+    height: 16,
+  },
+  negotiableText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 10,
+  },
+  negotiableLabel: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'center',
+  },
 });
