@@ -20,6 +20,7 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 import { scrollToInput } from '../../utils/commonMethods';
 import { FaddedIcon } from '../../components/CommonComponents';
 import SelectorToggleButton from '../../components/SelectorToggleButton';
+import { CustomAlert } from '../../components/CustomAlert';
 
 const RoundRadioButton = ({ label, selected, onPress, description }) => (
   <TouchableOpacity style={styles.roundOption} onPress={onPress}>
@@ -37,6 +38,7 @@ export default function CreateJob({ navigation }) {
   const availableTags = useSelector(selectTags);
   const tagsLoading = useSelector(selectTagsLoading);
   const { showSnackbar } = useSnackbar();
+  const [showDraftAlert, setShowDraftAlert] = useState(true);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -76,6 +78,15 @@ export default function CreateJob({ navigation }) {
   );
 
   const scrollViewRef = useRef(null);
+
+  const handleNewForm = () => {
+    setShowDraftAlert(false);
+  };
+
+  const handleResumeDraft = () => {
+    setShowDraftAlert(false);
+    showSnackbar('No drafts available yet', 'info');
+  };
 
 
 
@@ -306,7 +317,17 @@ export default function CreateJob({ navigation }) {
           </TouchableOpacity>
         </View>
 
-
+        {showDraftAlert && (
+          <CustomAlert
+            message="Would you like to start a new form or resume from your draft?"
+            onYes={handleResumeDraft}
+            onClose={handleNewForm}
+            yesText="Resume Draft"
+            noText="New Form"
+            iconName="file-text"
+            iconColor="#0000007c"
+          />
+        )}
         </View>
       </SafeAreaView>
     </KeyboardAvoidingView>

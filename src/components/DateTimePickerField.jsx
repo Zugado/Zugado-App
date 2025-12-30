@@ -87,6 +87,7 @@ export default function DateTimePickerField({
           mode={mode === "datetime" ? (showTime ? "time" : "date") : mode}
           display={Platform.OS === "ios" ? "spinner" : "default"}
           is24Hour={true}
+          minimumDate={mode === "date" || mode === "datetime" ? new Date() : undefined}
           onChange={handleChange}
         />
       )}
