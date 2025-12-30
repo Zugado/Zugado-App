@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import HomeScreen from '../screens/Home/HomeScreen';
 import ManageJobScreen from '../screens/ManageJobScreen';
 import CreateJobScreen from '../screens/Jobs/CreateJobScreen';
+import CreateJobScreen2 from '../screens/Jobs/CreateJobScreen2';
 import MessageScreen from '../screens/MessageScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TabLoadingOverlay from '../components/TabLoadingOverlay';

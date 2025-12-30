@@ -18,12 +18,14 @@ import MyStatusBar from '../../components/MyStatusbar';
 import { Colors } from '../../styles/commonStyles';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { FaddedIcon } from '../../components/CommonComponents';
+import { scrollToInput } from '../../utils/commonMethods';
 
 export default function CreateJob({ navigation, route }) {
   const { jobData } = route.params || {};
   const { showSnackbar } = useSnackbar();
   const [address, setAddress] = useState('');
   const [coordinates, setCoordinates] = useState(null);
+  const scrollViewRef = React.useRef(null);
 
   useEffect(() => {
     if (route.params?.selectedLocation) {
@@ -133,6 +135,7 @@ export default function CreateJob({ navigation, route }) {
         <MyStatusBar />
         <View style={styles.container}>
           <ScrollView
+            ref={scrollViewRef}
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
@@ -333,6 +336,7 @@ export default function CreateJob({ navigation, route }) {
                     onChangeText={setDailyHours}
                     keyboardType="numeric"
                     placeholder="Enter daily working hours (e.g., 8)"
+                    onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
                   />
                 </>
               )}
@@ -392,16 +396,20 @@ export default function CreateJob({ navigation, route }) {
                   }}
                 >
                   <View style={{ flex: 3 }}>
-                    <Text style={styles.selectorLabel}>Amount</Text>
-                    <FloatingLabelInput
+                     <Text style={[styles.selectorLabel,{marginBottom:10}]}>Amount</Text>
+                  
+                     <FloatingLabelInput
                       label="Amount (INR) ₹"
                       value={amount}
                       onChangeText={setAmount}
                       keyboardType="numeric"
                       placeholder="Enter amount"
+                      onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
                     />
                   </View>
-                  <View style={{ marginLeft: 10 }}>
+                  <View style={{ marginLeft: 10 ,marginTop:10}}>
+                     <Text style={styles.negotiableLabel}>Negotiable</Text>
+                  
                     <TouchableOpacity
                       style={[
                         styles.negotiableToggle,
@@ -422,14 +430,13 @@ export default function CreateJob({ navigation, route }) {
                         </>
                       )}
                     </TouchableOpacity>
-                    <Text style={styles.negotiableLabel}>Negotiable</Text>
-                  </View>
+                   </View>
                 </View>
               )}
 
               {discloseAmount && isNegotiable && (
                 <>
-                  <Text style={styles.selectorLabel}>Amount Range</Text>
+                  <Text style={[styles.selectorLabel,{marginBottom:10}]}>Amount Range</Text>
                   <View style={styles.amountRangeContainer}>
                     <View style={styles.rangeInputWrapper}>
                       <FloatingLabelInput
@@ -438,6 +445,7 @@ export default function CreateJob({ navigation, route }) {
                         onChangeText={setMinAmount}
                         keyboardType="numeric"
                         placeholder="Enter minimum amount"
+                        onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
                       />
                     </View>
                     <View style={styles.rangeInputWrapper}>
@@ -447,6 +455,7 @@ export default function CreateJob({ navigation, route }) {
                         onChangeText={setMaxAmount}
                         keyboardType="numeric"
                         placeholder="Enter maximum amount"
+                        onFocus={(ref) => scrollToInput(ref, scrollViewRef)}
                       />
                     </View>
                   </View>
@@ -853,7 +862,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     paddingHorizontal: 6,
     paddingVertical: 4,
-    marginBottom: 4,
+   
   },
   negotiableIcon: {
     backgroundColor: '#fff',
@@ -866,9 +875,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 10,
+    
   },
   negotiableLabel: {
     fontSize: 10,
+     marginBottom: 4,
     color: '#666',
     textAlign: 'center',
   },

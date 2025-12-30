@@ -21,10 +21,10 @@ export default function AppStackNavigator() {
   return (
     <Stack.Navigator 
       screenOptions={{ headerShown: false }}
-      initialRouteName="LocationPermission"
+      // initialRouteName="LocationPermission"
     >
       {/* Location Permission Screen */}
-      <Stack.Screen name="LocationPermission" component={LocationPermissionScreen} />
+      {/* <Stack.Screen name="LocationPermission" component={LocationPermissionScreen} /> */}
       {/* Main bottom tabs */}
       <Stack.Screen name="MainTabs" component={TabNavigator} />
       <Stack.Screen name="CreateJobScreen2" component={CreateJobScreen2} />
