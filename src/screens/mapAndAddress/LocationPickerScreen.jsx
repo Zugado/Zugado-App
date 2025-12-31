@@ -64,7 +64,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
   const addressTypes = ['Home', 'Office', 'Work', 'Other'];
 
   const decodeAddress = addressComponents => {
-    const decoded = {
+   const decoded = {
       country: '',
       state: '',
       city: '',
