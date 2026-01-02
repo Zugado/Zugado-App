@@ -7,9 +7,11 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector, useDispatch } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import MyStatusBar from '../../components/MyStatusbar';
 import FloatingLabelInput from '../../components/inputFields/FloatingLabelInput';
@@ -21,6 +23,14 @@ import { scrollToInput } from '../../utils/commonMethods';
 import { FaddedIcon } from '../../components/CommonComponents';
 import SelectorToggleButton from '../../components/SelectorToggleButton';
 import { CustomAlert } from '../../components/CustomAlert';
+import { Colors } from '../../styles/commonStyles';
+const purposeOptions = [
+  { id: 1, value: 'buy', label: 'Buy', icon: 'shopping-cart' },
+  { id: 2, value: 'sell', label: 'Sell', icon: 'dollar-sign' },
+  { id: 3, value: 'rent_in', label: 'Rent In', icon: 'home' },
+  { id: 4, value: 'rent_out', label: 'Rent Out', icon: 'key' },
+  { id: 5, value: 'other', label: 'Other', icon: 'more-horizontal' },
+];
 
 const RoundRadioButton = ({ label, selected, onPress, description }) => (
   <TouchableOpacity style={styles.roundOption} onPress={onPress}>
@@ -57,6 +67,7 @@ export default function CreateJob({ navigation }) {
   const [personDescription, setPersonDescription] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
   const [selectedSkills, setSelectedSkills] = useState([]);
+
   const [skill, setSkill] = useState('');
   const [requiresExperience, setRequiresExperience] = useState('no');
   const jobForOptions = [
@@ -74,14 +85,16 @@ export default function CreateJob({ navigation }) {
   const [thingTitle, setThingTitle] = useState('');
   const [thingDescription, setThingDescription] = useState('');
   const [purpose, setPurpose] = useState('');
-   const [thingCategoryList, setthingCategoryList] = useState([]);
+  const [otherPurpose, setOtherPurpose] = useState('');
+  const [thingCategoryList, setthingCategoryList] = useState([]);
   const [selectedThingCategory, setSelectedThingCategory] = useState('');
+  const [isPurposeClicked, setPurposeClicked] = useState(false);
   // Load tags on component mount
   useEffect(() => {
     dispatch(getAllTags());
   }, [dispatch]);
 
-  console.log('availble tage = ', JSON.stringify(availableTags, null, 2));
+  // console.log('availble tage = ', JSON.stringify(availableTags, null, 2));
 
   const handleNewForm = () => {
     setShowDraftAlert(false);
@@ -91,6 +104,26 @@ export default function CreateJob({ navigation }) {
     setShowDraftAlert(false);
     showSnackbar('No drafts available yet', 'info');
   };
+
+  const renderSuggestion = ({ item }) => (
+    <TouchableOpacity
+      style={styles.suggestionItem}
+      onPress={() => {
+        setPurpose(item?.value);
+        setPurposeClicked(false);
+      }}
+    >
+      <Ionicons
+        name="return-down-forward-outline"
+        size={18}
+        color={Colors.grayColor}
+      />
+
+      <Text style={styles.suggestionText} numberOfLines={1}>
+        {item?.label}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
     <KeyboardAvoidingView
@@ -384,29 +417,76 @@ export default function CreateJob({ navigation }) {
     return (
       <>
         <View style={styles.form}>
-          <View style={styles.selectorContainer}>
+          <View style={{marginBottom:1}}>
             <Text style={styles.selectorLabel}>
               Purpose <Text style={styles.required}>*</Text>
             </Text>
             <Text style={styles.selectorHelper}>
               What do you want to do with this item?
             </Text>
-            <View style={styles.experienceRow}>
-              {[
-                { value: 'buy', label: 'Buy' },
-                { value: 'sell', label: 'Sell' },
-                { value: 'rent_in', label: 'Rent In' },
-                { value: 'rent_out', label: 'Rent Out' },
-                { value: 'other', label: 'Other' },
-              ].map(option => (
-                <RoundRadioButton
-                  key={option.value}
-                  label={option.label}
-                  selected={purpose === option.value}
-                  onPress={() => setPurpose(option.value)}
-                />
-              ))}
-            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.mapButton,
+                {
+                  backgroundColor: isPurposeClicked ? '#fff' : '#f8f9fa',
+                  borderColor: isPurposeClicked ? '#000000ff' : '#e9ecef',
+                },
+              ]}
+              onPress={() => setPurposeClicked(prev => !prev)}
+            >
+              <Feather name="target" size={20} color="#000" />
+              <Text
+                style={[
+                  styles.mapButtonText,
+                  { color: isPurposeClicked ? '#000000ff' : '#666666' },
+                ]}
+              >
+                {purpose || 'Select Purpose'}
+              </Text>
+
+              <Feather
+                name={isPurposeClicked ? 'chevron-down' : 'chevron-right'}
+                size={16}
+                color={isPurposeClicked ? '#000000ff' : '#666666'}
+              />
+            </TouchableOpacity>
+
+           {isPurposeClicked && (
+  <View style={styles.suggestionsContainer}>
+    {purposeOptions.map((item, index) => (
+      <View key={item.id}>
+        <TouchableOpacity
+          style={styles.suggestionItem}
+          onPress={() => {
+            setPurpose(item.value);
+            setPurposeClicked(false);
+          }}
+        >
+          <View style={styles.suggestionContent}>
+            <Feather name={item.icon} size={16} color="#666" />
+            <Text style={styles.suggestionText}>{item.label}</Text>
+          </View>
+
+          <Feather name="chevron-right" size={14} color="#ccc" />
+        </TouchableOpacity>
+
+        {index < purposeOptions.length - 1 && (
+          <View style={styles.separator} />
+        )}
+      </View>
+    ))}
+  </View>
+)}
+
+          {purpose==="other"&&(<FloatingLabelInput
+            label={'Purspose (If Others)'}
+            value={otherPurpose}
+            onChangeText={setOtherPurpose}
+            placeholder="Enter purpose (if selected as Others)"
+            required={true}
+            onFocus={ref => scrollToInput(ref, scrollViewRef)}
+          />)}
           </View>
 
           {/* Title */}
@@ -444,8 +524,6 @@ export default function CreateJob({ navigation }) {
             required={true}
             onFocus={ref => scrollToInput(ref, scrollViewRef)}
           />
-
-    
         </View>
       </>
     );
@@ -471,6 +549,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    gap: 12,
+  },
+  mapButtonText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
   },
   progressContainer: {
     flex: 1,
@@ -621,5 +713,57 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
+  separator: {
+    height: 1,
+    backgroundColor: Colors.extraLightGrayColor,
+  },
+  suggestionsContainer: {
+    position: 'absolute',
+    top: 112,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderTopWidth: 0,
+    borderColor: '#e5e7eb',
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 1000,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  suggestionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  suggestionText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+  },
+   
+  // suggestionItem: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   paddingHorizontal: 12,
+  //   paddingVertical: 12,
+  // },
+  // suggestionText: {
+  //   marginLeft: 8,
+  //   flex: 1,
+  //   color: Colors.lightBlackColor,
+  // },
   nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
