@@ -417,7 +417,7 @@ export default function CreateJob({ navigation }) {
     return (
       <>
         <View style={styles.form}>
-          <View style={{marginBottom:1}}>
+          <View style={{ marginBottom: 1 }}>
             <Text style={styles.selectorLabel}>
               Purpose <Text style={styles.required}>*</Text>
             </Text>
@@ -451,42 +451,43 @@ export default function CreateJob({ navigation }) {
                 color={isPurposeClicked ? '#000000ff' : '#666666'}
               />
             </TouchableOpacity>
+            {isPurposeClicked && (
+              <View style={styles.suggestionsContainer}>
+                {purposeOptions.map((item, index) => (
+                  <View key={item.id}>
+                    <TouchableOpacity
+                      style={styles.suggestionItem}
+                      onPress={() => {
+                        setPurpose(item.value);
+                        setPurposeClicked(false);
+                      }}
+                    >
+                      <View style={styles.suggestionContent}>
+                        <Feather name={item.icon} size={16} color="#666" />
+                        <Text style={styles.suggestionText}>{item.label}</Text>
+                      </View>
 
-           {isPurposeClicked && (
-  <View style={styles.suggestionsContainer}>
-    {purposeOptions.map((item, index) => (
-      <View key={item.id}>
-        <TouchableOpacity
-          style={styles.suggestionItem}
-          onPress={() => {
-            setPurpose(item.value);
-            setPurposeClicked(false);
-          }}
-        >
-          <View style={styles.suggestionContent}>
-            <Feather name={item.icon} size={16} color="#666" />
-            <Text style={styles.suggestionText}>{item.label}</Text>
-          </View>
+                      <Feather name="chevron-right" size={14} color="#ccc" />
+                    </TouchableOpacity>
 
-          <Feather name="chevron-right" size={14} color="#ccc" />
-        </TouchableOpacity>
+                    {index < purposeOptions.length - 1 && (
+                      <View style={styles.separator} />
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
 
-        {index < purposeOptions.length - 1 && (
-          <View style={styles.separator} />
-        )}
-      </View>
-    ))}
-  </View>
-)}
-
-          {purpose==="other"&&(<FloatingLabelInput
-            label={'Purspose (If Others)'}
-            value={otherPurpose}
-            onChangeText={setOtherPurpose}
-            placeholder="Enter purpose (if selected as Others)"
-            required={true}
-            onFocus={ref => scrollToInput(ref, scrollViewRef)}
-          />)}
+            {purpose === 'other' && (
+              <FloatingLabelInput
+                label={'Purspose (If Others)'}
+                value={otherPurpose}
+                onChangeText={setOtherPurpose}
+                placeholder="Enter purpose (if selected as Others)"
+                required={true}
+                onFocus={ref => scrollToInput(ref, scrollViewRef)}
+              />
+            )}
           </View>
 
           {/* Title */}
@@ -753,7 +754,7 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontWeight: '500',
   },
-   
+
   // suggestionItem: {
   //   flexDirection: 'row',
   //   alignItems: 'center',

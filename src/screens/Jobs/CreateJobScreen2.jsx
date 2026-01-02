@@ -37,12 +37,16 @@ export default function CreateJob({ navigation, route }) {
   const [dailyHours, setDailyHours] = useState('');
   const [deadline, setDeadline] = useState('');
   const [estimatedHours, setEstimatedHours] = useState('');
- {/* Amount Disclosure Common*/}
+  {
+    /* Amount Disclosure Common*/
+  }
   const [discloseAmount, setDiscloseAmount] = useState(false);
   const [amount, setAmount] = useState('');
   const [isNegotiable, setIsNegotiable] = useState(false);
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
+  const [unit, setUnit] = useState('');
+  const [isUnitClicked, setUnitClicked] = useState(false);
 
   //Timings for things
   const [thingTimingType, setThingTimingType] = useState('needed-by-date');
@@ -54,7 +58,7 @@ export default function CreateJob({ navigation, route }) {
   const [thingEndDate, setThingEndDate] = useState('');
   const [thingDailyHours, setThingDailyHours] = useState('');
   const [thingEstimatedHours, setThingEstimatedHours] = useState('');
- 
+
   const clearTimingFieldsOfPerson = newType => {
     if (newType !== 'fixed') {
       setDate('');
@@ -101,7 +105,6 @@ export default function CreateJob({ navigation, route }) {
     clearTimingFieldsOfThing(newType);
     setThingTimingType(newType);
   };
-
 
   useEffect(() => {
     if (route.params?.selectedLocation) {
@@ -646,181 +649,226 @@ export default function CreateJob({ navigation, route }) {
             ))}
           </View>
         </View>
-         {/* Input forms based on timing type */}
-          {thingTimingType === 'needed-by-date' && (
-            <>
-              <DateTimePickerField
-                label="Date"
-                value={thingDate}
-                mode="date"
-                onChange={setThingDate}
-              />
+        {/* Input forms based on timing type */}
+        {thingTimingType === 'needed-by-date' && (
+          <>
+            <DateTimePickerField
+              label="Date"
+              value={thingDate}
+              mode="date"
+              onChange={setThingDate}
+            />
 
-              <DateTimePickerField
-                label="Start Time"
-                mode="time"
-                value={thingStartTime}
-                onChange={setThingStartTime}
-              />
+            <DateTimePickerField
+              label="Start Time"
+              mode="time"
+              value={thingStartTime}
+              onChange={setThingStartTime}
+            />
 
-              <DateTimePickerField
-                label="End Time"
-                mode="time"
-                value={thingEndTime}
-                onChange={setThingEndTime}
-              />
-            </>
-          )}
+            <DateTimePickerField
+              label="End Time"
+              mode="time"
+              value={thingEndTime}
+              onChange={setThingEndTime}
+            />
+          </>
+        )}
 
-          {thingTimingType === 'start-end-date' && (
-            <>
-              <DateTimePickerField
-                label="Start Date"
-                mode="date"
-                value={thingStartDate}
-                onChange={setThingStartDate}
-              />
+        {thingTimingType === 'start-end-date' && (
+          <>
+            <DateTimePickerField
+              label="Start Date"
+              mode="date"
+              value={thingStartDate}
+              onChange={setThingStartDate}
+            />
 
-              <DateTimePickerField
-                label="End Date"
-                mode="date"
-                value={thingEndDate}
-                onChange={setEndDate}
-              />
+            <DateTimePickerField
+              label="End Date"
+              mode="date"
+              value={thingEndDate}
+              onChange={setEndDate}
+            />
 
+            <FloatingLabelInput
+              label="Daily Hours"
+              value={thingDailyHours}
+              onChangeText={setThingDailyHours}
+              keyboardType="numeric"
+              placeholder="Enter daily working hours (e.g., 8)"
+              onFocus={ref => scrollToInput(ref, scrollViewRef)}
+            />
+          </>
+        )}
+
+        {thingTimingType === 'deadline' && (
+          <DateTimePickerField
+            label="Deadline"
+            mode="datetime"
+            value={thingDeadline}
+            onChange={setThingDeadline}
+          />
+        )}
+
+        {thingTimingType === 'flexible' && (
+          <>
+            <FloatingLabelInput
+              label="Estimated Hours"
+              value={thingEstimatedHours}
+              onChangeText={setThingEstimatedHours}
+              keyboardType="numeric"
+              placeholder="Enter estimated total hours (e.g., 40)"
+            />
+          </>
+        )}
+        {/* Amount Disclosure */}
+        <View style={[styles.selectorContainer, { marginBottom: 2 }]}>
+          <Text style={styles.selectorLabel}>
+            Would you like to disclose the amount?
+          </Text>
+          <Text style={styles.selectorHelper}>
+            Choose whether to show payment range
+          </Text>
+          <View style={styles.disclosureOptionsContainer}>
+            <RoundRadioButton
+              label="Yes"
+              selected={discloseAmount === true}
+              onPress={() => setDiscloseAmount(true)}
+            />
+            <RoundRadioButton
+              label="No"
+              selected={discloseAmount === false}
+              onPress={() => {
+                setDiscloseAmount(false);
+                setAmount('');
+              }}
+            />
+          </View>
+        </View>
+          <Text style={[styles.selectorLabel, { marginBottom: 10 }]}>
+                Amount
+          </Text>
+        {discloseAmount && (
+          <View style={styles.amountContainer}>
+            <View style={styles.amountInputWrapper}>
               <FloatingLabelInput
-                label="Daily Hours"
-                value={thingDailyHours}
-                onChangeText={setThingDailyHours}
+                label="Amount (INR) ₹"
+                value={amount}
+                onChangeText={setAmount}
                 keyboardType="numeric"
-                placeholder="Enter daily working hours (e.g., 8)"
+                placeholder="Enter amount"
                 onFocus={ref => scrollToInput(ref, scrollViewRef)}
               />
-            </>
-          )}
+            </View>
+            
+            <View style={styles.unitDropdownWrapper}>
+              <TouchableOpacity
+                style={[
+                  styles.unitButton,
+                  {
+                    backgroundColor: isUnitClicked ? '#fff' : '#f8f9fa',
+                    borderColor: isUnitClicked ? '#000' : '#e9ecef',
+                  },
+                ]}
+                onPress={() => setUnitClicked(prev => !prev)}
+              >
+                <Text
+                numberOfLines={1}
+                  style={[
+                    styles.unitButtonText,
+                    { color: isUnitClicked ? '#000' : '#666' },
+                  ]}
+                >
+                  {unit || 'Unit'}
+                </Text>
+                <Feather
+                  name={isUnitClicked ? 'chevron-down' : 'chevron-right'}
+                  size={14}
+                  color={isUnitClicked ? '#000' : '#666'}
+                />
+              </TouchableOpacity>
 
-          {thingTimingType === 'deadline' && (
-            <DateTimePickerField
-              label="Deadline"
-              mode="datetime"
-              value={thingDeadline}
-              onChange={setThingDeadline}
-            />
-          )}
+              {isUnitClicked && (
+                <View style={styles.unitSuggestionsContainer}>
+                  {[
+                    { value: 'per/hr', label: 'per/hr' },
+                    { value: 'per/day', label: 'per/day' },
+                    { value: 'per/week', label: 'per/week' },
+                    { value: 'per/month', label: 'per/month' },
+                  ].map((item, index) => (
+                    <View key={item.value}>
+                      <TouchableOpacity
+                        style={styles.unitSuggestionItem}
+                        onPress={() => {
+                          setUnit(item.value);
+                          setUnitClicked(false);
+                        }}
+                      >
+                        <Text style={styles.unitSuggestionText}>{item.label}</Text>
+                      </TouchableOpacity>
+                      {index < 3 && <View style={styles.unitSeparator} />}
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
 
-          {thingTimingType === 'flexible' && (
-            <>
-              <FloatingLabelInput
-                label="Estimated Hours"
-                value={thingEstimatedHours}
-                onChangeText={setThingEstimatedHours}
-                keyboardType="numeric"
-                placeholder="Enter estimated total hours (e.g., 40)"
-              />
-            </>
-          )}
-            {/* Amount Disclosure */}
-          <View style={[styles.selectorContainer, { marginBottom: 2 }]}>
-            <Text style={styles.selectorLabel}>
-              Would you like to disclose the amount?
-            </Text>
-            <Text style={styles.selectorHelper}>
-              Choose whether to show payment range
-            </Text>
-            <View style={styles.disclosureOptionsContainer}>
-              <RoundRadioButton
-                label="Yes"
-                selected={discloseAmount === true}
-                onPress={() => setDiscloseAmount(true)}
-              />
-              <RoundRadioButton
-                label="No"
-                selected={discloseAmount === false}
-                onPress={() => {
-                  setDiscloseAmount(false);
-                  setAmount('');
-                }}
-              />
+            <View style={styles.negotiableWrapper}>
+              <TouchableOpacity
+                style={[
+                  styles.negotiableToggle,
+                  { backgroundColor: isNegotiable ? '#22c55e' : '#000' },
+                ]}
+                onPress={() => setIsNegotiable(!isNegotiable)}
+                activeOpacity={0.8}
+              >
+                {isNegotiable ? (
+                  <>
+                    <Text style={styles.negotiableText}>Yes</Text>
+                    <View style={styles.negotiableIcon} />
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.negotiableIcon} />
+                    <Text style={styles.negotiableText}>No</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              <Text style={styles.negotiableLabel}>Negotiable</Text>
             </View>
           </View>
-           {discloseAmount && (
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
-              <View style={{ flex: 3 }}>
-                <Text style={[styles.selectorLabel, { marginBottom: 10 }]}>
-                  Amount
-                </Text>
+        )}
 
+        {discloseAmount && isNegotiable && (
+          <>
+            <Text style={[styles.selectorLabel, { marginBottom: 10 }]}>
+              Amount Range
+            </Text>
+            <View style={styles.amountRangeContainer}>
+              <View style={styles.rangeInputWrapper}>
                 <FloatingLabelInput
-                  label="Amount (INR) ₹"
-                  value={amount}
-                  onChangeText={setAmount}
+                  label="Min Amount (INR) ₹"
+                  value={minAmount}
+                  onChangeText={setMinAmount}
                   keyboardType="numeric"
-                  placeholder="Enter amount"
+                  placeholder="Enter minimum amount"
                   onFocus={ref => scrollToInput(ref, scrollViewRef)}
                 />
               </View>
-              <View style={{ marginLeft: 10, marginTop: 10 }}>
-                <Text style={styles.negotiableLabel}>Negotiable</Text>
-
-                <TouchableOpacity
-                  style={[
-                    styles.negotiableToggle,
-                    { backgroundColor: isNegotiable ? '#22c55e' : '#000' },
-                  ]}
-                  onPress={() => setIsNegotiable(!isNegotiable)}
-                  activeOpacity={0.8}
-                >
-                  {isNegotiable ? (
-                    <>
-                      <Text style={styles.negotiableText}>Yes</Text>
-                      <View style={styles.negotiableIcon} />
-                    </>
-                  ) : (
-                    <>
-                      <View style={styles.negotiableIcon} />
-                      <Text style={styles.negotiableText}>No</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
+              <View style={styles.rangeInputWrapper}>
+                <FloatingLabelInput
+                  label="Max Amount (INR) ₹"
+                  value={maxAmount}
+                  onChangeText={setMaxAmount}
+                  keyboardType="numeric"
+                  placeholder="Enter maximum amount"
+                  onFocus={ref => scrollToInput(ref, scrollViewRef)}
+                />
               </View>
             </View>
-          )}
-
-          {discloseAmount && isNegotiable && (
-            <>
-              <Text style={[styles.selectorLabel, { marginBottom: 10 }]}>
-                Amount Range
-              </Text>
-              <View style={styles.amountRangeContainer}>
-                <View style={styles.rangeInputWrapper}>
-                  <FloatingLabelInput
-                    label="Min Amount (INR) ₹"
-                    value={minAmount}
-                    onChangeText={setMinAmount}
-                    keyboardType="numeric"
-                    placeholder="Enter minimum amount"
-                    onFocus={ref => scrollToInput(ref, scrollViewRef)}
-                  />
-                </View>
-                <View style={styles.rangeInputWrapper}>
-                  <FloatingLabelInput
-                    label="Max Amount (INR) ₹"
-                    value={maxAmount}
-                    onChangeText={setMaxAmount}
-                    keyboardType="numeric"
-                    placeholder="Enter maximum amount"
-                    onFocus={ref => scrollToInput(ref, scrollViewRef)}
-                  />
-                </View>
-              </View>
-            </>
-          )}
+          </>
+        )}
       </>
     );
   }
@@ -926,6 +974,70 @@ const styles = StyleSheet.create({
   locationDesc: {
     fontSize: 12,
     color: '#999',
+  },
+
+  // Amount Container Styles
+  amountContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  amountInputWrapper: {
+    flex: 2,
+  },
+  unitDropdownWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
+  unitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    minHeight: 44,
+  },
+  unitButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  unitSuggestionsContainer: {
+    position: 'absolute',
+    top: '75%',
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderTopWidth: 0,
+    borderColor: '#e5e7eb',
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 1000,
+  },
+  unitSuggestionItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  unitSuggestionText: {
+    fontSize: 12,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  unitSeparator: {
+    height: 1,
+    backgroundColor: '#f3f4f6',
+  },
+  negotiableWrapper: {
+    flex: 0.7,
+    // backgroundColor:"#000",
+    alignItems: 'center',
   },
   locationCheckmark: {
     backgroundColor: '#000',
@@ -1078,60 +1190,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Amount input
-  amountInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  amountInput: { paddingVertical: 12, paddingHorizontal: 15 },
-  negotiableSwitchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderLeftWidth: 1,
-    borderLeftColor: '#ddd',
-    height: '100%',
-    backgroundColor: 'rgba(92, 184, 92, 0.1)',
-  },
-  negotiableText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#5CB85C',
-    marginRight: 5,
-  },
-  negotiableSwitch: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
-
-  amountRangeContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-  },
-  rangeInputWrapper: {
-    flex: 1,
-  },
-
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  nextButton: {
-    backgroundColor: '#000',
-    borderRadius: 30,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-
   // Negotiable Toggle Button Styles
   negotiableToggle: {
     flexDirection: 'row',
@@ -1155,8 +1213,33 @@ const styles = StyleSheet.create({
   },
   negotiableLabel: {
     fontSize: 10,
-    marginBottom: 4,
     color: '#666',
+    marginVertical: 4,
     textAlign: 'center',
   },
+  amountRangeContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 20,
+  },
+  rangeInputWrapper: {
+    flex: 1,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  nextButton: {
+    backgroundColor: '#000',
+    borderRadius: 30,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
