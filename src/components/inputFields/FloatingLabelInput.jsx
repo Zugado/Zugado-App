@@ -132,6 +132,7 @@ const styles = StyleSheet.create({
   fieldContainer: {
     marginBottom: 20,
     position: 'relative',
+    flex: 1,
   },
 
   label: {

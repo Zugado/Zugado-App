@@ -43,7 +43,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
   });
   const [currentLocation, setCurrentLocation] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [address, setAddress] = useState('');
+
   const [addressComponents, setAddressComponents] = useState({
     country: '',
     state: '',
@@ -51,6 +51,11 @@ const LocationPickerScreen = ({ navigation, route }) => {
     pincode: '',
     formattedAddress: '',
   });
+  const [country, setCountry] = useState(addressComponents?.country);
+  const [city, setCity] = useState(addressComponents?.city);
+  const [address, setAddress] = useState(addressComponents?.formattedAddress);
+  const [pinCode, setPinCode] = useState(addressComponents?.pinCode);
+  const [state, setState] = useState(addressComponents?.state);
   const [name, setName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [landmark, setLandmark] = useState('');
@@ -64,7 +69,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
   const addressTypes = ['Home', 'Office', 'Work', 'Other'];
 
   const decodeAddress = addressComponents => {
-   const decoded = {
+    const decoded = {
       country: '',
       state: '',
       city: '',
@@ -205,9 +210,9 @@ const LocationPickerScreen = ({ navigation, route }) => {
       const res = await fetch(url);
       const data = await res.json();
 
-      console.log('[geo] Full response:', JSON.stringify(data, null, 2));
-      console.log('[geo] Status:', data?.status);
-      console.log('[geo] Results count:', data?.results?.length);
+      // console.log('[geo] Full response:', JSON.stringify(data, null, 2));
+      // console.log('[geo] Status:', data?.status);
+      // console.log('[geo] Results count:', data?.results?.length);
 
       if (data?.status === 'OK' && data?.results?.length > 0) {
         const result = data.results[0];
@@ -527,7 +532,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
           <TouchableOpacity
             style={styles.backdrop}
             activeOpacity={1}
-            // onPress={() => setConfirmed(false)}    
+            // onPress={() => setConfirmed(false)}
           >
             {/* Prevent outside touch from closing when user interacts inside */}
             <KeyboardAvoidingView
@@ -549,7 +554,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
             >
               {/* Drag indicator */}
               <TouchableOpacity
-                 onPress={() => setConfirmed(false)}
+                onPress={() => setConfirmed(false)}
                 style={{
                   height: 8,
                   width: 80,
@@ -597,49 +602,80 @@ const LocationPickerScreen = ({ navigation, route }) => {
                     </Text>
                   </View>
 
-                  <Text style={{ fontSize: 12, marginVertical: 10 }}>
+                  {/* <Text style={{ fontSize: 12, marginVertical: 10 }}>
                     {address}
-                  </Text>
+                  </Text> */}
 
                   <View style={styles.addressComponentsContainer}>
+                   
                     <Text style={styles.componentText}>
-                      Country: {addressComponents.country}
-                    </Text>
-                    <Text style={styles.componentText}>
-                      State: {addressComponents.state}
-                    </Text>
-                    <Text style={styles.componentText}>
-                      City: {addressComponents.city}
-                    </Text>
-                    <Text style={styles.componentText}>
-                      Pin Code: {addressComponents.pincode}
+                     {addressComponents.formattedAddress}
                     </Text>
                   </View>
 
                   {/* Inputs */}
                   <View style={{ marginTop: 16 }}>
-                    <FloatingLabelInput
-                      label="Name"
-                      value={name}
-                      onChangeText={setName}
-                      placeholder="Enter your name"
-                      required
-                    />
+                    <View
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        gap: 10,
+                      }}
+                    >
+                      <FloatingLabelInput
+                        label="Country"
+                        value={country || addressComponents.country}
+                        onChangeText={setCountry}
+                        placeholder="Enter Country"
+                        required
+                      />
+                      <FloatingLabelInput
+                        label="State"
+                        value={state || addressComponents.state}
+                        onChangeText={setState}
+                        placeholder="Enter State"
+                        required
+                      />
+                    </View>
+                    <View
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        gap: 10,
+                      }}
+                    >
+                      <FloatingLabelInput
+                        label="City"
+                        value={city || addressComponents.city}
+                        onChangeText={setCity}
+                        placeholder="Enter City"
+                        required
+                      />
 
-                    <FloatingLabelInput
-                      label="Mobile Number"
-                      value={mobileNumber}
-                      onChangeText={setMobileNumber}
-                      placeholder="Enter mobile number"
-                      keyboardType="phone-pad"
-                      required
-                    />
-
+                      <FloatingLabelInput
+                        label="Pin Code"
+                        value={pinCode || addressComponents.pincode}
+                        onChangeText={setPinCode}
+                        placeholder="Enter Pin Code"
+                        keyboardType="phone-pad"
+                        required
+                      />
+                    </View>
                     <FloatingLabelInput
                       label="Landmark"
                       value={landmark}
                       onChangeText={setLandmark}
                       placeholder="Enter landmark (optional)"
+                    />
+
+                    <FloatingLabelInput
+                      label="Address"
+                      required={true}
+                      value={address}
+                      onChangeText={setAddress}
+                      multiline
+                      numberOfLines={2}
+                      placeholder="Enter or edit address manually"
                     />
 
                     <Text style={styles.label}>Address Type</Text>
