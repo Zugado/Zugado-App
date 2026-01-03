@@ -24,7 +24,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Key } from '../../constants/key';
 import { Colors } from '../../styles/commonStyles';
 import Feather from 'react-native-vector-icons/Feather';
-import { saveAddress, updateAddress, getSavedAddresses } from '../../utils/addressStorage';
+import {
+  saveAddress,
+  updateAddress,
+  getSavedAddresses,
+} from '../../utils/addressStorage';
 import { useSelector } from 'react-redux';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import FloatingLabelInput from '../../components/inputFields/FloatingLabelInput';
@@ -34,7 +38,7 @@ const AUTOCOMPLETE_URL =
 const DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
 
 const LocationPickerScreen = ({ navigation, route }) => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useSelector(state => state.auth);
   const { showSnackbar } = useSnackbar();
   const { editAddressId } = route.params || {};
   const mapkey = Key.mapApiKey;
@@ -85,7 +89,6 @@ const LocationPickerScreen = ({ navigation, route }) => {
 
     addressComponents.forEach(component => {
       const types = component.types;
-
       if (types.includes('country')) {
         decoded.country = component.long_name;
       } else if (types.includes('administrative_area_level_1')) {
@@ -397,10 +400,13 @@ const LocationPickerScreen = ({ navigation, route }) => {
         await saveAddress(user?.id || user?._id, addressData);
         showSnackbar('Address saved successfully', 'success');
       }
-      
+
       navigation.goBack();
     } catch (error) {
-      showSnackbar(editAddressId ? 'Failed to update address' : 'Failed to save address', 'error');
+      showSnackbar(
+        editAddressId ? 'Failed to update address' : 'Failed to save address',
+        'error',
+      );
     }
   };
 
@@ -485,6 +491,21 @@ const LocationPickerScreen = ({ navigation, route }) => {
           <Ionicons name="locate-outline" size={22} color={Colors.whiteColor} />
         </TouchableOpacity>
 
+        {confirmLocationBottomSheet?.()}
+        {addAddressbottomSheet?.()}
+
+        {isLoading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+  function confirmLocationBottomSheet() {
+    return (
+      <>
+        {' '}
         {address && !isConfirmed && (
           <View
             style={{
@@ -542,216 +563,212 @@ const LocationPickerScreen = ({ navigation, route }) => {
             </TouchableOpacity>
           </View>
         )}
-
-        <Modal
-          visible={isConfirmed}
-          transparent
-          animationType="slide"
-          onPress={() => setConfirmed(false)}
+      </>
+    );
+  }
+  function addAddressbottomSheet() {
+    return (
+      <Modal
+        visible={isConfirmed}
+        transparent
+        animationType="slide"
+        onPress={() => setConfirmed(false)}
+      >
+        <TouchableOpacity
+          style={styles.backdrop}
+          activeOpacity={1}
+          // onPress={() => setConfirmed(false)}
         >
-          <TouchableOpacity
-            style={styles.backdrop}
-            activeOpacity={1}
-            // onPress={() => setConfirmed(false)}
+          {/* Prevent outside touch from closing when user interacts inside */}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              width: '100%',
+              backgroundColor: Colors.whiteColor,
+              borderTopRightRadius: 22,
+              borderTopLeftRadius: 22,
+              elevation: 3,
+              shadowColor: '#000',
+              shadowOpacity: 0.08,
+              shadowRadius: 6,
+              paddingTop: 20,
+              maxHeight: '80%',
+            }}
           >
-            {/* Prevent outside touch from closing when user interacts inside */}
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            {/* Drag indicator */}
+            <TouchableOpacity
+              onPress={() => setConfirmed(false)}
               style={{
-                position: 'absolute',
-                bottom: 0,
-                width: '100%',
-                backgroundColor: Colors.whiteColor,
-                borderTopRightRadius: 22,
-                borderTopLeftRadius: 22,
-                elevation: 3,
-                shadowColor: '#000',
-                shadowOpacity: 0.08,
-                shadowRadius: 6,
-                paddingTop: 20,
-                maxHeight: '80%',
+                height: 8,
+                width: 80,
+                backgroundColor: '#969696ff',
+                alignSelf: 'center',
+                borderRadius: 4,
+                marginBottom: 20,
               }}
+            />
+
+            {/* Close button */}
+            <TouchableOpacity
+              style={{
+                height: 30,
+                width: 30,
+                borderRadius: 54,
+                backgroundColor: Colors.whiteColor,
+                borderColor: Colors.blackColor,
+                borderWidth: 1,
+                position: 'absolute',
+                top: 20,
+                right: 20,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              onPress={() => setConfirmed(false)}
+              activeOpacity={0.8}
             >
-              {/* Drag indicator */}
-              <TouchableOpacity
-                onPress={() => setConfirmed(false)}
-                style={{
-                  height: 8,
-                  width: 80,
-                  backgroundColor: '#969696ff',
-                  alignSelf: 'center',
-                  borderRadius: 4,
-                  marginBottom: 20,
-                }}
-              />
+              <Feather name="x" size={20} color="#000" />
+            </TouchableOpacity>
 
-              {/* Close button */}
-              <TouchableOpacity
-                style={{
-                  height: 30,
-                  width: 30,
-                  borderRadius: 54,
-                  backgroundColor: Colors.whiteColor,
-                  borderColor: Colors.blackColor,
-                  borderWidth: 1,
-                  position: 'absolute',
-                  top: 20,
-                  right: 20,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-                onPress={() => setConfirmed(false)}
-                activeOpacity={0.8}
-              >
-                <Feather name="x" size={20} color="#000" />
-              </TouchableOpacity>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              // style={{ paddingVertical: 20 }}
+            >
+              <View style={{ paddingHorizontal: 16 }}>
+                {/* Header */}
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Feather name="map-pin" size={20} color="#000" />
+                  <Text
+                    style={{ fontSize: 16, fontWeight: '600', marginLeft: 4 }}
+                  >
+                    Selected Location
+                  </Text>
+                </View>
 
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-                // style={{ paddingVertical: 20 }}
-              >
-                <View style={{ paddingHorizontal: 16 }}>
-                  {/* Header */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Feather name="map-pin" size={20} color="#000" />
-                    <Text
-                      style={{ fontSize: 16, fontWeight: '600', marginLeft: 4 }}
-                    >
-                      Selected Location
-                    </Text>
-                  </View>
-
-                  {/* <Text style={{ fontSize: 12, marginVertical: 10 }}>
+                {/* <Text style={{ fontSize: 12, marginVertical: 10 }}>
                     {address}
                   </Text> */}
 
-                  <View style={styles.addressComponentsContainer}>
-                   
-                    <Text style={styles.componentText}>
-                     {addressComponents.formattedAddress}
-                    </Text>
-                  </View>
-
-                  {/* Inputs */}
-                  <View style={{ marginTop: 16 }}>
-                    <View
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        gap: 10,
-                      }}
-                    >
-                      <FloatingLabelInput
-                        label="Country"
-                        value={country || addressComponents.country}
-                        onChangeText={setCountry}
-                        placeholder="Enter Country"
-                        editable={false}
-                        required
-                      />
-                      <FloatingLabelInput
-                        label="State"
-                        value={state || addressComponents.state}
-                        onChangeText={setState}
-                        placeholder="Enter State"
-                        editable={false}
-                        required
-                      />
-                    </View>
-                    <View
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        gap: 10,
-                      }}
-                    >
-                      <FloatingLabelInput
-                        label="City"
-                        value={city || addressComponents.city}
-                        onChangeText={setCity}
-                        placeholder="Enter City"
-                        editable={false}
-                        required
-                      />
-
-                      <FloatingLabelInput
-                        label="Pin Code"
-                        value={pinCode || addressComponents.pincode}
-                        onChangeText={setPinCode}
-                        placeholder="Enter Pin Code"
-                        editable={false}
-                        keyboardType="phone-pad"
-                        required
-                      />
-                    </View>
-                    <FloatingLabelInput
-                      label="Landmark"
-                      value={landmark}
-                      onChangeText={setLandmark}
-                      placeholder="Enter landmark (optional)"
-                    />
-
-                    <FloatingLabelInput
-                      label="Address"
-                      required={true}
-                      value={address}
-                      onChangeText={setAddress}
-                      multiline
-                      numberOfLines={2}
-                      placeholder="Enter or edit address manually"
-                    />
-
-                    <Text style={styles.label}>Address Type</Text>
-
-                    <View style={styles.addressTypeContainer}>
-                      {addressTypes.map(type => (
-                        <TouchableOpacity
-                          key={type}
-                          style={[
-                            styles.typeButton,
-                            addressType === type && styles.selectedTypeButton,
-                          ]}
-                          onPress={() => setAddressType(type)}
-                        >
-                          <Text
-                            style={[
-                              styles.typeButtonText,
-                              addressType === type &&
-                                styles.selectedTypeButtonText,
-                            ]}
-                          >
-                            {type}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-
-                  {/* Save button */}
-                  <TouchableOpacity
-                    style={[styles.bottomBtn, { marginBottom: 40 }]}
-                    onPress={handleAddAddress}
-                    activeOpacity={0.9}
-                  >
-                    <Text style={styles.bottomBtnText}>
-                      {editAddressId ? 'Update Address' : 'Save Address'}
-                    </Text>
-                  </TouchableOpacity>
+                <View style={styles.addressComponentsContainer}>
+                  <Text style={styles.componentText}>
+                    {addressComponents.formattedAddress}
+                  </Text>
                 </View>
-              </ScrollView>
-            </KeyboardAvoidingView>
-          </TouchableOpacity>
-        </Modal>
 
-        {isLoading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-          </View>
-        )}
-      </View>
-    </SafeAreaView>
-  );
+                {/* Inputs */}
+                <View style={{ marginTop: 16 }}>
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 10,
+                    }}
+                  >
+                    <FloatingLabelInput
+                      label="Country"
+                      value={country || addressComponents.country}
+                      onChangeText={setCountry}
+                      placeholder="Enter Country"
+                      editable={false}
+                      required
+                    />
+                    <FloatingLabelInput
+                      label="State"
+                      value={state || addressComponents.state}
+                      onChangeText={setState}
+                      placeholder="Enter State"
+                      editable={false}
+                      required
+                    />
+                  </View>
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 10,
+                    }}
+                  >
+                    <FloatingLabelInput
+                      label="City"
+                      value={city || addressComponents.city}
+                      onChangeText={setCity}
+                      placeholder="Enter City"
+                      editable={false}
+                      required
+                    />
+
+                    <FloatingLabelInput
+                      label="Pin Code"
+                      value={pinCode || addressComponents.pincode}
+                      onChangeText={setPinCode}
+                      placeholder="Enter Pin Code"
+                      editable={false}
+                      keyboardType="phone-pad"
+                      required
+                    />
+                  </View>
+                  <FloatingLabelInput
+                    label="Landmark"
+                    value={landmark}
+                    onChangeText={setLandmark}
+                    placeholder="Enter landmark (optional)"
+                  />
+
+                  <FloatingLabelInput
+                    label="Address"
+                    required={true}
+                    value={address}
+                    onChangeText={setAddress}
+                    multiline
+                    numberOfLines={2}
+                    placeholder="Enter or edit address manually"
+                  />
+
+                  <Text style={styles.label}>Address Type</Text>
+
+                  <View style={styles.addressTypeContainer}>
+                    {addressTypes.map(type => (
+                      <TouchableOpacity
+                        key={type}
+                        style={[
+                          styles.typeButton,
+                          addressType === type && styles.selectedTypeButton,
+                        ]}
+                        onPress={() => setAddressType(type)}
+                      >
+                        <Text
+                          style={[
+                            styles.typeButtonText,
+                            addressType === type &&
+                              styles.selectedTypeButtonText,
+                          ]}
+                        >
+                          {type}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Save button */}
+                <TouchableOpacity
+                  style={[styles.bottomBtn, { marginBottom: 40 }]}
+                  onPress={handleAddAddress}
+                  activeOpacity={0.9}
+                >
+                  <Text style={styles.bottomBtnText}>
+                    {editAddressId ? 'Update Address' : 'Save Address'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
+      </Modal>
+    );
+  }
 };
 
 export default LocationPickerScreen;

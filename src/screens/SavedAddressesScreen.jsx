@@ -212,7 +212,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
             </View>
           ) : (
             <FlatList
-              data={addresses}
+              data={addresses?.reverse()}
               renderItem={renderAddressCard}
               keyExtractor={item => item.id}
               showsVerticalScrollIndicator={false}
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: "50%",
   },
   emptyTitle: {
     fontSize: 18,
