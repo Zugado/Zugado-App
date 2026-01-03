@@ -84,7 +84,7 @@ const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabl
             ) : (
               <>
                 <Entypo name="flash" style={styles.jobIcon} />
-                <Text style={styles.jobText}>not Urgent</Text>
+                <Text style={styles.jobText}>Urgent</Text>
               </>
             )}
           </TouchableOpacity>

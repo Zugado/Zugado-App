@@ -347,7 +347,8 @@ const LocationPickerScreen = ({ navigation, route }) => {
   };
 
   const handleAddAddress = () => {
-    if (!name.trim() || !mobileNumber.trim() || !address.trim()) {
+    // if (!name.trim() || !mobileNumber.trim() || !address.trim()) {
+     if ( !address.trim()) {
       Alert.alert(
         'Missing Fields',
         'Please fill Name, Mobile Number and ensure location is selected.',
@@ -356,8 +357,8 @@ const LocationPickerScreen = ({ navigation, route }) => {
     }
 
     const addressData = {
-      name: name.trim(),
-      mobileNumber: mobileNumber.trim(),
+      // name: name.trim(),
+      // mobileNumber: mobileNumber.trim(),
       landmark: landmark.trim(),
       addressType,
       address: address.trim(),

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector, useDispatch } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
 import MyStatusBar from '../../components/MyStatusbar';
@@ -56,7 +57,8 @@ export default function CreateJob({ navigation }) {
   const availableTags = useSelector(selectTags);
   const tagsLoading = useSelector(selectTagsLoading);
   const { showSnackbar } = useSnackbar();
-  const [showDraftAlert, setShowDraftAlert] = useState(true);
+  const [showDraftAlert, setShowDraftAlert] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
   const scrollViewRef = useRef(null);
 
   // Task For
@@ -89,20 +91,147 @@ export default function CreateJob({ navigation }) {
   const [thingCategoryList, setthingCategoryList] = useState([]);
   const [selectedThingCategory, setSelectedThingCategory] = useState('');
   const [isPurposeClicked, setPurposeClicked] = useState(false);
-  // Load tags on component mount
+  // Load tags and check for draft on component mount
   useEffect(() => {
     dispatch(getAllTags());
+    checkForDraft();
   }, [dispatch]);
 
-  // console.log('availble tage = ', JSON.stringify(availableTags, null, 2));
+  // Save draft whenever form data changes
+  useEffect(() => {
+    const draftData = {
+      jobFor,
+      personTitle,
+      personDescription,
+      experienceLevel,
+      selectedSkills,
+      skill,
+      requiresExperience,
+      jobType,
+      thingTitle,
+      thingDescription,
+      purpose,
+      otherPurpose,
+      selectedThingCategory,
+    };
+    saveDraft(draftData);
+  }, [jobFor, personTitle, personDescription, experienceLevel, selectedSkills, skill, requiresExperience, jobType, thingTitle, thingDescription, purpose, otherPurpose, selectedThingCategory]);
+
+  const checkForDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('jobDraft');
+      if (draft) {
+        setHasDraft(true);
+        setShowDraftAlert(true);
+      }
+    } catch (error) {
+      console.log('Error checking draft:', error);
+    }
+  };
+
+  const saveDraft = async (data) => {
+    try {
+      // Only save if there's meaningful data
+      const hasData = data.personTitle || data.thingTitle || data.personDescription || data.thingDescription || data.selectedSkills.length > 0;
+      if (hasData) {
+        await AsyncStorage.setItem('jobDraft', JSON.stringify(data));
+      }
+    } catch (error) {
+      console.log('Error saving draft:', error);
+    }
+  };
+
+  const loadDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('jobDraft');
+      if (draft) {
+        const draftData = JSON.parse(draft);
+        setJobFor(draftData.jobFor || 'person');
+        setPersonTitle(draftData.personTitle || '');
+        setPersonDescription(draftData.personDescription || '');
+        setExperienceLevel(draftData.experienceLevel || '');
+        setSelectedSkills(draftData.selectedSkills || []);
+        setSkill(draftData.skill || '');
+        setRequiresExperience(draftData.requiresExperience || 'no');
+        setJobType(draftData.jobType || 'standard');
+        setThingTitle(draftData.thingTitle || '');
+        setThingDescription(draftData.thingDescription || '');
+        setPurpose(draftData.purpose || '');
+        setOtherPurpose(draftData.otherPurpose || '');
+        setSelectedThingCategory(draftData.selectedThingCategory || '');
+      }
+    } catch (error) {
+      console.log('Error loading draft:', error);
+    }
+  };
+
+  const clearDraft = async () => {
+    try {
+      await AsyncStorage.removeItem('jobDraft');
+    } catch (error) {
+      console.log('Error clearing draft:', error);
+    }
+  };
 
   const handleNewForm = () => {
     setShowDraftAlert(false);
+    clearDraft();
+    // Reset all form fields
+    setJobFor('person');
+    setPersonTitle('');
+    setPersonDescription('');
+    setExperienceLevel('');
+    setSelectedSkills([]);
+    setSkill('');
+    setRequiresExperience('no');
+    setJobType('standard');
+    setThingTitle('');
+    setThingDescription('');
+    setPurpose('');
+    setOtherPurpose('');
+    setSelectedThingCategory('');
   };
 
   const handleResumeDraft = () => {
     setShowDraftAlert(false);
-    showSnackbar('No drafts available yet', 'info');
+    loadDraft();
+    showSnackbar('Draft loaded successfully', 'success');
+  };
+
+  // Clear fields when switching between person/thing
+  const handleJobForChange = (value) => {
+    setJobFor(value);
+    if (value === 'person') {
+      // Clear thing-specific fields
+      setThingTitle('');
+      setThingDescription('');
+      setPurpose('');
+      setOtherPurpose('');
+      setSelectedThingCategory('');
+    } else {
+      // Clear person-specific fields
+      setPersonTitle('');
+      setPersonDescription('');
+      setExperienceLevel('');
+      setSkill('');
+      setRequiresExperience('no');
+    }
+  };
+
+  // Clear experience level when switching requiresExperience
+  const handleRequiresExperienceChange = (value) => {
+    setRequiresExperience(value);
+    if (value === 'no') {
+      setExperienceLevel('');
+    }
+  };
+
+  // Clear other purpose when purpose changes
+  const handlePurposeChange = (value) => {
+    setPurpose(value);
+    if (value !== 'other') {
+      setOtherPurpose('');
+    }
   };
 
   const renderSuggestion = ({ item }) => (
@@ -175,7 +304,7 @@ export default function CreateJob({ navigation }) {
                       styles.selectorCard,
                       jobFor === option.value && styles.selectedCard,
                     ]}
-                    onPress={() => setJobFor(option.value)}
+                    onPress={() => handleJobForChange(option.value)}
                   >
                     <View style={styles.selectorContent}>
                       <Feather
@@ -210,13 +339,15 @@ export default function CreateJob({ navigation }) {
             <TouchableOpacity
               style={styles.nextButton}
               onPress={() => {
+                // Clear draft on successful submission
+                clearDraft();
+                
+                // Get current form data based on jobFor
+                const currentTitle = jobFor === 'person' ? personTitle : thingTitle;
+                const currentDescription = jobFor === 'person' ? personDescription : thingDescription;
+                
                 // Validation
-                if (
-                  !jobFor ||
-                  !personTitle.trim() ||
-                  !personDescription.trim() ||
-                  !jobType
-                ) {
+                if (!jobFor || !currentTitle.trim() || !currentDescription.trim() || !jobType) {
                   showSnackbar('Please fill all required fields', 'error');
                   return;
                 }
@@ -224,46 +355,40 @@ export default function CreateJob({ navigation }) {
                   showSnackbar('Please select a purpose for the item', 'error');
                   return;
                 }
-                if (requiresExperience === 'yes' && !experienceLevel) {
+                if (jobFor === 'thing' && purpose === 'other' && !otherPurpose.trim()) {
+                  showSnackbar('Please specify the purpose', 'error');
+                  return;
+                }
+                if (jobFor === 'person' && requiresExperience === 'yes' && !experienceLevel) {
                   showSnackbar('Please select an experience level', 'error');
                   return;
                 }
                 if (selectedSkills.length === 0) {
-                  showSnackbar(
-                    'Please add at least one skill or category',
-                    'error',
-                  );
+                  showSnackbar('Please add at least one skill or category', 'error');
                   return;
                 }
-                if (personTitle.length > 100) {
+                if (currentTitle.length > 100) {
                   showSnackbar('Title must be 100 characters or less', 'error');
                   return;
                 }
-                if (personDescription.length > 1000) {
-                  showSnackbar(
-                    'Description must be 1000 characters or less',
-                    'error',
-                  );
+                if (currentDescription.length > 1000) {
+                  showSnackbar('Description must be 1000 characters or less', 'error');
                   return;
                 }
                 if (skill.length > 500) {
-                  showSnackbar(
-                    'Requirements must be 500 characters or less',
-                    'error',
-                  );
+                  showSnackbar('Requirements must be 500 characters or less', 'error');
                   return;
                 }
 
                 navigation.navigate('CreateJobScreen2', {
                   jobData: {
                     jobFor,
-                    purpose: jobFor === 'thing' ? purpose : null,
-                    title: personTitle.trim(),
-                    description: personDescription.trim(),
-                    category: selectedSkills, // Single array of skills/categories
-                    requirements: skill.trim(),
-                    experienceLevel:
-                      requiresExperience === 'yes' ? experienceLevel : null,
+                    purpose: jobFor === 'thing' ? (purpose === 'other' ? otherPurpose : purpose) : null,
+                    title: currentTitle.trim(),
+                    description: currentDescription.trim(),
+                    category: selectedSkills,
+                    requirements: jobFor === 'person' ? skill.trim() : '',
+                    experienceLevel: jobFor === 'person' && requiresExperience === 'yes' ? experienceLevel : null,
                     jobType,
                   },
                 });
@@ -273,7 +398,7 @@ export default function CreateJob({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          {showDraftAlert && (
+          {showDraftAlert && hasDraft && (
             <CustomAlert
               message="Would you like to start a new form or resume from your draft?"
               onYes={handleResumeDraft}
@@ -366,9 +491,7 @@ export default function CreateJob({ navigation }) {
             <SelectorToggleButton
               options={['No', 'Yes']}
               selectedValue={requiresExperience === 'no' ? 'No' : 'Yes'}
-              onValueChange={value =>
-                setRequiresExperience(value === 'No' ? 'no' : 'yes')
-              }
+              onValueChange={value => handleRequiresExperienceChange(value === 'No' ? 'no' : 'yes')}
             />
           </View>
 
@@ -458,7 +581,7 @@ export default function CreateJob({ navigation }) {
                     <TouchableOpacity
                       style={styles.suggestionItem}
                       onPress={() => {
-                        setPurpose(item.value);
+                        handlePurposeChange(item.value);
                         setPurposeClicked(false);
                       }}
                     >

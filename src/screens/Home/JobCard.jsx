@@ -155,10 +155,8 @@ const JobCard = ({ job }) => {
             <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
 
             <Text style={styles.price}>
-              {job?.amount?.disclose && job?.amount?.min
-                ? `₹ ${job.amount.min}${
-                    job.amount.max ? ` - ${job.amount.max}` : ''
-                  }`
+              {job?.amount?.disclose && job?.amount?.value
+                ? `₹ ${job.amount.value}`
                 : 'Price on request'}
             </Text>
           </View>

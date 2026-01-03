@@ -31,16 +31,27 @@ export default function CreateJobPageThree({ navigation, route }) {
   const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
   const [currentMediaType, setCurrentMediaType] = useState('image');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  console.log('Job Data from Previous Screens:', JSON.stringify(jobData, null, 2));
-  console.log('Individual fields:', {
-    jobFor: jobData?.jobFor,
-    title: jobData?.title,
-    description: jobData?.description,
-    tags: jobData?.tags,
-    requirements: jobData?.requirements,
-    experienceLevel: jobData?.experienceLevel,
-    jobType: jobData?.jobType
-  });
+  
+  // Log job data on component render
+  useEffect(() => {
+    console.log('=== CREATE JOB SCREEN 3 - JOB DATA SUMMARY ===');
+    console.log('Complete Job Data:', JSON.stringify(jobData, null, 2));
+    console.log('\n=== INDIVIDUAL FIELD BREAKDOWN ===');
+    console.log('Job For:', jobData?.jobFor);
+    console.log('Purpose:', jobData?.purpose);
+    console.log('Title:', jobData?.title);
+    console.log('Description:', jobData?.description);
+    console.log('Category/Skills:', jobData?.category);
+    console.log('Requirements:', jobData?.requirements);
+    console.log('Experience Level:', jobData?.experienceLevel);
+    console.log('Job Type:', jobData?.jobType);
+    console.log('Location Type:', jobData?.locationType);
+    console.log('Location:', jobData?.location);
+    console.log('Timing Type:', jobData?.timingType);
+    console.log('Timing Details:', jobData?.timingDetails);
+    console.log('Amount:', jobData?.amount);
+    console.log('=== END JOB DATA SUMMARY ===\n');
+  }, [jobData]);
   const pickVideo = async (source) => {
     try {
       if (mediaFiles.length >= 3) {
@@ -167,8 +178,7 @@ export default function CreateJobPageThree({ navigation, route }) {
         timingType: jobData.timingType,
         timingDetails: formattedTimingDetails,
         amount: {
-          min: jobData.amount?.min || 0,
-          max: jobData.amount?.max || 0,
+          value: jobData.amount?.value || 0,
           disclose: jobData.amount?.disclose || false
         }
       };
@@ -364,7 +374,7 @@ export default function CreateJobPageThree({ navigation, route }) {
             <Text style={styles.summaryText}>Location: {jobData.locationType}</Text>
             {jobData.amount?.disclose && (
               <Text style={styles.summaryText}>
-                Amount: ${jobData.amount.min} - ${jobData.amount.max}
+                Amount: ₹{jobData.amount.value}
               </Text>
             )}
           </View>
