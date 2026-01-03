@@ -143,58 +143,58 @@ export default function CreateJobPageThree({ navigation, route }) {
       // Format timing details based on timing type and jobFor
       let formattedTimingDetails = {};
       
-      if (jobData.jobFor === 'person') {
-        switch (jobData.timingType) {
+      if (jobData?.jobFor === 'person') {
+        switch (jobData?.timingType) {
           case 'fixed':
             formattedTimingDetails = {
-              date: jobData.timingDetails.date,
-              startTime: jobData.timingDetails.startTime,
-              endTime: jobData.timingDetails.endTime
+              date: jobData?.timingDetails?.date,
+              startTime: jobData?.timingDetails?.startTime,
+              endTime: jobData?.timingDetails?.endTime
             };
             break;
           case 'multiday':
             formattedTimingDetails = {
-              startDate: jobData.timingDetails.startDate,
-              endDate: jobData.timingDetails.endDate,
-              dailyHours: jobData.timingDetails.dailyHours
+              startDate: jobData?.timingDetails?.startDate,
+              endDate: jobData?.timingDetails?.endDate,
+              dailyHours: jobData?.timingDetails?.dailyHours
             };
             break;
           case 'deadline':
             formattedTimingDetails = {
-              deadline: jobData.timingDetails.deadline
+              deadline: jobData?.timingDetails?.deadline
             };
             break;
           case 'flexible':
             formattedTimingDetails = {
-              estimatedHours: jobData.timingDetails.estimatedHours
+              estimatedHours: jobData?.timingDetails?.estimatedHours
             };
             break;
         }
       } else {
         // Thing timing details
-        switch (jobData.timingType) {
+        switch (jobData?.timingType) {
           case 'needed-by-date':
             formattedTimingDetails = {
-              date: jobData.timingDetails.thingDate,
-              startTime: jobData.timingDetails.thingStartTime,
-              endTime: jobData.timingDetails.thingEndTime
+              date: jobData?.timingDetails?.thingDate,
+              startTime: jobData?.timingDetails?.thingStartTime,
+              endTime: jobData?.timingDetails?.thingEndTime
             };
             break;
           case 'start-end-date':
             formattedTimingDetails = {
-              startDate: jobData.timingDetails.thingStartDate,
-              endDate: jobData.timingDetails.thingEndDate,
-              dailyHours: jobData.timingDetails.thingDailyHours
+              startDate: jobData?.timingDetails?.thingStartDate,
+              endDate: jobData?.timingDetails?.thingEndDate,
+              dailyHours: jobData?.timingDetails?.thingDailyHours
             };
             break;
           case 'deadline':
             formattedTimingDetails = {
-              deadline: jobData.timingDetails.thingDeadline
+              deadline: jobData?.timingDetails?.thingDeadline
             };
             break;
           case 'flexible':
             formattedTimingDetails = {
-              estimatedHours: jobData.timingDetails.thingEstimatedHours
+              estimatedHours: jobData?.timingDetails?.thingEstimatedHours
             };
             break;
         }
@@ -202,24 +202,24 @@ export default function CreateJobPageThree({ navigation, route }) {
 
       // Format job data according to API structure
       const formattedJobData = {
-        jobFor: jobData.jobFor,
-        purpose: jobData.purpose || null,
-        title: jobData.title,
-        description: jobData.description,
-        tags: jobData.category || [],
-        requirements: jobData.requirements || '',
-        experienceLevel: jobData.experienceLevel,
-        locationType: jobData.locationType || null,
-        location: jobData.location,
-        jobType: jobData.jobType,
-        timingType: jobData.timingType,
+        jobFor: jobData?.jobFor,
+        purpose: jobData?.purpose || null,
+        title: jobData?.title,
+        description: jobData?.description,
+        tags: jobData?.category || [],
+        requirements: jobData?.requirements || '',
+        experienceLevel: jobData?.experienceLevel,
+        locationType: jobData?.locationType || null,
+        location: jobData?.location,
+        jobType: jobData?.jobType,
+        timingType: jobData?.timingType,
         timingDetails: formattedTimingDetails,
         amount: {
-          value: jobData.amount?.value || 0,
-          unit: jobData.amount?.unit || null,
-          disclose: jobData.amount?.disclose || false,
-          negotiable: jobData.amount?.negotiable || false,
-          range: jobData.amount?.range || null
+          value: jobData?.amount?.value || 0,
+          unit: jobData?.amount?.unit || null,
+          disclose: jobData?.amount?.disclose || false,
+          negotiable: jobData?.amount?.negotiable || false,
+          range: jobData?.amount?.range || null
         }
       };
 
@@ -381,12 +381,12 @@ export default function CreateJobPageThree({ navigation, route }) {
           {/* Job Summary */}
           <View style={styles.summaryContainer}>
             <Text style={styles.summaryTitle}>Job Summary</Text>
-            <Text style={styles.summaryText}>Title: {jobData.title}</Text>
-            <Text style={styles.summaryText}>Type: {jobData.jobType} • {jobData.jobFor}</Text>
-            <Text style={styles.summaryText}>Location: {jobData.locationType}</Text>
-            {jobData.amount?.disclose && (
+            <Text style={styles.summaryText}>Title: {jobData?.title}</Text>
+            <Text style={styles.summaryText}>Type: {jobData?.jobType} • {jobData?.jobFor}</Text>
+            <Text style={styles.summaryText}>Location: {jobData?.locationType}</Text>
+            {jobData?.amount?.disclose && (
               <Text style={styles.summaryText}>
-                Amount: ₹{jobData.amount.value}
+                Amount: ₹{jobData?.amount?.value}
               </Text>
             )}
           </View>

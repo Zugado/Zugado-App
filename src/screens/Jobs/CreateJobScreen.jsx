@@ -136,7 +136,7 @@ export default function CreateJob({ navigation }) {
   const saveDraft = async (data) => {
     try {
       // Only save if there's meaningful data
-      const hasData = data.personTitle || data.thingTitle || data.personDescription || data.thingDescription || data.selectedSkills.length > 0;
+      const hasData = data?.personTitle || data?.thingTitle || data?.personDescription || data?.thingDescription || data?.selectedSkills?.length > 0;
       if (hasData) {
         await AsyncStorage.setItem('jobDraft', JSON.stringify(data));
       }
@@ -150,19 +150,19 @@ export default function CreateJob({ navigation }) {
       const draft = await AsyncStorage.getItem('jobDraft');
       if (draft) {
         const draftData = JSON.parse(draft);
-        setJobFor(draftData.jobFor || 'person');
-        setPersonTitle(draftData.personTitle || '');
-        setPersonDescription(draftData.personDescription || '');
-        setExperienceLevel(draftData.experienceLevel || '');
-        setSelectedSkills(draftData.selectedSkills || []);
-        setSkill(draftData.skill || '');
-        setRequiresExperience(draftData.requiresExperience || 'no');
-        setJobType(draftData.jobType || 'standard');
-        setThingTitle(draftData.thingTitle || '');
-        setThingDescription(draftData.thingDescription || '');
-        setPurpose(draftData.purpose || '');
-        setOtherPurpose(draftData.otherPurpose || '');
-        setSelectedThingCategory(draftData.selectedThingCategory || '');
+        setJobFor(draftData?.jobFor || 'person');
+        setPersonTitle(draftData?.personTitle || '');
+        setPersonDescription(draftData?.personDescription || '');
+        setExperienceLevel(draftData?.experienceLevel || '');
+        setSelectedSkills(draftData?.selectedSkills || []);
+        setSkill(draftData?.skill || '');
+        setRequiresExperience(draftData?.requiresExperience || 'no');
+        setJobType(draftData?.jobType || 'standard');
+        setThingTitle(draftData?.thingTitle || '');
+        setThingDescription(draftData?.thingDescription || '');
+        setPurpose(draftData?.purpose || '');
+        setOtherPurpose(draftData?.otherPurpose || '');
+        setSelectedThingCategory(draftData?.selectedThingCategory || '');
       }
     } catch (error) {
       console.log('Error loading draft:', error);
@@ -239,7 +239,7 @@ export default function CreateJob({ navigation }) {
     
     if (jobFor === 'person') {
       // Person validation
-      if (!jobFor || !personTitle.trim() || !personDescription.trim() || !jobType) {
+      if (!jobFor || !personTitle?.trim() || !personDescription?.trim() || !jobType) {
         showSnackbar('Please fill all required fields', 'error');
         return;
       }
@@ -247,19 +247,19 @@ export default function CreateJob({ navigation }) {
         showSnackbar('Please select an experience level', 'error');
         return;
       }
-      if (selectedSkills.length === 0) {
+      if (selectedSkills?.length === 0) {
         showSnackbar('Please add at least one skill or category', 'error');
         return;
       }
-      if (personTitle.length > 100) {
+      if (personTitle?.length > 100) {
         showSnackbar('Title must be 100 characters or less', 'error');
         return;
       }
-      if (personDescription.length > 1000) {
+      if (personDescription?.length > 1000) {
         showSnackbar('Description must be 1000 characters or less', 'error');
         return;
       }
-      if (skill.length > 500) {
+      if (skill?.length > 500) {
         showSnackbar('Requirements must be 500 characters or less', 'error');
         return;
       }
@@ -268,17 +268,17 @@ export default function CreateJob({ navigation }) {
       navigation.navigate('CreateJobScreen2', {
         jobData: {
           jobFor,
-          title: personTitle.trim(),
-          description: personDescription.trim(),
+          title: personTitle?.trim(),
+          description: personDescription?.trim(),
           category: selectedSkills,
-          requirements: skill.trim(),
+          requirements: skill?.trim(),
           experienceLevel: requiresExperience === 'yes' ? experienceLevel : null,
           jobType,
         },
       });
     } else {
       // Thing validation
-      if (!jobFor || !thingTitle.trim() || !thingDescription.trim() || !jobType) {
+      if (!jobFor || !thingTitle?.trim() || !thingDescription?.trim() || !jobType) {
         showSnackbar('Please fill all required fields', 'error');
         return;
       }
@@ -286,19 +286,19 @@ export default function CreateJob({ navigation }) {
         showSnackbar('Please select a purpose for the item', 'error');
         return;
       }
-      if (purpose === 'other' && !otherPurpose.trim()) {
+      if (purpose === 'other' && !otherPurpose?.trim()) {
         showSnackbar('Please specify the purpose', 'error');
         return;
       }
-      if (selectedSkills.length === 0) {
+      if (selectedSkills?.length === 0) {
         showSnackbar('Please add at least one skill or category', 'error');
         return;
       }
-      if (thingTitle.length > 100) {
+      if (thingTitle?.length > 100) {
         showSnackbar('Title must be 100 characters or less', 'error');
         return;
       }
-      if (thingDescription.length > 1000) {
+      if (thingDescription?.length > 1000) {
         showSnackbar('Description must be 1000 characters or less', 'error');
         return;
       }
@@ -308,8 +308,8 @@ export default function CreateJob({ navigation }) {
         jobData: {
           jobFor,
           purpose: purpose === 'other' ? otherPurpose : purpose,
-          title: thingTitle.trim(),
-          description: thingDescription.trim(),
+          title: thingTitle?.trim(),
+          description: thingDescription?.trim(),
           category: selectedSkills,
           jobType,
         },

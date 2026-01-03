@@ -186,32 +186,32 @@ export default function CreateJob({ navigation, route }) {
       }
       
       const timingDetails = getTimingDetailsForPerson();
-      if (timingType === 'fixed' && (!timingDetails.date || !timingDetails.startTime || !timingDetails.endTime)) {
+      if (timingType === 'fixed' && (!timingDetails?.date || !timingDetails?.startTime || !timingDetails?.endTime)) {
         showSnackbar('Fixed timing requires date, start time, and end time', 'error');
         setIsNavigating(false);
         return;
       }
-      if (timingType === 'multiday' && (!timingDetails.startDate || !timingDetails.endDate || !timingDetails.dailyHours)) {
+      if (timingType === 'multiday' && (!timingDetails?.startDate || !timingDetails?.endDate || !timingDetails?.dailyHours)) {
         showSnackbar('Multi-day timing requires start date, end date, and daily hours', 'error');
         setIsNavigating(false);
         return;
       }
-      if (timingType === 'deadline' && !timingDetails.deadline) {
+      if (timingType === 'deadline' && !timingDetails?.deadline) {
         showSnackbar('Deadline timing requires a deadline', 'error');
         setIsNavigating(false);
         return;
       }
-      if (timingType === 'flexible' && !timingDetails.estimatedHours) {
+      if (timingType === 'flexible' && !timingDetails?.estimatedHours) {
         showSnackbar('Flexible timing requires estimated hours', 'error');
         setIsNavigating(false);
         return;
       }
-      if (discloseAmount && !amount.trim()) {
+      if (discloseAmount && !amount?.trim()) {
         showSnackbar('Please enter an amount', 'error');
         setIsNavigating(false);
         return;
       }
-      if (discloseAmount && isNegotiable && (!minAmount.trim() || !maxAmount.trim())) {
+      if (discloseAmount && isNegotiable && (!minAmount?.trim() || !maxAmount?.trim())) {
         showSnackbar('Please enter both minimum and maximum amounts', 'error');
         setIsNavigating(false);
         return;
@@ -225,8 +225,8 @@ export default function CreateJob({ navigation, route }) {
             locationType: jobLocationType,
             location: coordinates ? {
               type: 'Point',
-              coordinates: [coordinates.longitude, coordinates.latitude],
-              address: address.trim() || '',
+              coordinates: [coordinates?.longitude, coordinates?.latitude],
+              address: address?.trim() || '',
             } : null,
             timingType,
             timingDetails,
@@ -250,27 +250,27 @@ export default function CreateJob({ navigation, route }) {
       }
       
       const timingDetails = getTimingDetailsForThing();
-      if (thingTimingType === 'needed-by-date' && (!timingDetails.thingDate || !timingDetails.thingStartTime || !timingDetails.thingEndTime)) {
+      if (thingTimingType === 'needed-by-date' && (!timingDetails?.thingDate || !timingDetails?.thingStartTime || !timingDetails?.thingEndTime)) {
         showSnackbar('Needed by date requires date, start time, and end time', 'error');
         setIsNavigating(false);
         return;
       }
-      if (thingTimingType === 'start-end-date' && (!timingDetails.thingStartDate || !timingDetails.thingEndDate || !timingDetails.thingDailyHours)) {
+      if (thingTimingType === 'start-end-date' && (!timingDetails?.thingStartDate || !timingDetails?.thingEndDate || !timingDetails?.thingDailyHours)) {
         showSnackbar('Start-end date requires start date, end date, and daily hours', 'error');
         setIsNavigating(false);
         return;
       }
-      if (thingTimingType === 'deadline' && !timingDetails.thingDeadline) {
+      if (thingTimingType === 'deadline' && !timingDetails?.thingDeadline) {
         showSnackbar('Deadline timing requires a deadline', 'error');
         setIsNavigating(false);
         return;
       }
-      if (thingTimingType === 'flexible' && !timingDetails.thingEstimatedHours) {
+      if (thingTimingType === 'flexible' && !timingDetails?.thingEstimatedHours) {
         showSnackbar('Flexible timing requires estimated hours', 'error');
         setIsNavigating(false);
         return;
       }
-      if (discloseAmount && !amount.trim()) {
+      if (discloseAmount && !amount?.trim()) {
         showSnackbar('Please enter an amount', 'error');
         setIsNavigating(false);
         return;
@@ -280,7 +280,7 @@ export default function CreateJob({ navigation, route }) {
         setIsNavigating(false);
         return;
       }
-      if (discloseAmount && isNegotiable && (!minAmount.trim() || !maxAmount.trim())) {
+      if (discloseAmount && isNegotiable && (!minAmount?.trim() || !maxAmount?.trim())) {
         showSnackbar('Please enter both minimum and maximum amounts', 'error');
         setIsNavigating(false);
         return;
@@ -293,8 +293,8 @@ export default function CreateJob({ navigation, route }) {
             ...jobData,
             location: {
               type: 'Point',
-              coordinates: [coordinates.longitude, coordinates.latitude],
-              address: address.trim() || '',
+              coordinates: [coordinates?.longitude, coordinates?.latitude],
+              address: address?.trim() || '',
             },
             timingType: thingTimingType,
             timingDetails,
@@ -347,7 +347,7 @@ export default function CreateJob({ navigation, route }) {
             <Text style={styles.title}>
               Define Location & Payment Information
             </Text>
-            {jobData.jobFor === 'person' ? <>{personForm?.()}</> : <>{thingForm?.()}</>}
+            {jobData?.jobFor === 'person' ? <>{personForm?.()}</> : <>{thingForm?.()}</>}
             <FaddedIcon />
           </ScrollView>
 
