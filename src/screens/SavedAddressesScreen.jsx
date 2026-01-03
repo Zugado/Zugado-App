@@ -144,7 +144,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
                 style={styles.actionButton}
                 onPress={() => handleEditAddress(item)}
               >
-                <Feather name="edit-2" size={16} color={Colors.primary} />
+                <Feather name="edit-2" size={14} color={Colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.actionButton}
@@ -153,7 +153,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
                   setShowDeleteAlert(true);
                 }}
               >
-                <Feather name="trash-2" size={16} color={Colors.redColor} />
+                <Feather name="trash-2" size={14} color={Colors.redColor} />
               </TouchableOpacity>
             </View>
           )}
@@ -267,21 +267,24 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.whiteColor,
     borderRadius: 12,
     marginBottom: 20,
-    elevation: 2,
+    elevation: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     borderWidth: 1,
     borderColor: Colors.primary,
+   
   },
-  addButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
+ addButtonContent: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingVertical: 14,
+  paddingHorizontal: 16,
+
+ }
+,
   addButtonText: {
     color: Colors.primary,
     fontSize: 14,

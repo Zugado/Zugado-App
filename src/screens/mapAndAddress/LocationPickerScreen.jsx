@@ -505,8 +505,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
   function confirmLocationBottomSheet() {
     return (
       <>
-        {' '}
-        {address && !isConfirmed && (
+         {address && !isConfirmed && (
           <View
             style={{
               position: 'absolute',
