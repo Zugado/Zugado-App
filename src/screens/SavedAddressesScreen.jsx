@@ -4,8 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  Alert,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
@@ -15,12 +14,15 @@ import { CommonAppBar } from '../components/CommonComponents';
 import { Colors } from '../styles/commonStyles';
 import { getSavedAddresses, deleteAddress } from '../utils/addressStorage';
 import { useSnackbar } from '../contexts/SnackbarContext';
+import { CustomAlert } from '../components/CustomAlert';
 
-const SavedAddressesScreen = ({ navigation }) => {
+const SavedAddressesScreen = ({ navigation,route}) => {
   const { user } = useSelector((state) => state.auth);
   const { showSnackbar } = useSnackbar();
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState(null);
 
   useEffect(() => {
     loadAddresses();
@@ -37,64 +39,133 @@ const SavedAddressesScreen = ({ navigation }) => {
     }
   };
 
-  const handleDeleteAddress = (addressId) => {
-    Alert.alert(
-      'Delete Address',
-      'Are you sure you want to delete this address?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteAddress(user?.id || user?._id, addressId);
-              setAddresses(prev => prev.filter(addr => addr.id !== addressId));
-              showSnackbar('Address deleted successfully', 'success');
-            } catch (error) {
-              showSnackbar('Failed to delete address', 'error');
-            }
-          }
-        }
-      ]
+  const renderAddressCard = ({ item }) => {
+    const { returnScreen } = route.params || {};
+    const isSelectable = returnScreen === 'CreateJobScreen2';
+    
+    return (
+      <TouchableOpacity 
+        style={[styles.addressCard, isSelectable && styles.selectableCard]}
+        onPress={() => isSelectable && handleSelectAddress(item)}
+        disabled={!isSelectable}
+        activeOpacity={0.7}
+      >
+        <View style={styles.cardHeader}>
+          <View style={styles.typeContainer}>
+            <Feather 
+              name={getAddressIcon(item.addressType)} 
+              size={16} 
+              color={Colors.primary} 
+            />
+            <Text style={styles.addressType}>{item.addressType}</Text>
+          </View>
+          {isSelectable ? (
+            <Feather name="chevron-right" size={16} color={Colors.primary} />
+          ) : (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => handleEditAddress(item)}
+              >
+                <Feather name="edit-2" size={16} color={Colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => {
+                  setAddressToDelete(item);
+                  setShowDeleteAlert(true);
+                }}
+              >
+                <Feather name="trash-2" size={16} color={Colors.redColor} />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.addressContent}>
+          <View style={styles.addressRow}>
+            <Feather name="map-pin" size={14} color={Colors.grayColor} />
+            <Text style={styles.addressText}>{item.address}</Text>
+          </View>
+          
+          {item.landmark && (
+            <View style={styles.addressRow}>
+              <Feather name="navigation" size={14} color={Colors.grayColor} />
+              <Text style={styles.landmarkText}>{item.landmark}</Text>
+            </View>
+          )}
+        </View>
+        
+        {isSelectable && (
+          <View style={styles.selectIndicator}>
+            <Text style={styles.selectText}>Tap to select</Text>
+          </View>
+        )}
+      </TouchableOpacity>
     );
   };
 
-  const AddressCard = ({ address }) => (
-    <View style={styles.addressCard}>
-      <View style={styles.addressHeader}>
-        <View style={styles.addressTypeContainer}>
-          <Feather 
-            name={address.addressType === 'Home' ? 'home' : address.addressType === 'Office' ? 'briefcase' : 'map-pin'} 
-            size={16} 
-            color={Colors.primary} 
-          />
-          <Text style={styles.addressType}>{address.addressType}</Text>
-        </View>
-        <View style={styles.actionButtons}>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => navigation.navigate('EditAddressScreen', { address })}
-          >
-            <Feather name="edit-2" size={16} color={Colors.grayColor} />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => handleDeleteAddress(address.id)}
-          >
-            <Feather name="trash-2" size={16} color={Colors.redColor} />
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      <Text style={styles.addressName}>{address.name}</Text>
-      <Text style={styles.addressMobile}>{address.mobile}</Text>
-      <Text style={styles.addressText}>{address.address}</Text>
-      {address.landmark && (
-        <Text style={styles.landmarkText}>Landmark: {address.landmark}</Text>
-      )}
+  const handleEditAddress = (address) => {
+    const { returnScreen, jobData } = route.params || {};
+    navigation.navigate('LocationPickerScreen', {
+      editAddressId: address.id,
+      returnScreen,
+      jobData,
+    });
+  };
+
+  const handleDeleteAddress = async () => {
+    if (!addressToDelete) return;
+    
+    try {
+      await deleteAddress(user?.id || user?._id, addressToDelete.id);
+      setAddresses(prev => prev.filter(addr => addr.id !== addressToDelete.id));
+      showSnackbar('Address deleted successfully', 'success');
+    } catch (error) {
+      showSnackbar('Failed to delete address', 'error');
+    } finally {
+      setShowDeleteAlert(false);
+      setAddressToDelete(null);
+    }
+  };
+ 
+
+  const handleSelectAddress = (address) => {
+    const { returnScreen, jobData } = route.params || {};
+    if (returnScreen === 'CreateJobScreen2') {
+      navigation.navigate('CreateJobScreen2', {
+        jobData,
+        selectedLocation: {
+          address: address.address,
+          coordinates: address.coordinates,
+          addressComponents: address.addressComponents,
+        },
+      });
+    } else {
+      showSnackbar('Address selected', 'success');
+      navigation.goBack();
+    }
+  };
+  const getAddressIcon = (type) => {
+    switch (type) {
+      case 'Office':
+      case 'Work':
+        return 'briefcase';
+      case 'Home':
+        return 'home';
+      default:
+        return 'map-pin';
+    }
+  };
+
+  const renderEmptyList = () => (
+    <View style={styles.emptyContainer}>
+      <Feather name="map-pin" size={48} color={Colors.grayColor} />
+      <Text style={styles.emptyTitle}>No Saved Addresses</Text>
+      <Text style={styles.emptySubtitle}>Add your first address to get started</Text>
     </View>
   );
+
 
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
@@ -102,33 +173,55 @@ const SavedAddressesScreen = ({ navigation }) => {
       <View style={styles.container}>
         <CommonAppBar title="Saved Addresses" navigation={navigation} />
         
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.content}>
-            {loading ? (
-              <Text style={styles.loadingText}>Loading addresses...</Text>
-            ) : addresses.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Feather name="map-pin" size={48} color={Colors.grayColor} />
-                <Text style={styles.emptyTitle}>No Saved Addresses</Text>
-                <Text style={styles.emptySubtitle}>Add your first address to get started</Text>
-              </View>
-            ) : (
-              addresses.map((address) => (
-                <AddressCard key={address.id} address={address} />
-              ))
-            )}
-          </View>
-        </ScrollView>
-
-        <View style={styles.buttonContainer}>
+        <View style={styles.content}>
           <TouchableOpacity 
-            style={styles.addButton}
-            onPress={() => navigation.navigate('LocationPickerScreen')}
+            style={styles.addAddressButton}
+            onPress={() => {
+              const { returnScreen, jobData } = route.params || {};
+              navigation.navigate('LocationPickerScreen', {
+                returnScreen,
+                jobData,
+              });
+            }}
+            activeOpacity={0.7}
           >
-            <Feather name="plus" size={20} color={Colors.whiteColor} />
-            <Text style={styles.addButtonText}>Add New Address</Text>
+            <View style={styles.addButtonContent}>
+              <Feather name="plus" size={20} color={Colors.primary} />
+              <Text style={styles.addButtonText}>Add New Address</Text>
+            </View>
           </TouchableOpacity>
+
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>Loading addresses...</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={addresses}
+              renderItem={renderAddressCard}
+              keyExtractor={item => item.id}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={renderEmptyList}
+              contentContainerStyle={addresses.length === 0 ? styles.emptyListContainer : null}
+            />
+          )}
         </View>
+        
+        {showDeleteAlert && (
+          <CustomAlert
+            message="Are you sure you want to delete this address?"
+            onYes={handleDeleteAddress}
+            onClose={() => {
+              setShowDeleteAlert(false);
+              setAddressToDelete(null);
+            }}
+            yesText="Delete"
+            noText="Cancel"
+            yesButtonColor={Colors.redColor}
+            iconName="trash-2"
+            iconColor={Colors.redColor}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -143,21 +236,48 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.whiteColor,
   },
-  scrollView: {
-    flex: 1,
-  },
   content: {
+    flex: 1,
     padding: 16,
   },
-  loadingText: {
-    textAlign: 'center',
-    color: Colors.grayColor,
-    fontSize: 16,
-    marginTop: 50,
+  addAddressButton: {
+    backgroundColor: Colors.whiteColor,
+    borderRadius: 12,
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    borderWidth: 1,
+    borderColor: Colors.primary,
   },
-  emptyContainer: {
+  addButtonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  addButtonText: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: Colors.grayColor,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 60,
   },
   emptyTitle: {
@@ -176,7 +296,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.whiteColor,
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 4,
     borderWidth: 1,
     borderColor: Colors.extraLightGrayColor,
     shadowColor: '#000',
@@ -185,21 +305,44 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  addressHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 2,
   },
-  addressTypeContainer: {
+  typeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   addressType: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.primary,
     marginLeft: 8,
+  },
+  addressContent: {
+    gap: 8,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  addressText: {
+    fontSize: 12,
+    color: Colors.lightBlackColor,
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 20,
+  },
+  landmarkText: {
+    fontSize: 12,
+    color: Colors.grayColor,
+    marginLeft: 8,
+  },
+  selectableCard: {
+    borderColor: Colors.primary,
+    borderWidth: 1.5,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -210,46 +353,23 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.extraLightGrayColor,
   },
-  addressName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.blackColor,
-    marginBottom: 4,
+  disabledButton: {
+    opacity: 0.5,
   },
-  addressMobile: {
-    fontSize: 14,
-    color: Colors.primary,
-    marginBottom: 8,
-  },
-  addressText: {
-    fontSize: 14,
-    color: Colors.lightBlackColor,
-    lineHeight: 20,
-    marginBottom: 4,
-  },
-  landmarkText: {
-    fontSize: 12,
-    color: Colors.grayColor,
-    fontStyle: 'italic',
-  },
-  buttonContainer: {
-    padding: 16,
+  selectIndicator: {
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: Colors.extraLightGrayColor,
   },
-  addButton: {
-    flexDirection: 'row',
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+  selectText: {
+    fontSize: 12,
+    color: Colors.primary,
+    textAlign: 'center',
+    fontWeight: '500',
   },
-  addButtonText: {
-    color: Colors.whiteColor,
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+  emptyListContainer: {
+    flex: 1,
   },
 });
 

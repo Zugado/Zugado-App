@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -132,98 +132,113 @@ export default function CreateJobPageThree({ navigation, route }) {
   };
 
   const handleSubmitJob = async () => {
+    console.log('=== FINAL JOB SUBMISSION ===');
+    console.log('Complete Job Data:', JSON.stringify(jobData, null, 2));
+    console.log('Media Files:', mediaFiles.length);
+    console.log('Job For:', jobData.jobFor);
+    console.log('=== END SUBMISSION LOG ===');
+    
     setIsSubmitting(true);
     try {
-      // Format timing details based on timing type
+      // Format timing details based on timing type and jobFor
       let formattedTimingDetails = {};
       
-      switch (jobData.timingType) {
-        case 'fixed':
-          formattedTimingDetails = {
-            date: jobData.timingDetails.date,
-            startTime: jobData.timingDetails.startTime,
-            endTime: jobData.timingDetails.endTime
-          };
-          break;
-        case 'multiday':
-          formattedTimingDetails = {
-            startDate: jobData.timingDetails.startDate,
-            endDate: jobData.timingDetails.endDate,
-            dailyHours: jobData.timingDetails.dailyHours
-          };
-          break;
-        case 'deadline':
-          formattedTimingDetails = {
-            deadline: jobData.timingDetails.deadline
-          };
-          break;
-        case 'flexible':
-          formattedTimingDetails = {
-            estimatedHours: jobData.timingDetails.estimatedHours
-          };
-          break;
+      if (jobData.jobFor === 'person') {
+        switch (jobData.timingType) {
+          case 'fixed':
+            formattedTimingDetails = {
+              date: jobData.timingDetails.date,
+              startTime: jobData.timingDetails.startTime,
+              endTime: jobData.timingDetails.endTime
+            };
+            break;
+          case 'multiday':
+            formattedTimingDetails = {
+              startDate: jobData.timingDetails.startDate,
+              endDate: jobData.timingDetails.endDate,
+              dailyHours: jobData.timingDetails.dailyHours
+            };
+            break;
+          case 'deadline':
+            formattedTimingDetails = {
+              deadline: jobData.timingDetails.deadline
+            };
+            break;
+          case 'flexible':
+            formattedTimingDetails = {
+              estimatedHours: jobData.timingDetails.estimatedHours
+            };
+            break;
+        }
+      } else {
+        // Thing timing details
+        switch (jobData.timingType) {
+          case 'needed-by-date':
+            formattedTimingDetails = {
+              date: jobData.timingDetails.thingDate,
+              startTime: jobData.timingDetails.thingStartTime,
+              endTime: jobData.timingDetails.thingEndTime
+            };
+            break;
+          case 'start-end-date':
+            formattedTimingDetails = {
+              startDate: jobData.timingDetails.thingStartDate,
+              endDate: jobData.timingDetails.thingEndDate,
+              dailyHours: jobData.timingDetails.thingDailyHours
+            };
+            break;
+          case 'deadline':
+            formattedTimingDetails = {
+              deadline: jobData.timingDetails.thingDeadline
+            };
+            break;
+          case 'flexible':
+            formattedTimingDetails = {
+              estimatedHours: jobData.timingDetails.thingEstimatedHours
+            };
+            break;
+        }
       }
 
       // Format job data according to API structure
       const formattedJobData = {
         jobFor: jobData.jobFor,
+        purpose: jobData.purpose || null,
         title: jobData.title,
         description: jobData.description,
-        tags: jobData.category || [], // Using category from first screen as tags
+        tags: jobData.category || [],
         requirements: jobData.requirements || '',
         experienceLevel: jobData.experienceLevel,
-        locationType: jobData.locationType,
+        locationType: jobData.locationType || null,
         location: jobData.location,
         jobType: jobData.jobType,
         timingType: jobData.timingType,
         timingDetails: formattedTimingDetails,
         amount: {
           value: jobData.amount?.value || 0,
-          disclose: jobData.amount?.disclose || false
+          unit: jobData.amount?.unit || null,
+          disclose: jobData.amount?.disclose || false,
+          negotiable: jobData.amount?.negotiable || false,
+          range: jobData.amount?.range || null
         }
       };
 
-      console.log('=== JOB CREATION START ===');
-      console.log('Formatted Job Data:', JSON.stringify(formattedJobData, null, 2));
-      console.log('Media Files Count:', mediaFiles.length);
+      console.log('=== FORMATTED JOB DATA FOR API ===');
+      console.log(JSON.stringify(formattedJobData, null, 2));
+      console.log('=== END FORMATTED DATA ===');
 
-      // Create job first
+      // For testing - just log and show success
+      showSnackbar('Job data logged to console - check logs!', 'success');
+      
+      // Uncomment below for actual API submission
+      /*
       const jobResponse = await dispatch(createJob(formattedJobData));
       
-      console.log('=== JOB CREATION RESPONSE ===');
-      console.log('Full Job Response:', JSON.stringify(jobResponse, null, 2));
-      console.log('Response Type:', jobResponse.type);
-      console.log('Response Payload:', JSON.stringify(jobResponse.payload, null, 2));
-      
       if (createJob.fulfilled.match(jobResponse)) {
-        // Try multiple ways to extract job ID
-        const jobId = jobResponse.payload?.data?.id || 
-                     jobResponse.payload?.data?._id || 
-                     jobResponse.payload?.id || 
-                     jobResponse.payload?._id ||
-                     jobResponse.payload?.job?.id ||
-                     jobResponse.payload?.job?._id;
+        const jobId = jobResponse.payload?.data?.id || jobResponse.payload?.id;
         
-        console.log('=== JOB ID EXTRACTION ===');
-        console.log('Extracted Job ID:', jobId);
-        console.log('Job ID Type:', typeof jobId);
-        
-        if (!jobId) {
-          console.error('=== JOB ID NOT FOUND ===');
-          console.error('Available payload keys:', Object.keys(jobResponse.payload || {}));
-          if (jobResponse.payload?.data) {
-            console.error('Available data keys:', Object.keys(jobResponse.payload.data));
-          }
-        }
-        
-        // Upload media files if any and jobId exists
         if (mediaFiles.length > 0 && jobId) {
-          console.log('=== MEDIA UPLOAD START ===');
-          console.log('Uploading', mediaFiles.length, 'media files for job:', jobId);
           await uploadMediaFiles(jobId);
-        } else if (mediaFiles.length > 0 && !jobId) {
-          console.warn('=== MEDIA UPLOAD SKIPPED ===');
-          console.warn('Media files exist but no job ID found');
         }
         
         showSnackbar('Job posted successfully!', 'success');
@@ -232,15 +247,12 @@ export default function CreateJobPageThree({ navigation, route }) {
           routes: [{ name: 'MainTabs', params: { screen: 'Home' } }],
         });
       } else {
-        console.error('=== JOB CREATION FAILED ===');
-        console.error('Error Response:', JSON.stringify(jobResponse, null, 2));
         throw new Error(jobResponse.payload?.message || 'Failed to create job');
       }
+      */
     } catch (error) {
       console.error('=== JOB SUBMISSION ERROR ===');
       console.error('Error Details:', error);
-      console.error('Error Message:', error.message);
-      console.error('Error Stack:', error.stack);
       showSnackbar('Failed to post job. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);

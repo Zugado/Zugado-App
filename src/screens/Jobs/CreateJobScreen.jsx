@@ -61,15 +61,14 @@ export default function CreateJob({ navigation }) {
   const [hasDraft, setHasDraft] = useState(false);
   const scrollViewRef = useRef(null);
 
-  // Task For
+  // common
   const [jobFor, setJobFor] = useState('person');
 
-  //job for person
+  //job for person use state start
   const [personTitle, setPersonTitle] = useState('');
   const [personDescription, setPersonDescription] = useState('');
   const [experienceLevel, setExperienceLevel] = useState('');
   const [selectedSkills, setSelectedSkills] = useState([]);
-
   const [skill, setSkill] = useState('');
   const [requiresExperience, setRequiresExperience] = useState('no');
   const jobForOptions = [
@@ -80,10 +79,12 @@ export default function CreateJob({ navigation }) {
     { label: 'Standard', value: 'standard' },
     { label: 'Urgent', value: 'quick' },
   ];
-  // Task Type
+  //job for person use state End
+
+  // Task Type Common
   const [jobType, setJobType] = useState('standard');
 
-  //  job for things
+  //  job for things use states start
   const [thingTitle, setThingTitle] = useState('');
   const [thingDescription, setThingDescription] = useState('');
   const [purpose, setPurpose] = useState('');
@@ -91,6 +92,9 @@ export default function CreateJob({ navigation }) {
   const [thingCategoryList, setthingCategoryList] = useState([]);
   const [selectedThingCategory, setSelectedThingCategory] = useState('');
   const [isPurposeClicked, setPurposeClicked] = useState(false);
+  //  job for things use states END
+
+
   // Load tags and check for draft on component mount
   useEffect(() => {
     dispatch(getAllTags());
@@ -226,6 +230,93 @@ export default function CreateJob({ navigation }) {
     }
   };
 
+  const handleNext = () => {
+    validateForm(jobFor);
+  };
+
+  const validateForm = (jobFor) => {
+    clearDraft();
+    
+    if (jobFor === 'person') {
+      // Person validation
+      if (!jobFor || !personTitle.trim() || !personDescription.trim() || !jobType) {
+        showSnackbar('Please fill all required fields', 'error');
+        return;
+      }
+      if (requiresExperience === 'yes' && !experienceLevel) {
+        showSnackbar('Please select an experience level', 'error');
+        return;
+      }
+      if (selectedSkills.length === 0) {
+        showSnackbar('Please add at least one skill or category', 'error');
+        return;
+      }
+      if (personTitle.length > 100) {
+        showSnackbar('Title must be 100 characters or less', 'error');
+        return;
+      }
+      if (personDescription.length > 1000) {
+        showSnackbar('Description must be 1000 characters or less', 'error');
+        return;
+      }
+      if (skill.length > 500) {
+        showSnackbar('Requirements must be 500 characters or less', 'error');
+        return;
+      }
+
+      // Navigate with person data
+      navigation.navigate('CreateJobScreen2', {
+        jobData: {
+          jobFor,
+          title: personTitle.trim(),
+          description: personDescription.trim(),
+          category: selectedSkills,
+          requirements: skill.trim(),
+          experienceLevel: requiresExperience === 'yes' ? experienceLevel : null,
+          jobType,
+        },
+      });
+    } else {
+      // Thing validation
+      if (!jobFor || !thingTitle.trim() || !thingDescription.trim() || !jobType) {
+        showSnackbar('Please fill all required fields', 'error');
+        return;
+      }
+      if (!purpose) {
+        showSnackbar('Please select a purpose for the item', 'error');
+        return;
+      }
+      if (purpose === 'other' && !otherPurpose.trim()) {
+        showSnackbar('Please specify the purpose', 'error');
+        return;
+      }
+      if (selectedSkills.length === 0) {
+        showSnackbar('Please add at least one skill or category', 'error');
+        return;
+      }
+      if (thingTitle.length > 100) {
+        showSnackbar('Title must be 100 characters or less', 'error');
+        return;
+      }
+      if (thingDescription.length > 1000) {
+        showSnackbar('Description must be 1000 characters or less', 'error');
+        return;
+      }
+
+      // Navigate with thing data
+      navigation.navigate('CreateJobScreen2', {
+        jobData: {
+          jobFor,
+          purpose: purpose === 'other' ? otherPurpose : purpose,
+          title: thingTitle.trim(),
+          description: thingDescription.trim(),
+          category: selectedSkills,
+          jobType,
+        },
+      });
+    }
+  };
+
   // Clear other purpose when purpose changes
   const handlePurposeChange = (value) => {
     setPurpose(value);
@@ -234,25 +325,6 @@ export default function CreateJob({ navigation }) {
     }
   };
 
-  const renderSuggestion = ({ item }) => (
-    <TouchableOpacity
-      style={styles.suggestionItem}
-      onPress={() => {
-        setPurpose(item?.value);
-        setPurposeClicked(false);
-      }}
-    >
-      <Ionicons
-        name="return-down-forward-outline"
-        size={18}
-        color={Colors.grayColor}
-      />
-
-      <Text style={styles.suggestionText} numberOfLines={1}>
-        {item?.label}
-      </Text>
-    </TouchableOpacity>
-  );
 
   return (
     <KeyboardAvoidingView
@@ -338,61 +410,7 @@ export default function CreateJob({ navigation }) {
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.nextButton}
-              onPress={() => {
-                // Clear draft on successful submission
-                clearDraft();
-                
-                // Get current form data based on jobFor
-                const currentTitle = jobFor === 'person' ? personTitle : thingTitle;
-                const currentDescription = jobFor === 'person' ? personDescription : thingDescription;
-                
-                // Validation
-                if (!jobFor || !currentTitle.trim() || !currentDescription.trim() || !jobType) {
-                  showSnackbar('Please fill all required fields', 'error');
-                  return;
-                }
-                if (jobFor === 'thing' && !purpose) {
-                  showSnackbar('Please select a purpose for the item', 'error');
-                  return;
-                }
-                if (jobFor === 'thing' && purpose === 'other' && !otherPurpose.trim()) {
-                  showSnackbar('Please specify the purpose', 'error');
-                  return;
-                }
-                if (jobFor === 'person' && requiresExperience === 'yes' && !experienceLevel) {
-                  showSnackbar('Please select an experience level', 'error');
-                  return;
-                }
-                if (selectedSkills.length === 0) {
-                  showSnackbar('Please add at least one skill or category', 'error');
-                  return;
-                }
-                if (currentTitle.length > 100) {
-                  showSnackbar('Title must be 100 characters or less', 'error');
-                  return;
-                }
-                if (currentDescription.length > 1000) {
-                  showSnackbar('Description must be 1000 characters or less', 'error');
-                  return;
-                }
-                if (skill.length > 500) {
-                  showSnackbar('Requirements must be 500 characters or less', 'error');
-                  return;
-                }
-
-                navigation.navigate('CreateJobScreen2', {
-                  jobData: {
-                    jobFor,
-                    purpose: jobFor === 'thing' ? (purpose === 'other' ? otherPurpose : purpose) : null,
-                    title: currentTitle.trim(),
-                    description: currentDescription.trim(),
-                    category: selectedSkills,
-                    requirements: jobFor === 'person' ? skill.trim() : '',
-                    experienceLevel: jobFor === 'person' && requiresExperience === 'yes' ? experienceLevel : null,
-                    jobType,
-                  },
-                });
-              }}
+              onPress={handleNext}
             >
               <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>

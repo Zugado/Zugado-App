@@ -8,7 +8,7 @@ import CreateJobScreen3 from '../screens/Jobs/CreateJobScreen3';
 import JobDetailedScreen from '../screens/Jobs/JobDetailedScreen';
 import LanguageSelectScreen from '../screens/LanguageSelectScreen';
 import LocationPickerScreen from '../screens/mapAndAddress/LocationPickerScreen';
-import SelectAddressScreen from '../screens/mapAndAddress/SelectAddressScreen';
+
 import EditProfileScreen from '../screens/EditProfileScreen';
 import PreferencesScreen from '../screens/PreferencesScreen';
 import SavedAddressesScreen from '../screens/SavedAddressesScreen';
@@ -31,7 +31,6 @@ export default function AppStackNavigator() {
       <Stack.Screen name="JobDetailedScreen" component={JobDetailedScreen} />
       <Stack.Screen name="LanguageSelectScreen" component={LanguageSelectScreen} />
        <Stack.Screen name="LocationPickerScreen" component={LocationPickerScreen} />
-        <Stack.Screen name="SelectAddressScreen" component={SelectAddressScreen} />
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="PreferencesScreen" component={PreferencesScreen} />
         <Stack.Screen name="SavedAddressesScreen" component={SavedAddressesScreen} />

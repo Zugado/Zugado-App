@@ -24,6 +24,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Key } from '../../constants/key';
 import { Colors } from '../../styles/commonStyles';
 import Feather from 'react-native-vector-icons/Feather';
+import { saveAddress, updateAddress, getSavedAddresses } from '../../utils/addressStorage';
+import { useSelector } from 'react-redux';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import FloatingLabelInput from '../../components/inputFields/FloatingLabelInput';
 
 const AUTOCOMPLETE_URL =
@@ -31,6 +34,9 @@ const AUTOCOMPLETE_URL =
 const DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
 
 const LocationPickerScreen = ({ navigation, route }) => {
+  const { user } = useSelector((state) => state.auth);
+  const { showSnackbar } = useSnackbar();
+  const { editAddressId } = route.params || {};
   const mapkey = Key.mapApiKey;
   console.log('[debug] API key loaded:', mapkey ? 'YES' : 'NO');
 
@@ -99,7 +105,28 @@ const LocationPickerScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     getUserLocation();
-  }, []);
+    if (editAddressId) {
+      loadAddressForEdit();
+    }
+  }, [editAddressId]);
+
+  const loadAddressForEdit = async () => {
+    try {
+      const addresses = await getSavedAddresses(user?.id || user?._id);
+      const addressToEdit = addresses.find(addr => addr.id === editAddressId);
+      if (addressToEdit) {
+        setAddress(addressToEdit.address);
+        setLandmark(addressToEdit.landmark || '');
+        setAddressType(addressToEdit.addressType);
+        setSelectedLocation(addressToEdit.coordinates);
+        setAddressComponents(addressToEdit.addressComponents);
+        setConfirmed(true);
+        bottomSheetRef.current?.expand();
+      }
+    } catch (error) {
+      showSnackbar('Failed to load address', 'error');
+    }
+  };
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -346,42 +373,34 @@ const LocationPickerScreen = ({ navigation, route }) => {
     }
   };
 
-  const handleAddAddress = () => {
-    // if (!name.trim() || !mobileNumber.trim() || !address.trim()) {
-     if ( !address.trim()) {
-      Alert.alert(
-        'Missing Fields',
-        'Please fill Name, Mobile Number and ensure location is selected.',
-      );
+  const handleAddAddress = async () => {
+    if (!address.trim()) {
+      Alert.alert('Missing Fields', 'Please ensure location is selected.');
       return;
     }
 
-    const addressData = {
-      // name: name.trim(),
-      // mobileNumber: mobileNumber.trim(),
-      landmark: landmark.trim(),
-      addressType,
-      address: address.trim(),
-      coordinates: selectedLocation,
-      addressComponents,
-    };
+    try {
+      const addressData = {
+        landmark: landmark.trim(),
+        addressType,
+        address: address.trim(),
+        coordinates: selectedLocation,
+        addressComponents,
+      };
 
-    console.log('Address Data:', JSON.stringify(addressData, null, 2));
-
-    // Check if we need to return to CreateJobScreen2
-    const { returnScreen, jobData } = route.params || {};
-    if (returnScreen === 'CreateJobScreen2') {
-      navigation.navigate('CreateJobScreen2', {
-        jobData,
-        selectedLocation: {
-          address: address.trim(),
-          coordinates: selectedLocation,
-          addressComponents,
-        },
-      });
-    } else {
-      Alert.alert('Success', 'Address saved successfully!');
+      if (editAddressId) {
+        // Update existing address
+        await updateAddress(user?.id || user?._id, editAddressId, addressData);
+        showSnackbar('Address updated successfully', 'success');
+      } else {
+        // Save new address
+        await saveAddress(user?.id || user?._id, addressData);
+        showSnackbar('Address saved successfully', 'success');
+      }
+      
       navigation.goBack();
+    } catch (error) {
+      showSnackbar(editAddressId ? 'Failed to update address' : 'Failed to save address', 'error');
     }
   };
 
@@ -628,6 +647,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
                         value={country || addressComponents.country}
                         onChangeText={setCountry}
                         placeholder="Enter Country"
+                        editable={false}
                         required
                       />
                       <FloatingLabelInput
@@ -635,6 +655,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
                         value={state || addressComponents.state}
                         onChangeText={setState}
                         placeholder="Enter State"
+                        editable={false}
                         required
                       />
                     </View>
@@ -650,6 +671,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
                         value={city || addressComponents.city}
                         onChangeText={setCity}
                         placeholder="Enter City"
+                        editable={false}
                         required
                       />
 
@@ -658,6 +680,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
                         value={pinCode || addressComponents.pincode}
                         onChangeText={setPinCode}
                         placeholder="Enter Pin Code"
+                        editable={false}
                         keyboardType="phone-pad"
                         required
                       />
@@ -711,7 +734,9 @@ const LocationPickerScreen = ({ navigation, route }) => {
                     onPress={handleAddAddress}
                     activeOpacity={0.9}
                   >
-                    <Text style={styles.bottomBtnText}>Save Address</Text>
+                    <Text style={styles.bottomBtnText}>
+                      {editAddressId ? 'Update Address' : 'Save Address'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </ScrollView>
