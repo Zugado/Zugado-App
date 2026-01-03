@@ -139,7 +139,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 14,
     backgroundColor: '#fff',
-    paddingHorizontal: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
     zIndex: 1,
   },
   inputWrapper: {

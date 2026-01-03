@@ -33,6 +33,7 @@ import {
 import { useSelector } from 'react-redux';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import FloatingLabelInput from '../../components/inputFields/FloatingLabelInput';
+import { CommonAppBar } from '../../components/CommonComponents';
 
 const AUTOCOMPLETE_URL =
   'https://maps.googleapis.com/maps/api/place/autocomplete/json';
@@ -471,8 +472,11 @@ const LocationPickerScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
+      <CommonAppBar title={"Select Location"} navigation={navigation}/>
+     
       <MyStatusBar />
-      <View style={{ flex: 1 }}>
+       <View style={{ flex: 1 }}>
+        
         <View style={styles.searchContainer}>
           <Ionicons name="search-outline" size={20} color={Colors.grayColor} />
           <TextInput
@@ -719,7 +723,7 @@ export default LocationPickerScreen;
 const styles = StyleSheet.create({
   safeAreaBlack: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#ffffffff',
   },
   searchContainer: {
     position: 'absolute',
@@ -730,18 +734,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.whiteColor,
-    borderRadius: 12,
+    borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     elevation: 3,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 6,
+    borderColor:"#9f9e9e8d",
+    borderWidth:1,
   },
   searchInput: {
     flex: 1,
     marginHorizontal: 8,
-    paddingVertical: Platform.OS === 'ios' ? 8 : 0,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 2,
     color: Colors.blackColor,
   },
   suggestionsContainer: {
@@ -750,7 +756,7 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     backgroundColor: Colors.whiteColor,
-    borderRadius: 12,
+    borderRadius: 8,
     zIndex: 10,
     maxHeight: 240,
     elevation: 3,

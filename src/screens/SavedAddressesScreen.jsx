@@ -83,7 +83,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
   const handleSelectAddress = (address) => {
     const { returnScreen, jobData } = route.params || {};
     if (returnScreen === 'CreateJobScreen2') {
-      navigation.navigate('CreateJobScreen2', {
+      navigation.replace('CreateJobScreen2', {
         jobData,
         selectedLocation: {
           address: address.address,

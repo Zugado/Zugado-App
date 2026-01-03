@@ -597,8 +597,7 @@ export default function CreateJob({ navigation, route }) {
                 />
               </View>
               <View style={{ marginLeft: 10, marginTop: 10 }}>
-                <Text style={styles.negotiableLabel}>Negotiable</Text>
-
+               
                 <TouchableOpacity
                   style={[
                     styles.negotiableToggle,
@@ -619,6 +618,8 @@ export default function CreateJob({ navigation, route }) {
                     </>
                   )}
                 </TouchableOpacity>
+                 <Text style={styles.negotiableLabel}>Negotiable</Text>
+
               </View>
             </View>
           )}
