@@ -48,7 +48,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
   
   // Bottom sheet animation
   const bottomSheetHeight = useRef(new Animated.Value(0)).current;
-  const minHeight = screenHeight * 0.4;
+  const minHeight = screenHeight * 0.6;
   const maxHeight = screenHeight * 0.8;
   
   console.log('[debug] API key loaded:', mapkey ? 'YES' : 'NO');
@@ -92,14 +92,14 @@ const LocationPickerScreen = ({ navigation, route }) => {
       return Math.abs(gestureState.dy) > 10;
     },
     onPanResponderMove: (_, gestureState) => {
-      const newHeight = minHeight - gestureState.dy;
+      const newHeight = maxHeight - gestureState.dy;
       if (newHeight >= minHeight && newHeight <= maxHeight) {
         bottomSheetHeight.setValue(newHeight);
       }
     },
     onPanResponderRelease: (_, gestureState) => {
       const velocity = gestureState.vy;
-      const currentHeight = minHeight - gestureState.dy;
+      const currentHeight = maxHeight - gestureState.dy;
       
       let targetHeight;
       if (velocity > 0.5) {
@@ -550,7 +550,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
               onPress={() => {
                 setConfirmed(true);
                 Animated.spring(bottomSheetHeight, {
-                  toValue: minHeight,
+                  toValue: maxHeight,
                   useNativeDriver: false,
                   tension: 100,
                   friction: 8,
