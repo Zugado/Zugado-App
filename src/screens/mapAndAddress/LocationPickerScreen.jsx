@@ -10,11 +10,12 @@ import {
   PermissionsAndroid,
   TextInput,
   FlatList,
-  Modal,
   Keyboard,
   Linking,
   ScrollView,
-  KeyboardAvoidingView,
+  Animated,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../../components/MyStatusbar';
@@ -37,11 +38,19 @@ const AUTOCOMPLETE_URL =
   'https://maps.googleapis.com/maps/api/place/autocomplete/json';
 const DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
 
+const { height: screenHeight } = Dimensions.get('window');
+
 const LocationPickerScreen = ({ navigation, route }) => {
   const { user } = useSelector(state => state.auth);
   const { showSnackbar } = useSnackbar();
   const { editAddressId } = route.params || {};
   const mapkey = Key.mapApiKey;
+  
+  // Bottom sheet animation
+  const bottomSheetHeight = useRef(new Animated.Value(0)).current;
+  const minHeight = screenHeight * 0.4;
+  const maxHeight = screenHeight * 0.8;
+  
   console.log('[debug] API key loaded:', mapkey ? 'YES' : 'NO');
 
   const mapRef = useRef(null);
@@ -75,6 +84,44 @@ const LocationPickerScreen = ({ navigation, route }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+
+  // Pan responder for drag gesture
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: (_, gestureState) => {
+      return Math.abs(gestureState.dy) > 10;
+    },
+    onPanResponderMove: (_, gestureState) => {
+      const newHeight = minHeight - gestureState.dy;
+      if (newHeight >= minHeight && newHeight <= maxHeight) {
+        bottomSheetHeight.setValue(newHeight);
+      }
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      const velocity = gestureState.vy;
+      const currentHeight = minHeight - gestureState.dy;
+      
+      let targetHeight;
+      if (velocity > 0.5) {
+        // Fast swipe down - minimize
+        targetHeight = minHeight;
+      } else if (velocity < -0.5) {
+        // Fast swipe up - maximize
+        targetHeight = maxHeight;
+      } else {
+        // Slow drag - snap to nearest
+        const midPoint = (minHeight + maxHeight) / 2;
+        targetHeight = currentHeight > midPoint ? maxHeight : minHeight;
+      }
+      
+      Animated.spring(bottomSheetHeight, {
+        toValue: targetHeight,
+        useNativeDriver: false,
+        tension: 100,
+        friction: 8,
+      }).start();
+    },
+  });
 
   const addressTypes = ['Home', 'Office', 'Work', 'Other'];
 
@@ -491,8 +538,170 @@ const LocationPickerScreen = ({ navigation, route }) => {
           <Ionicons name="locate-outline" size={22} color={Colors.whiteColor} />
         </TouchableOpacity>
 
-        {confirmLocationBottomSheet?.()}
-        {addAddressbottomSheet?.()}
+        {address && !isConfirmed && (
+          <View style={styles.confirmLocationSheet}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Feather name="map-pin" size={20} color="#000" />
+              <Text style={styles.confirmTitle}>Selected Location</Text>
+            </View>
+            <Text style={styles.confirmAddress}>{address}</Text>
+            <TouchableOpacity
+              style={styles.bottomBtn}
+              onPress={() => {
+                setConfirmed(true);
+                Animated.spring(bottomSheetHeight, {
+                  toValue: minHeight,
+                  useNativeDriver: false,
+                  tension: 100,
+                  friction: 8,
+                }).start();
+              }}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.bottomBtnText}>
+                Confirm Location & Continue
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {isConfirmed && (
+          <View style={{flex:1,backgroundColor:"#00000083",position:"absolute",top:0,left:0,right:0,bottom:0,zIndex:9999}}>
+          <Animated.View
+            style={[
+              styles.bottomSheet,
+              {
+                height: bottomSheetHeight,
+                transform: [
+                  {
+                    translateY: Animated.subtract(screenHeight, bottomSheetHeight),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.dragHandle}>
+              <View style={styles.dragIndicator} />
+            </View>
+            
+            <View {...panResponder.panHandlers} style={styles.sheetHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Feather name="map-pin" size={20} color="#000" />
+                <Text style={styles.sheetTitle}>Selected Location</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => {
+                  setConfirmed(false);
+                  bottomSheetHeight.setValue(0);
+                }}
+              >
+                <Feather name="x" size={20} color="#000" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.sheetContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.addressComponentsContainer}>
+                <Text style={styles.componentText}>
+                  {addressComponents?.formattedAddress}
+                </Text>
+              </View>
+
+              <View style={styles.inputsContainer}>
+                <View style={styles.inputRow}>
+                  <FloatingLabelInput
+                    label="Country"
+                    value={country || addressComponents?.country}
+                    onChangeText={setCountry}
+                    placeholder="Enter Country"
+                    editable={false}
+                    required
+                  />
+                  <FloatingLabelInput
+                    label="State"
+                    value={state || addressComponents?.state}
+                    onChangeText={setState}
+                    placeholder="Enter State"
+                    editable={false}
+                    required
+                  />
+                </View>
+                <View style={styles.inputRow}>
+                  <FloatingLabelInput
+                    label="City"
+                    value={city || addressComponents?.city}
+                    onChangeText={setCity}
+                    placeholder="Enter City"
+                    editable={false}
+                    required
+                  />
+                  <FloatingLabelInput
+                    label="Pin Code"
+                    value={pinCode || addressComponents?.pincode}
+                    onChangeText={setPinCode}
+                    placeholder="Enter Pin Code"
+                    editable={false}
+                    keyboardType="phone-pad"
+                    required
+                  />
+                </View>
+                <FloatingLabelInput
+                  label="Landmark"
+                  value={landmark}
+                  onChangeText={setLandmark}
+                  placeholder="Enter landmark (optional)"
+                />
+                <FloatingLabelInput
+                  label="Address"
+                  required={true}
+                  value={address}
+                  onChangeText={setAddress}
+                  multiline
+                  numberOfLines={2}
+                  placeholder="Enter or edit address manually"
+                />
+
+                <Text style={styles.label}>Address Type</Text>
+                <View style={styles.addressTypeContainer}>
+                  {addressTypes.map(type => (
+                    <TouchableOpacity
+                      key={type}
+                      style={[
+                        styles.typeButton,
+                        addressType === type && styles.selectedTypeButton,
+                      ]}
+                      onPress={() => setAddressType(type)}
+                    >
+                      <Text
+                        style={[
+                          styles.typeButtonText,
+                          addressType === type && styles.selectedTypeButtonText,
+                        ]}
+                      >
+                        {type}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.bottomBtn, { marginBottom: 40 }]}
+                onPress={handleAddAddress}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.bottomBtnText}>
+                  {editAddressId ? 'Update Address' : 'Save Address'}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </Animated.View>
+          </View>
+        )}
 
         {isLoading && (
           <View style={styles.loadingOverlay}>
@@ -502,282 +711,12 @@ const LocationPickerScreen = ({ navigation, route }) => {
       </View>
     </SafeAreaView>
   );
-  function confirmLocationBottomSheet() {
-    return (
-      <>
-         {address && !isConfirmed && (
-          <View
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              width: '100%',
-              backgroundColor: Colors.whiteColor,
-              borderTopRightRadius: 22,
-              borderTopLeftRadius: 22,
-              elevation: 3,
-              shadowColor: '#000',
-              shadowOpacity: 0.08,
-              shadowRadius: 6,
-              paddingTop: 10,
-              paddingBottom: Platform.OS === 'ios' ? 20 : 20,
-              paddingHorizontal: 16,
-              maxHeight: '70%',
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Feather
-                name="map-pin"
-                size={20}
-                color="#000"
-                style={{ marginBottom: 1 }}
-              />
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  marginLeft: 4,
-                }}
-              >
-                Selected Location
-              </Text>
-            </View>
 
-            <Text
-              style={{
-                fontSize: 12,
-                fontWeight: '400',
-                marginVertical: 10,
-              }}
-            >
-              {address}
-            </Text>
-            <TouchableOpacity
-              style={styles.bottomBtn}
-              onPress={() => setConfirmed(true)}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.bottomBtnText}>
-                Confirm Location & Continue
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </>
-    );
-  }
-  function addAddressbottomSheet() {
-    return (
-      <Modal
-        visible={isConfirmed}
-        transparent
-        animationType="slide"
-        onPress={() => setConfirmed(false)}
-      >
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
-          // onPress={() => setConfirmed(false)}
-        >
-          {/* Prevent outside touch from closing when user interacts inside */}
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              width: '100%',
-              backgroundColor: Colors.whiteColor,
-              borderTopRightRadius: 22,
-              borderTopLeftRadius: 22,
-              elevation: 3,
-              shadowColor: '#000',
-              shadowOpacity: 0.08,
-              shadowRadius: 6,
-              paddingTop: 20,
-              maxHeight: '80%',
-            }}
-          >
-            {/* Drag indicator */}
-            <TouchableOpacity
-              onPress={() => setConfirmed(false)}
-              style={{
-                height: 8,
-                width: 80,
-                backgroundColor: '#969696ff',
-                alignSelf: 'center',
-                borderRadius: 4,
-                marginBottom: 20,
-              }}
-            />
-
-            {/* Close button */}
-            <TouchableOpacity
-              style={{
-                height: 30,
-                width: 30,
-                borderRadius: 54,
-                backgroundColor: Colors.whiteColor,
-                borderColor: Colors.blackColor,
-                borderWidth: 1,
-                position: 'absolute',
-                top: 20,
-                right: 20,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-              onPress={() => setConfirmed(false)}
-              activeOpacity={0.8}
-            >
-              <Feather name="x" size={20} color="#000" />
-            </TouchableOpacity>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              // style={{ paddingVertical: 20 }}
-            >
-              <View style={{ paddingHorizontal: 16 }}>
-                {/* Header */}
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Feather name="map-pin" size={20} color="#000" />
-                  <Text
-                    style={{ fontSize: 16, fontWeight: '600', marginLeft: 4 }}
-                  >
-                    Selected Location
-                  </Text>
-                </View>
-
-                {/* <Text style={{ fontSize: 12, marginVertical: 10 }}>
-                    {address}
-                  </Text> */}
-
-                <View style={styles.addressComponentsContainer}>
-                  <Text style={styles.componentText}>
-                    {addressComponents.formattedAddress}
-                  </Text>
-                </View>
-
-                {/* Inputs */}
-                <View style={{ marginTop: 16 }}>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      gap: 10,
-                    }}
-                  >
-                    <FloatingLabelInput
-                      label="Country"
-                      value={country || addressComponents.country}
-                      onChangeText={setCountry}
-                      placeholder="Enter Country"
-                      editable={false}
-                      required
-                    />
-                    <FloatingLabelInput
-                      label="State"
-                      value={state || addressComponents.state}
-                      onChangeText={setState}
-                      placeholder="Enter State"
-                      editable={false}
-                      required
-                    />
-                  </View>
-                  <View
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      gap: 10,
-                    }}
-                  >
-                    <FloatingLabelInput
-                      label="City"
-                      value={city || addressComponents.city}
-                      onChangeText={setCity}
-                      placeholder="Enter City"
-                      editable={false}
-                      required
-                    />
-
-                    <FloatingLabelInput
-                      label="Pin Code"
-                      value={pinCode || addressComponents.pincode}
-                      onChangeText={setPinCode}
-                      placeholder="Enter Pin Code"
-                      editable={false}
-                      keyboardType="phone-pad"
-                      required
-                    />
-                  </View>
-                  <FloatingLabelInput
-                    label="Landmark"
-                    value={landmark}
-                    onChangeText={setLandmark}
-                    placeholder="Enter landmark (optional)"
-                  />
-
-                  <FloatingLabelInput
-                    label="Address"
-                    required={true}
-                    value={address}
-                    onChangeText={setAddress}
-                    multiline
-                    numberOfLines={2}
-                    placeholder="Enter or edit address manually"
-                  />
-
-                  <Text style={styles.label}>Address Type</Text>
-
-                  <View style={styles.addressTypeContainer}>
-                    {addressTypes.map(type => (
-                      <TouchableOpacity
-                        key={type}
-                        style={[
-                          styles.typeButton,
-                          addressType === type && styles.selectedTypeButton,
-                        ]}
-                        onPress={() => setAddressType(type)}
-                      >
-                        <Text
-                          style={[
-                            styles.typeButtonText,
-                            addressType === type &&
-                              styles.selectedTypeButtonText,
-                          ]}
-                        >
-                          {type}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-
-                {/* Save button */}
-                <TouchableOpacity
-                  style={[styles.bottomBtn, { marginBottom: 40 }]}
-                  onPress={handleAddAddress}
-                  activeOpacity={0.9}
-                >
-                  <Text style={styles.bottomBtnText}>
-                    {editAddressId ? 'Update Address' : 'Save Address'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </TouchableOpacity>
-      </Modal>
-    );
-  }
 };
 
 export default LocationPickerScreen;
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'flex-end',
-  },
   safeAreaBlack: {
     flex: 1,
     backgroundColor: '#000000',
@@ -859,11 +798,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
   },
+  confirmLocationSheet: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    backgroundColor: Colors.whiteColor,
+    borderTopRightRadius: 22,
+    borderTopLeftRadius: 22,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 20,
+    paddingHorizontal: 16,
+    maxHeight: '70%',
+  },
+  confirmTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  confirmAddress: {
+    fontSize: 12,
+    fontWeight: '400',
+    marginVertical: 10,
+  },
   bottomBtn: {
     backgroundColor: Colors.primary,
     padding: 14,
     borderRadius: 10,
     alignItems: 'center',
+    marginHorizontal: 16,
   },
   bottomBtnText: {
     color: Colors.whiteColor,
@@ -879,16 +845,75 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.08)',
   },
+  bottomSheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.whiteColor,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  dragHandle: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  dragIndicator: {
+    width: 80,
+    height: 6,
+    backgroundColor: '#969696',
+    borderRadius: 2,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.extraLightGrayColor,
+  },
+  sheetTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  sheetContent: {
+    flex: 1,
+  },
+  closeButton: {
+    height: 30,
+    width: 30,
+    borderRadius: 15,
+    backgroundColor: Colors.whiteColor,
+    borderColor: Colors.blackColor,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   addressComponentsContainer: {
     backgroundColor: '#f8f9fa',
     padding: 12,
     borderRadius: 8,
-    marginVertical: 8,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 16,
   },
   componentText: {
     fontSize: 12,
     color: '#666',
-    marginBottom: 4,
+  },
+  inputsContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    gap: 10,
   },
   label: {
     fontSize: 14,
@@ -922,3 +947,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

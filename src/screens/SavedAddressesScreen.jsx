@@ -202,7 +202,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
           >
             <View style={styles.addButtonContent}>
               <Feather name="plus" size={20} color={Colors.primary} />
-              <Text style={styles.addButtonText}>Add New Address</Text>
+              <Text style={styles.addButtonText}>Add a New Address</Text>
             </View>
           </TouchableOpacity>
 
