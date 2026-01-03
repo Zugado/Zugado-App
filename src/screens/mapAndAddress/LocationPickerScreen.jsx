@@ -48,7 +48,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
   
   // Bottom sheet animation
   const bottomSheetHeight = useRef(new Animated.Value(0)).current;
-  const minHeight = screenHeight * 0.6;
+  const minHeight = screenHeight * 0.4;
   const maxHeight = screenHeight * 0.8;
   
   console.log('[debug] API key loaded:', mapkey ? 'YES' : 'NO');
