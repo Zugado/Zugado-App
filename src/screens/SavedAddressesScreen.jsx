@@ -5,10 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import { useSelector } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 import MyStatusBar from '../components/MyStatusbar';
 import { CommonAppBar } from '../components/CommonComponents';
 import { Colors } from '../styles/commonStyles';
@@ -21,12 +23,19 @@ const SavedAddressesScreen = ({ navigation,route}) => {
   const { showSnackbar } = useSnackbar();
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState(null);
 
   useEffect(() => {
     loadAddresses();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadAddresses();
+    }, [])
+  );
 
   const loadAddresses = async () => {
     try {
@@ -36,10 +45,78 @@ const SavedAddressesScreen = ({ navigation,route}) => {
       showSnackbar('Failed to load addresses', 'error');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const renderAddressCard = ({ item }) => {
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadAddresses();
+  };
+
+ 
+  const handleEditAddress = (address) => {
+    const { returnScreen, jobData } = route.params || {};
+    navigation.navigate('LocationPickerScreen', {
+      editAddressId: address.id,
+      returnScreen,
+      jobData,
+    });
+  };
+
+  const handleDeleteAddress = async () => {
+    if (!addressToDelete) return;
+    
+    try {
+      await deleteAddress(user?.id || user?._id, addressToDelete.id);
+      setAddresses(prev => prev.filter(addr => addr.id !== addressToDelete.id));
+      showSnackbar('Address deleted successfully', 'success');
+    } catch (error) {
+      showSnackbar('Failed to delete address', 'error');
+    } finally {
+      setShowDeleteAlert(false);
+      setAddressToDelete(null);
+    }
+  };
+ 
+
+  const handleSelectAddress = (address) => {
+    const { returnScreen, jobData } = route.params || {};
+    if (returnScreen === 'CreateJobScreen2') {
+      navigation.navigate('CreateJobScreen2', {
+        jobData,
+        selectedLocation: {
+          address: address.address,
+          coordinates: address.coordinates,
+          addressComponents: address.addressComponents,
+        },
+      });
+    } else {
+      showSnackbar('Address selected', 'success');
+      navigation.goBack();
+    }
+  };
+  const getAddressIcon = (type) => {
+    switch (type) {
+      case 'Office':
+      case 'Work':
+        return 'briefcase';
+      case 'Home':
+        return 'home';
+      default:
+        return 'map-pin';
+    }
+  };
+
+  const renderEmptyList = () => (
+    <View style={styles.emptyContainer}>
+      <Feather name="map-pin" size={48} color={Colors.grayColor} />
+      <Text style={styles.emptyTitle}>No Saved Addresses</Text>
+      <Text style={styles.emptySubtitle}>Add your first address to get started</Text>
+    </View>
+  );
+
+ const renderAddressCard = ({ item }) => {
     const { returnScreen } = route.params || {};
     const isSelectable = returnScreen === 'CreateJobScreen2';
     
@@ -105,68 +182,6 @@ const SavedAddressesScreen = ({ navigation,route}) => {
     );
   };
 
-  const handleEditAddress = (address) => {
-    const { returnScreen, jobData } = route.params || {};
-    navigation.navigate('LocationPickerScreen', {
-      editAddressId: address.id,
-      returnScreen,
-      jobData,
-    });
-  };
-
-  const handleDeleteAddress = async () => {
-    if (!addressToDelete) return;
-    
-    try {
-      await deleteAddress(user?.id || user?._id, addressToDelete.id);
-      setAddresses(prev => prev.filter(addr => addr.id !== addressToDelete.id));
-      showSnackbar('Address deleted successfully', 'success');
-    } catch (error) {
-      showSnackbar('Failed to delete address', 'error');
-    } finally {
-      setShowDeleteAlert(false);
-      setAddressToDelete(null);
-    }
-  };
- 
-
-  const handleSelectAddress = (address) => {
-    const { returnScreen, jobData } = route.params || {};
-    if (returnScreen === 'CreateJobScreen2') {
-      navigation.navigate('CreateJobScreen2', {
-        jobData,
-        selectedLocation: {
-          address: address.address,
-          coordinates: address.coordinates,
-          addressComponents: address.addressComponents,
-        },
-      });
-    } else {
-      showSnackbar('Address selected', 'success');
-      navigation.goBack();
-    }
-  };
-  const getAddressIcon = (type) => {
-    switch (type) {
-      case 'Office':
-      case 'Work':
-        return 'briefcase';
-      case 'Home':
-        return 'home';
-      default:
-        return 'map-pin';
-    }
-  };
-
-  const renderEmptyList = () => (
-    <View style={styles.emptyContainer}>
-      <Feather name="map-pin" size={48} color={Colors.grayColor} />
-      <Text style={styles.emptyTitle}>No Saved Addresses</Text>
-      <Text style={styles.emptySubtitle}>Add your first address to get started</Text>
-    </View>
-  );
-
-
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
       <MyStatusBar />
@@ -203,6 +218,14 @@ const SavedAddressesScreen = ({ navigation,route}) => {
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={renderEmptyList}
               contentContainerStyle={addresses.length === 0 ? styles.emptyListContainer : null}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={[Colors.primary]}
+                  tintColor={Colors.primary}
+                />
+              }
             />
           )}
         </View>
@@ -322,7 +345,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   addressContent: {
-    gap: 8,
+    gap: 2,
   },
   addressRow: {
     flexDirection: 'row',
