@@ -94,7 +94,6 @@ export default function CreateJob({ navigation }) {
   const [isPurposeClicked, setPurposeClicked] = useState(false);
   //  job for things use states END
 
-
   // Load tags and check for draft on component mount
   useEffect(() => {
     dispatch(getAllTags());
@@ -119,7 +118,21 @@ export default function CreateJob({ navigation }) {
       selectedThingCategory,
     };
     saveDraft(draftData);
-  }, [jobFor, personTitle, personDescription, experienceLevel, selectedSkills, skill, requiresExperience, jobType, thingTitle, thingDescription, purpose, otherPurpose, selectedThingCategory]);
+  }, [
+    jobFor,
+    personTitle,
+    personDescription,
+    experienceLevel,
+    selectedSkills,
+    skill,
+    requiresExperience,
+    jobType,
+    thingTitle,
+    thingDescription,
+    purpose,
+    otherPurpose,
+    selectedThingCategory,
+  ]);
 
   const checkForDraft = async () => {
     try {
@@ -133,10 +146,15 @@ export default function CreateJob({ navigation }) {
     }
   };
 
-  const saveDraft = async (data) => {
+  const saveDraft = async data => {
     try {
       // Only save if there's meaningful data
-      const hasData = data?.personTitle || data?.thingTitle || data?.personDescription || data?.thingDescription || data?.selectedSkills?.length > 0;
+      const hasData =
+        data?.personTitle ||
+        data?.thingTitle ||
+        data?.personDescription ||
+        data?.thingDescription ||
+        data?.selectedSkills?.length > 0;
       if (hasData) {
         await AsyncStorage.setItem('jobDraft', JSON.stringify(data));
       }
@@ -203,7 +221,7 @@ export default function CreateJob({ navigation }) {
   };
 
   // Clear fields when switching between person/thing
-  const handleJobForChange = (value) => {
+  const handleJobForChange = value => {
     setJobFor(value);
     if (value === 'person') {
       // Clear thing-specific fields
@@ -223,7 +241,7 @@ export default function CreateJob({ navigation }) {
   };
 
   // Clear experience level when switching requiresExperience
-  const handleRequiresExperienceChange = (value) => {
+  const handleRequiresExperienceChange = value => {
     setRequiresExperience(value);
     if (value === 'no') {
       setExperienceLevel('');
@@ -234,12 +252,17 @@ export default function CreateJob({ navigation }) {
     validateForm(jobFor);
   };
 
-  const validateForm = (jobFor) => {
+  const validateForm = jobFor => {
     clearDraft();
-    
+
     if (jobFor === 'person') {
       // Person validation
-      if (!jobFor || !personTitle?.trim() || !personDescription?.trim() || !jobType) {
+      if (
+        !jobFor ||
+        !personTitle?.trim() ||
+        !personDescription?.trim() ||
+        !jobType
+      ) {
         showSnackbar('Please fill all required fields', 'error');
         return;
       }
@@ -265,20 +288,26 @@ export default function CreateJob({ navigation }) {
       }
 
       // Navigate with person data
-      navigation.navigate('CreateJobScreen2', {
+      navigation.push('CreateJobScreen2', {
         jobData: {
           jobFor,
           title: personTitle?.trim(),
           description: personDescription?.trim(),
           category: selectedSkills,
           requirements: skill?.trim(),
-          experienceLevel: requiresExperience === 'yes' ? experienceLevel : null,
+          experienceLevel:
+            requiresExperience === 'yes' ? experienceLevel : null,
           jobType,
         },
       });
     } else {
       // Thing validation
-      if (!jobFor || !thingTitle?.trim() || !thingDescription?.trim() || !jobType) {
+      if (
+        !jobFor ||
+        !thingTitle?.trim() ||
+        !thingDescription?.trim() ||
+        !jobType
+      ) {
         showSnackbar('Please fill all required fields', 'error');
         return;
       }
@@ -304,7 +333,7 @@ export default function CreateJob({ navigation }) {
       }
 
       // Navigate with thing data
-      navigation.navigate('CreateJobScreen2', {
+      navigation.push('CreateJobScreen2', {
         jobData: {
           jobFor,
           purpose: purpose === 'other' ? otherPurpose : purpose,
@@ -318,13 +347,12 @@ export default function CreateJob({ navigation }) {
   };
 
   // Clear other purpose when purpose changes
-  const handlePurposeChange = (value) => {
+  const handlePurposeChange = value => {
     setPurpose(value);
     if (value !== 'other') {
       setOtherPurpose('');
     }
   };
-
 
   return (
     <KeyboardAvoidingView
@@ -351,7 +379,7 @@ export default function CreateJob({ navigation }) {
                 <Feather name="arrow-left" size={20} color="#000" />
               </TouchableOpacity>
               <View style={styles.progressContainer}>
-                <View style={styles.progressBar} />
+                <View style={[styles.progressBar, { width: '33.33%' }]} />
               </View>
               <Text style={styles.progressText}>1/3</Text>
             </View>
@@ -408,10 +436,7 @@ export default function CreateJob({ navigation }) {
 
           {/* --- Next Button --- */}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.nextButton}
-              onPress={handleNext}
-            >
+            <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
               <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
           </View>
@@ -509,7 +534,9 @@ export default function CreateJob({ navigation }) {
             <SelectorToggleButton
               options={['No', 'Yes']}
               selectedValue={requiresExperience === 'no' ? 'No' : 'Yes'}
-              onValueChange={value => handleRequiresExperienceChange(value === 'No' ? 'no' : 'yes')}
+              onValueChange={value =>
+                handleRequiresExperienceChange(value === 'No' ? 'no' : 'yes')
+              }
             />
           </View>
 
@@ -714,7 +741,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
   progressBar: {
-    width: '33.33%',
     height: '100%',
     backgroundColor: '#000',
     borderRadius: 4,
