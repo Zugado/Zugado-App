@@ -171,144 +171,170 @@ export default function CreateJob({ navigation, route }) {
     }
   };
   const handleNext = () => {
-    if (isNavigating) return;
-    setIsNavigating(true);
     validateForm(jobData.jobFor);
   };
 
-  const validateForm = (jobFor) => {
+  const validateForm = jobFor => {
     if (jobFor === 'person') {
       // Person validation
       if (jobLocationType !== 'remote' && !coordinates) {
         showSnackbar('Please select a location', 'error');
-        setIsNavigating(false);
         return;
       }
-      
+
       const timingDetails = getTimingDetailsForPerson();
-      if (timingType === 'fixed' && (!timingDetails?.date || !timingDetails?.startTime || !timingDetails?.endTime)) {
-        showSnackbar('Fixed timing requires date, start time, and end time', 'error');
-        setIsNavigating(false);
+      if (
+        timingType === 'fixed' &&
+        (!timingDetails?.date ||
+          !timingDetails?.startTime ||
+          !timingDetails?.endTime)
+      ) {
+        showSnackbar(
+          'Fixed timing requires date, start time, and end time',
+          'error',
+        );
         return;
       }
-      if (timingType === 'multiday' && (!timingDetails?.startDate || !timingDetails?.endDate || !timingDetails?.dailyHours)) {
-        showSnackbar('Multi-day timing requires start date, end date, and daily hours', 'error');
-        setIsNavigating(false);
+      if (
+        timingType === 'multiday' &&
+        (!timingDetails?.startDate ||
+          !timingDetails?.endDate ||
+          !timingDetails?.dailyHours)
+      ) {
+        showSnackbar(
+          'Multi-day timing requires start date, end date, and daily hours',
+          'error',
+        );
         return;
       }
       if (timingType === 'deadline' && !timingDetails?.deadline) {
         showSnackbar('Deadline timing requires a deadline', 'error');
-        setIsNavigating(false);
         return;
       }
       if (timingType === 'flexible' && !timingDetails?.estimatedHours) {
         showSnackbar('Flexible timing requires estimated hours', 'error');
-        setIsNavigating(false);
         return;
       }
       if (discloseAmount && !amount?.trim()) {
         showSnackbar('Please enter an amount', 'error');
-        setIsNavigating(false);
         return;
       }
-      if (discloseAmount && isNegotiable && (!minAmount?.trim() || !maxAmount?.trim())) {
+      if (
+        discloseAmount &&
+        isNegotiable &&
+        (!minAmount?.trim() || !maxAmount?.trim())
+      ) {
         showSnackbar('Please enter both minimum and maximum amounts', 'error');
-        setIsNavigating(false);
         return;
       }
 
       // Navigate with person data
-      setTimeout(() => {
-        navigation.navigate('CreateJobScreen3', {
-          jobData: {
-            ...jobData,
-            locationType: jobLocationType,
-            location: coordinates ? {
-              type: 'Point',
-              coordinates: [coordinates?.longitude, coordinates?.latitude],
-              address: address?.trim() || '',
-            } : null,
-            timingType,
-            timingDetails,
-            amount: {
-              value: Number(amount) || 0,
-              unit: null,
-              disclose: discloseAmount,
-              negotiable: isNegotiable,
-              range: isNegotiable ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 } : null,
-            },
+      navigation.navigate('CreateJobScreen3', {
+        jobData: {
+          ...jobData,
+          locationType: jobLocationType,
+          location: coordinates
+            ? {
+                type: 'Point',
+                coordinates: [coordinates?.longitude, coordinates?.latitude],
+                address: address?.trim() || '',
+              }
+            : null,
+          timingType,
+          timingDetails,
+          amount: {
+            value: Number(amount) || 0,
+            unit: null,
+            disclose: discloseAmount,
+            negotiable: isNegotiable,
+            range: isNegotiable
+              ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 }
+              : null,
           },
-        });
-        setIsNavigating(false);
-      }, 100);
+        },
+      });
     } else {
       // Thing validation
       if (!coordinates) {
         showSnackbar('Please select a location', 'error');
-        setIsNavigating(false);
         return;
       }
-      
+
       const timingDetails = getTimingDetailsForThing();
-      if (thingTimingType === 'needed-by-date' && (!timingDetails?.thingDate || !timingDetails?.thingStartTime || !timingDetails?.thingEndTime)) {
-        showSnackbar('Needed by date requires date, start time, and end time', 'error');
-        setIsNavigating(false);
+      if (
+        thingTimingType === 'needed-by-date' &&
+        (!timingDetails?.thingDate ||
+          !timingDetails?.thingStartTime ||
+          !timingDetails?.thingEndTime)
+      ) {
+        showSnackbar(
+          'Needed by date requires date, start time, and end time',
+          'error',
+        );
         return;
       }
-      if (thingTimingType === 'start-end-date' && (!timingDetails?.thingStartDate || !timingDetails?.thingEndDate || !timingDetails?.thingDailyHours)) {
-        showSnackbar('Start-end date requires start date, end date, and daily hours', 'error');
-        setIsNavigating(false);
+      if (
+        thingTimingType === 'start-end-date' &&
+        (!timingDetails?.thingStartDate ||
+          !timingDetails?.thingEndDate ||
+          !timingDetails?.thingDailyHours)
+      ) {
+        showSnackbar(
+          'Start-end date requires start date, end date, and daily hours',
+          'error',
+        );
         return;
       }
       if (thingTimingType === 'deadline' && !timingDetails?.thingDeadline) {
         showSnackbar('Deadline timing requires a deadline', 'error');
-        setIsNavigating(false);
         return;
       }
-      if (thingTimingType === 'flexible' && !timingDetails?.thingEstimatedHours) {
+      if (
+        thingTimingType === 'flexible' &&
+        !timingDetails?.thingEstimatedHours
+      ) {
         showSnackbar('Flexible timing requires estimated hours', 'error');
-        setIsNavigating(false);
         return;
       }
       if (discloseAmount && !amount?.trim()) {
         showSnackbar('Please enter an amount', 'error');
-        setIsNavigating(false);
         return;
       }
       if (discloseAmount && !unit) {
         showSnackbar('Please select a unit', 'error');
-        setIsNavigating(false);
         return;
       }
-      if (discloseAmount && isNegotiable && (!minAmount?.trim() || !maxAmount?.trim())) {
+      if (
+        discloseAmount &&
+        isNegotiable &&
+        (!minAmount?.trim() || !maxAmount?.trim())
+      ) {
         showSnackbar('Please enter both minimum and maximum amounts', 'error');
-        setIsNavigating(false);
         return;
       }
 
       // Navigate with thing data
-      setTimeout(() => {
-        navigation.navigate('CreateJobScreen3', {
-          jobData: {
-            ...jobData,
-            location: {
-              type: 'Point',
-              coordinates: [coordinates?.longitude, coordinates?.latitude],
-              address: address?.trim() || '',
-            },
-            timingType: thingTimingType,
-            timingDetails,
-            amount: {
-              value: Number(amount) || 0,
-              unit: unit,
-              disclose: discloseAmount,
-              negotiable: isNegotiable,
-              range: isNegotiable ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 } : null,
-            },
+      navigation.push('CreateJobScreen3', {
+        jobData: {
+          ...jobData,
+          location: {
+            type: 'Point',
+            coordinates: [coordinates?.longitude, coordinates?.latitude],
+            address: address?.trim() || '',
           },
-        });
-        setIsNavigating(false);
-      }, 100);
+          timingType: thingTimingType,
+          timingDetails,
+          amount: {
+            value: Number(amount) || 0,
+            unit: unit,
+            disclose: discloseAmount,
+            negotiable: isNegotiable,
+            range: isNegotiable
+              ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 }
+              : null,
+          },
+        },
+      });
     }
   };
   return (
@@ -347,20 +373,21 @@ export default function CreateJob({ navigation, route }) {
             <Text style={styles.title}>
               Define Location & Payment Information
             </Text>
-            {jobData?.jobFor === 'person' ? <>{personForm?.()}</> : <>{thingForm?.()}</>}
+            {jobData?.jobFor === 'person' ? (
+              <>{personForm?.()}</>
+            ) : (
+              <>{thingForm?.()}</>
+            )}
             <FaddedIcon />
           </ScrollView>
 
           {/* NEXT BUTTON */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.nextButton, isNavigating && { opacity: 0.7 }]}
+              style={styles.nextButton}
               onPress={handleNext}
-              disabled={isNavigating}
             >
-              <Text style={styles.nextButtonText}>
-                {isNavigating ? 'Loading...' : 'Next'}
-              </Text>
+              <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -597,7 +624,6 @@ export default function CreateJob({ navigation, route }) {
                 />
               </View>
               <View style={{ marginLeft: 10, marginTop: 10 }}>
-               
                 <TouchableOpacity
                   style={[
                     styles.negotiableToggle,
@@ -618,8 +644,7 @@ export default function CreateJob({ navigation, route }) {
                     </>
                   )}
                 </TouchableOpacity>
-                 <Text style={styles.negotiableLabel}>Negotiable</Text>
-
+                <Text style={styles.negotiableLabel}>Negotiable</Text>
               </View>
             </View>
           )}
@@ -669,12 +694,12 @@ export default function CreateJob({ navigation, route }) {
           </Text>
 
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('SavedAddressesScreen', {
+            onPress={() => {
+               navigation.navigate('SavedAddressesScreen', {
                 returnScreen: 'CreateJobScreen2',
                 jobData,
-              })
-            }
+              });
+             }}
             style={styles.mapButton}
           >
             <Feather name="map-pin" size={20} color="#000" />
@@ -802,7 +827,7 @@ export default function CreateJob({ navigation, route }) {
           </>
         )}
         {/* Amount Disclosure */}
-        <View style={[styles.selectorContainer, { marginBottom: 2 ,}]}>
+        <View style={[styles.selectorContainer, { marginBottom: 2 }]}>
           <Text style={styles.selectorLabel}>
             Would you like to disclose the amount?
           </Text>
@@ -825,9 +850,7 @@ export default function CreateJob({ navigation, route }) {
             />
           </View>
         </View>
-          <Text style={[styles.selectorLabel, { marginBottom: 10 }]}>
-                Amount
-          </Text>
+        <Text style={[styles.selectorLabel, { marginBottom: 10 }]}>Amount</Text>
         {discloseAmount && (
           <View style={styles.amountContainer}>
             <View style={styles.amountInputWrapper}>
@@ -840,7 +863,7 @@ export default function CreateJob({ navigation, route }) {
                 onFocus={ref => scrollToInput(ref, scrollViewRef)}
               />
             </View>
-            
+
             <View style={styles.unitDropdownWrapper}>
               <TouchableOpacity
                 style={[
@@ -853,7 +876,7 @@ export default function CreateJob({ navigation, route }) {
                 onPress={() => setUnitClicked(prev => !prev)}
               >
                 <Text
-                numberOfLines={1}
+                  numberOfLines={1}
                   style={[
                     styles.unitButtonText,
                     { color: isUnitClicked ? '#000' : '#666' },
@@ -884,7 +907,9 @@ export default function CreateJob({ navigation, route }) {
                           setUnitClicked(false);
                         }}
                       >
-                        <Text style={styles.unitSuggestionText}>{item.label}</Text>
+                        <Text style={styles.unitSuggestionText}>
+                          {item.label}
+                        </Text>
                       </TouchableOpacity>
                       {index < 3 && <View style={styles.unitSeparator} />}
                     </View>
