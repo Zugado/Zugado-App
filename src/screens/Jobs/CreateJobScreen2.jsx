@@ -403,7 +403,7 @@ export default function CreateJob({ navigation, route }) {
           <View style={styles.selectorContainer}>
             <Text style={styles.selectorLabel}>Job Location</Text>
             <Text style={styles.selectorHelper}>
-              Where will the work be performed?
+              Where will the work be performed ?
             </Text>
             <View style={styles.radioRow}>
               {[
@@ -451,7 +451,7 @@ export default function CreateJob({ navigation, route }) {
                 {coordinates ? 'Change Location' : 'Select on Map'}
               </Text>
               <Feather name="chevron-right" size={16} color="#666" />
-            </TouchableOpacity>
+            </TouchableOpacity> 
 
             {coordinates && (
               <FloatingLabelInput
