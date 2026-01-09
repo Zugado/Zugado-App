@@ -20,6 +20,7 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 import { useDispatch } from 'react-redux';
 import { createJob, uploadJobAttachmentsById } from '../../store/thunks/jobThunk';
 import { FaddedIcon } from '../../components/CommonComponents';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CreateJobPageThree({ navigation, route }) {
   const { jobData } = route.params;
@@ -132,16 +133,34 @@ export default function CreateJobPageThree({ navigation, route }) {
   };
 
   const handleSubmitJob = async () => {
-    console.log('=== FINAL JOB SUBMISSION ===');
+    console.log('\n=== FINAL JOB SUBMISSION - SCREEN 3 ===');
     console.log('Complete Job Data:', JSON.stringify(jobData, null, 2));
-    console.log('Media Files:', mediaFiles.length);
-    console.log('Job For:', jobData.jobFor);
-    console.log('=== END SUBMISSION LOG ===');
+    console.log('Media Files Count:', mediaFiles.length);
+    console.log('Media Files Details:', mediaFiles.map(f => ({ id: f.id, type: f.type, fileName: f.fileName })));
+    
+    // Check for any draft data still in storage
+    try {
+      const draftData = await AsyncStorage.getItem('jobDraft');
+      console.log('\n=== DRAFT DATA CHECK ===');
+      if (draftData) {
+        console.log('Draft Data Found:', JSON.parse(draftData));
+      } else {
+        console.log('No Draft Data Found');
+      }
+      console.log('=== END DRAFT CHECK ===\n');
+    } catch (error) {
+      console.log('Error checking draft:', error);
+    }
     
     setIsSubmitting(true);
     try {
       // Format timing details based on timing type and jobFor
       let formattedTimingDetails = {};
+      
+      console.log('\n=== TIMING DETAILS FORMATTING ===');
+      console.log('Job For:', jobData?.jobFor);
+      console.log('Timing Type:', jobData?.timingType);
+      console.log('Raw Timing Details:', JSON.stringify(jobData?.timingDetails, null, 2));
       
       if (jobData?.jobFor === 'person') {
         switch (jobData?.timingType) {
@@ -199,6 +218,9 @@ export default function CreateJobPageThree({ navigation, route }) {
             break;
         }
       }
+      
+      console.log('Formatted Timing Details:', JSON.stringify(formattedTimingDetails, null, 2));
+      console.log('=== END TIMING FORMATTING ===\n');
 
       // Format job data according to API structure
       const formattedJobData = {
@@ -223,12 +245,41 @@ export default function CreateJobPageThree({ navigation, route }) {
         }
       };
 
-      console.log('=== FORMATTED JOB DATA FOR API ===');
+      console.log('\n=== FINAL FORMATTED JOB DATA FOR API ===');
       console.log(JSON.stringify(formattedJobData, null, 2));
-      console.log('=== END FORMATTED DATA ===');
+      console.log('=== END FORMATTED DATA ===\n');
+      
+      console.log('\n=== FIELD-BY-FIELD BREAKDOWN ===');
+      console.log('Job For:', formattedJobData.jobFor);
+      console.log('Purpose:', formattedJobData.purpose);
+      console.log('Title:', formattedJobData.title);
+      console.log('Description Length:', formattedJobData.description?.length);
+      console.log('Tags/Categories:', formattedJobData.tags);
+      console.log('Requirements:', formattedJobData.requirements);
+      console.log('Experience Level:', formattedJobData.experienceLevel);
+      console.log('Location Type:', formattedJobData.locationType);
+      console.log('Location Coordinates:', formattedJobData.location?.coordinates);
+      console.log('Job Type:', formattedJobData.jobType);
+      console.log('Timing Type:', formattedJobData.timingType);
+      console.log('Amount Disclose:', formattedJobData.amount.disclose);
+      console.log('Amount Negotiable:', formattedJobData.amount.negotiable);
+      console.log('Amount Value:', formattedJobData.amount.value);
+      console.log('Amount Unit:', formattedJobData.amount.unit);
+      console.log('Amount Range:', formattedJobData.amount.range);
+      console.log('=== END FIELD BREAKDOWN ===\n');
 
       // For testing - just log and show success
-      showSnackbar('Job data logged to console - check logs!', 'success');
+      showSnackbar('✅ Job data logged to console - check logs for complete details!', 'success');
+      
+      // Clear draft data only after successful submission
+      try {
+        await AsyncStorage.removeItem('jobDraft');
+        console.log('✅ Draft data cleared after successful submission');
+      } catch (error) {
+        console.log('Error clearing draft:', error);
+      }
+      
+      console.log('\n=== JOB SUBMISSION COMPLETE ===\n');
       
       // Uncomment below for actual API submission
       /*
@@ -241,6 +292,14 @@ export default function CreateJobPageThree({ navigation, route }) {
           await uploadMediaFiles(jobId);
         }
         
+        // Clear draft only on successful API response
+        try {
+          await AsyncStorage.removeItem('jobDraft');
+          console.log('Draft cleared after successful job posting');
+        } catch (error) {
+          console.log('Error clearing draft:', error);
+        }
+        
         showSnackbar('Job posted successfully!', 'success');
         navigation.reset({
           index: 0,
@@ -251,8 +310,11 @@ export default function CreateJobPageThree({ navigation, route }) {
       }
       */
     } catch (error) {
-      console.error('=== JOB SUBMISSION ERROR ===');
+      console.error('\n=== JOB SUBMISSION ERROR ===');
       console.error('Error Details:', error);
+      console.error('Error Message:', error.message);
+      console.error('Error Stack:', error.stack);
+      console.error('=== END ERROR LOG ===\n');
       showSnackbar('Failed to post job. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
@@ -433,7 +495,7 @@ export default function CreateJobPageThree({ navigation, route }) {
               ))}
             </View>
           )}
-          <FaddedIcon/>
+          <FaddedIcon />
         </ScrollView>
 
         {/* --- Submit Button --- */}

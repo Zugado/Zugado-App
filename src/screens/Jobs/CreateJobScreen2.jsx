@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -48,6 +49,84 @@ export default function CreateJob({ navigation, route }) {
   const [unit, setUnit] = useState('');
   const [isUnitClicked, setUnitClicked] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+
+  // Debug: Log incoming job data and current form state
+  useEffect(() => {
+    console.log('=== SCREEN 2 - COMPONENT MOUNTED ===');
+    console.log('Incoming Job Data:', JSON.stringify(jobData, null, 2));
+    console.log('Current Form State:', {
+      address,
+      coordinates,
+      jobLocationType,
+      timingType,
+      discloseAmount,
+      amount,
+      isNegotiable,
+      minAmount,
+      maxAmount,
+      unit
+    });
+    console.log('=== END SCREEN 2 MOUNT DEBUG ===\n');
+  }, []);
+
+  // Save draft data for Screen 2 fields
+  useEffect(() => {
+    const saveDraftScreen2 = async () => {
+      try {
+        const existingDraft = await AsyncStorage.getItem('jobDraft');
+        if (existingDraft) {
+          const draftData = JSON.parse(existingDraft);
+          
+          // Update draft with Screen 2 data
+          const updatedDraft = {
+            ...draftData,
+            // Location data
+            address,
+            coordinates,
+            jobLocationType,
+            // Timing data
+            timingType: jobData?.jobFor === 'person' ? timingType : thingTimingType,
+            date,
+            startTime,
+            endTime,
+            startDate,
+            endDate,
+            dailyHours,
+            deadline,
+            estimatedHours,
+            thingDate,
+            thingDeadline,
+            thingStartTime,
+            thingEndTime,
+            thingStartDate,
+            thingEndDate,
+            thingDailyHours,
+            thingEstimatedHours,
+            // Amount data
+            discloseAmount,
+            amount,
+            isNegotiable,
+            minAmount,
+            maxAmount,
+            unit
+          };
+          
+          await AsyncStorage.setItem('jobDraft', JSON.stringify(updatedDraft));
+          console.log('Screen 2 draft updated successfully');
+        }
+      } catch (error) {
+        console.log('Error updating Screen 2 draft:', error);
+      }
+    };
+    
+    saveDraftScreen2();
+  }, [
+    address, coordinates, jobLocationType, timingType, thingTimingType,
+    date, startTime, endTime, startDate, endDate, dailyHours, deadline, estimatedHours,
+    thingDate, thingDeadline, thingStartTime, thingEndTime, thingStartDate, thingEndDate,
+    thingDailyHours, thingEstimatedHours, discloseAmount, amount, isNegotiable,
+    minAmount, maxAmount, unit
+  ]);
 
   //Timings for things
   const [thingTimingType, setThingTimingType] = useState('needed-by-date');
@@ -175,6 +254,20 @@ export default function CreateJob({ navigation, route }) {
   };
 
   const validateForm = jobFor => {
+    console.log('=== SCREEN 2 - FORM VALIDATION ===');
+    console.log('Job For:', jobFor);
+    console.log('Validation Input Data:', {
+      jobLocationType,
+      coordinates,
+      timingType: jobFor === 'person' ? timingType : thingTimingType,
+      discloseAmount,
+      amount,
+      isNegotiable,
+      minAmount,
+      maxAmount,
+      unit
+    });
+    
     if (jobFor === 'person') {
       // Person validation
       if (jobLocationType !== 'remote' && !coordinates) {
@@ -183,6 +276,8 @@ export default function CreateJob({ navigation, route }) {
       }
 
       const timingDetails = getTimingDetailsForPerson();
+      console.log('Person Timing Details:', JSON.stringify(timingDetails, null, 2));
+      
       if (
         timingType === 'fixed' &&
         (!timingDetails?.date ||
@@ -215,7 +310,7 @@ export default function CreateJob({ navigation, route }) {
         showSnackbar('Flexible timing requires estimated hours', 'error');
         return;
       }
-      if (discloseAmount && !amount?.trim()) {
+      if (discloseAmount && !isNegotiable && !amount?.trim()) {
         showSnackbar('Please enter an amount', 'error');
         return;
       }
@@ -228,30 +323,35 @@ export default function CreateJob({ navigation, route }) {
         return;
       }
 
+      const personJobData = {
+        ...jobData,
+        locationType: jobLocationType,
+        location: coordinates
+          ? {
+              type: 'Point',
+              coordinates: [coordinates?.longitude, coordinates?.latitude],
+              address: address?.trim() || '',
+            }
+          : null,
+        timingType,
+        timingDetails,
+        amount: {
+          value: isNegotiable ? 0 : Number(amount) || 0,
+          unit: null,
+          disclose: discloseAmount,
+          negotiable: isNegotiable,
+          range: isNegotiable
+            ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 }
+            : null,
+        },
+      };
+      
+      console.log('Person Job Data for Screen 3:', JSON.stringify(personJobData, null, 2));
+      console.log('=== END SCREEN 2 PERSON VALIDATION ===\n');
+
       // Navigate with person data
       navigation.navigate('CreateJobScreen3', {
-        jobData: {
-          ...jobData,
-          locationType: jobLocationType,
-          location: coordinates
-            ? {
-                type: 'Point',
-                coordinates: [coordinates?.longitude, coordinates?.latitude],
-                address: address?.trim() || '',
-              }
-            : null,
-          timingType,
-          timingDetails,
-          amount: {
-            value: Number(amount) || 0,
-            unit: null,
-            disclose: discloseAmount,
-            negotiable: isNegotiable,
-            range: isNegotiable
-              ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 }
-              : null,
-          },
-        },
+        jobData: personJobData,
       });
     } else {
       // Thing validation
@@ -261,6 +361,8 @@ export default function CreateJob({ navigation, route }) {
       }
 
       const timingDetails = getTimingDetailsForThing();
+      console.log('Thing Timing Details:', JSON.stringify(timingDetails, null, 2));
+      
       if (
         thingTimingType === 'needed-by-date' &&
         (!timingDetails?.thingDate ||
@@ -296,11 +398,11 @@ export default function CreateJob({ navigation, route }) {
         showSnackbar('Flexible timing requires estimated hours', 'error');
         return;
       }
-      if (discloseAmount && !amount?.trim()) {
+      if (discloseAmount && !isNegotiable && !amount?.trim()) {
         showSnackbar('Please enter an amount', 'error');
         return;
       }
-      if (discloseAmount && !unit) {
+      if (discloseAmount && !unit && !isNegotiable) {
         showSnackbar('Please select a unit', 'error');
         return;
       }
@@ -313,27 +415,32 @@ export default function CreateJob({ navigation, route }) {
         return;
       }
 
+      const thingJobData = {
+        ...jobData,
+        location: {
+          type: 'Point',
+          coordinates: [coordinates?.longitude, coordinates?.latitude],
+          address: address?.trim() || '',
+        },
+        timingType: thingTimingType,
+        timingDetails,
+        amount: {
+          value: isNegotiable ? 0 : Number(amount) || 0,
+          unit: isNegotiable ? null : unit,
+          disclose: discloseAmount,
+          negotiable: isNegotiable,
+          range: isNegotiable
+            ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 }
+            : null,
+        },
+      };
+      
+      console.log('Thing Job Data for Screen 3:', JSON.stringify(thingJobData, null, 2));
+      console.log('=== END SCREEN 2 THING VALIDATION ===\n');
+
       // Navigate with thing data
       navigation.push('CreateJobScreen3', {
-        jobData: {
-          ...jobData,
-          location: {
-            type: 'Point',
-            coordinates: [coordinates?.longitude, coordinates?.latitude],
-            address: address?.trim() || '',
-          },
-          timingType: thingTimingType,
-          timingDetails,
-          amount: {
-            value: Number(amount) || 0,
-            unit: unit,
-            disclose: discloseAmount,
-            negotiable: isNegotiable,
-            range: isNegotiable
-              ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 }
-              : null,
-          },
-        },
+        jobData: thingJobData,
       });
     }
   };
@@ -577,76 +684,55 @@ export default function CreateJob({ navigation, route }) {
           )}
 
           {/* Amount Disclosure */}
-          <View style={[styles.selectorContainer, { marginBottom: 2 }]}>
-            <Text style={styles.selectorLabel}>
-              Would you like to disclose the amount?
-            </Text>
-            <Text style={styles.selectorHelper}>
-              Choose whether to show payment range
-            </Text>
-            <View style={styles.disclosureOptionsContainer}>
-              <RoundRadioButton
-                label="Yes"
-                selected={discloseAmount === true}
-                onPress={() => setDiscloseAmount(true)}
-              />
-              <RoundRadioButton
-                label="No"
-                selected={discloseAmount === false}
-                onPress={() => {
-                  setDiscloseAmount(false);
-                  setAmount('');
+          <View style={styles.toggleRow}>
+            <View style={styles.toggleSection}>
+              <Text style={styles.toggleLabel}>Disclose Amount</Text>
+              <Switch
+                value={discloseAmount}
+                onValueChange={(value) => {
+                  setDiscloseAmount(value);
+                  if (!value) {
+                    setAmount('');
+                    setIsNegotiable(false);
+                    setMinAmount('');
+                    setMaxAmount('');
+                  }
                 }}
+                trackColor={{ false: '#e9ecef', true: '#000' }}
+                thumbColor={discloseAmount ? '#fff' : '#f4f3f4'}
               />
             </View>
-          </View>
-
-          {discloseAmount && (
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
-              <View style={{ flex: 3 }}>
-                <Text style={[styles.selectorLabel, { marginBottom: 10 }]}>
-                  Amount
-                </Text>
-
-                <FloatingLabelInput
-                  label="Amount (INR) ₹"
-                  value={amount}
-                  onChangeText={setAmount}
-                  keyboardType="numeric"
-                  placeholder="Enter amount"
-                  onFocus={ref => scrollToInput(ref, scrollViewRef)}
+            
+            {discloseAmount && (
+              <View style={styles.toggleSection}>
+                <Text style={styles.toggleLabel}>Negotiable</Text>
+                <Switch
+                  value={isNegotiable}
+                  onValueChange={(value) => {
+                    setIsNegotiable(value);
+                    if (value) {
+                      setAmount('');
+                    } else {
+                      setMinAmount('');
+                      setMaxAmount('');
+                    }
+                  }}
+                  trackColor={{ false: '#e9ecef', true: '#000' }}
+                  thumbColor={isNegotiable ? '#fff' : '#f4f3f4'}
                 />
               </View>
-              <View style={{ marginLeft: 10, marginTop: 10 }}>
-                <TouchableOpacity
-                  style={[
-                    styles.negotiableToggle,
-                    { backgroundColor: isNegotiable ? '#22c55e' : '#000' },
-                  ]}
-                  onPress={() => setIsNegotiable(!isNegotiable)}
-                  activeOpacity={0.8}
-                >
-                  {isNegotiable ? (
-                    <>
-                      <Text style={styles.negotiableText}>Yes</Text>
-                      <View style={styles.negotiableIcon} />
-                    </>
-                  ) : (
-                    <>
-                      <View style={styles.negotiableIcon} />
-                      <Text style={styles.negotiableText}>No</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-                <Text style={styles.negotiableLabel}>Negotiable</Text>
-              </View>
-            </View>
+            )}
+          </View>
+
+          {discloseAmount && !isNegotiable && (
+            <FloatingLabelInput
+              label="Amount (INR) ₹"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+              placeholder="Enter fixed amount"
+              onFocus={ref => scrollToInput(ref, scrollViewRef)}
+            />
           )}
 
           {discloseAmount && isNegotiable && (
@@ -827,31 +913,48 @@ export default function CreateJob({ navigation, route }) {
           </>
         )}
         {/* Amount Disclosure */}
-        <View style={[styles.selectorContainer, { marginBottom: 2 }]}>
-          <Text style={styles.selectorLabel}>
-            Would you like to disclose the amount?
-          </Text>
-          <Text style={styles.selectorHelper}>
-            Choose whether to show payment range
-          </Text>
-          <View style={styles.disclosureOptionsContainer}>
-            <RoundRadioButton
-              label="Yes"
-              selected={discloseAmount === true}
-              onPress={() => setDiscloseAmount(true)}
-            />
-            <RoundRadioButton
-              label="No"
-              selected={discloseAmount === false}
-              onPress={() => {
-                setDiscloseAmount(false);
-                setAmount('');
+        <View style={styles.toggleRow}>
+          <View style={styles.toggleSection}>
+            <Text style={styles.toggleLabel}>Disclose Amount</Text>
+            <Switch
+              value={discloseAmount}
+              onValueChange={(value) => {
+                setDiscloseAmount(value);
+                if (!value) {
+                  setAmount('');
+                  setIsNegotiable(false);
+                  setMinAmount('');
+                  setMaxAmount('');
+                  setUnit('');
+                }
               }}
+              trackColor={{ false: '#e9ecef', true: '#000' }}
+              thumbColor={discloseAmount ? '#fff' : '#f4f3f4'}
             />
           </View>
+          
+          {discloseAmount && (
+            <View style={styles.toggleSection}>
+              <Text style={styles.toggleLabel}>Negotiable</Text>
+              <Switch
+                value={isNegotiable}
+                onValueChange={(value) => {
+                  setIsNegotiable(value);
+                  if (value) {
+                    setAmount('');
+                  } else {
+                    setMinAmount('');
+                    setMaxAmount('');
+                  }
+                }}
+                trackColor={{ false: '#e9ecef', true: '#000' }}
+                thumbColor={isNegotiable ? '#fff' : '#f4f3f4'}
+              />
+            </View>
+          )}
         </View>
-        <Text style={[styles.selectorLabel, { marginBottom: 10 }]}>Amount</Text>
-        {discloseAmount && (
+
+        {discloseAmount && !isNegotiable && (
           <View style={styles.amountContainer}>
             <View style={styles.amountInputWrapper}>
               <FloatingLabelInput
@@ -859,7 +962,7 @@ export default function CreateJob({ navigation, route }) {
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="numeric"
-                placeholder="Enter amount"
+                placeholder="Enter fixed amount"
                 onFocus={ref => scrollToInput(ref, scrollViewRef)}
               />
             </View>
@@ -916,30 +1019,6 @@ export default function CreateJob({ navigation, route }) {
                   ))}
                 </View>
               )}
-            </View>
-
-            <View style={styles.negotiableWrapper}>
-              <TouchableOpacity
-                style={[
-                  styles.negotiableToggle,
-                  { backgroundColor: isNegotiable ? '#22c55e' : '#000' },
-                ]}
-                onPress={() => setIsNegotiable(!isNegotiable)}
-                activeOpacity={0.8}
-              >
-                {isNegotiable ? (
-                  <>
-                    <Text style={styles.negotiableText}>Yes</Text>
-                    <View style={styles.negotiableIcon} />
-                  </>
-                ) : (
-                  <>
-                    <View style={styles.negotiableIcon} />
-                    <Text style={styles.negotiableText}>No</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-              <Text style={styles.negotiableLabel}>Negotiable</Text>
             </View>
           </View>
         )}
@@ -1251,10 +1330,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  disclosureOptionsContainer: {
+  // Checkbox Container
+  checkboxContainer: {
     flexDirection: 'row',
-    // marginBottom: 20,
-    justifyContent: 'space-around',
+    gap: 20,
   },
   roundOption: {
     flexDirection: 'column',
@@ -1294,32 +1373,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Negotiable Toggle Button Styles
-  negotiableToggle: {
+  // Toggle Row Styles
+  toggleRow: {
     flexDirection: 'row',
-    gap: 4,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 15,
-    paddingHorizontal: 6,
-    paddingVertical: 4,
+    marginBottom: 20,
+    paddingHorizontal: 4,
   },
-  negotiableIcon: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 3,
-    width: 16,
-    height: 16,
+  toggleSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  negotiableText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 10,
-  },
-  negotiableLabel: {
-    fontSize: 10,
-    color: '#666',
-    marginVertical: 4,
-    textAlign: 'center',
+  toggleLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
   },
   amountRangeContainer: {
     flexDirection: 'row',

@@ -94,14 +94,28 @@ export default function CreateJob({ navigation }) {
   const [isPurposeClicked, setPurposeClicked] = useState(false);
   //  job for things use states END
 
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+
   // Load tags and check for draft on component mount
   useEffect(() => {
     dispatch(getAllTags());
     checkForDraft();
   }, [dispatch]);
 
-  // Save draft whenever form data changes
+  // Listen for screen focus to auto-load draft when opened from tab bar
   useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('=== SCREEN FOCUSED - AUTO LOADING DRAFT ===');
+      autoLoadDraftOnFocus();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  // Save draft whenever form data changes (but not when loading draft)
+  useEffect(() => {
+    if (isLoadingDraft) return; // Skip saving while loading draft
+    
     const draftData = {
       jobFor,
       personTitle,
@@ -118,6 +132,12 @@ export default function CreateJob({ navigation }) {
       selectedThingCategory,
     };
     saveDraft(draftData);
+    
+    // Debug: Log current form state
+    console.log('=== SCREEN 1 - FORM STATE DEBUG ===');
+    console.log('Current Draft Data:', JSON.stringify(draftData, null, 2));
+    console.log('Has Meaningful Data:', hasMeaningfulData(draftData));
+    console.log('=== END SCREEN 1 DEBUG ===\n');
   }, [
     jobFor,
     personTitle,
@@ -132,15 +152,93 @@ export default function CreateJob({ navigation }) {
     purpose,
     otherPurpose,
     selectedThingCategory,
+    isLoadingDraft
   ]);
 
-  const checkForDraft = async () => {
+  const hasMeaningfulData = (data) => {
+    return data?.personTitle || 
+           data?.thingTitle || 
+           data?.personDescription || 
+           data?.thingDescription || 
+           data?.selectedSkills?.length > 0;
+  };
+
+  const autoLoadDraftOnFocus = async () => {
     try {
       const draft = await AsyncStorage.getItem('jobDraft');
       if (draft) {
-        setHasDraft(true);
-        setShowDraftAlert(true);
+        const draftData = JSON.parse(draft);
+        const hasData = hasMeaningfulData(draftData);
+        
+        console.log('Auto-loading draft on screen focus');
+        console.log('Has meaningful data:', hasData);
+        
+        if (hasData) {
+          // Auto-load draft without showing alert
+          await loadDraftSilently(draftData);
+          showSnackbar('Draft restored automatically', 'success');
+        }
       }
+    } catch (error) {
+      console.log('Error auto-loading draft:', error);
+    }
+  };
+
+  const loadDraftSilently = async (draftData) => {
+    try {
+      console.log('=== SILENTLY LOADING DRAFT ===');
+      console.log('Draft Data to Load:', JSON.stringify(draftData, null, 2));
+      
+      setIsLoadingDraft(true); // Prevent save effect during loading
+      
+      // Set all state values
+      setJobFor(draftData?.jobFor || 'person');
+      setPersonTitle(draftData?.personTitle || '');
+      setPersonDescription(draftData?.personDescription || '');
+      setExperienceLevel(draftData?.experienceLevel || '');
+      setSelectedSkills(draftData?.selectedSkills || []);
+      setSkill(draftData?.skill || '');
+      setRequiresExperience(draftData?.requiresExperience || 'no');
+      setJobType(draftData?.jobType || 'standard');
+      setThingTitle(draftData?.thingTitle || '');
+      setThingDescription(draftData?.thingDescription || '');
+      setPurpose(draftData?.purpose || '');
+      setOtherPurpose(draftData?.otherPurpose || '');
+      setSelectedThingCategory(draftData?.selectedThingCategory || '');
+      
+      setTimeout(() => setIsLoadingDraft(false), 100); // Re-enable saving after state updates
+      
+      console.log('Draft silently loaded into state');
+      console.log('=== END SILENT DRAFT LOADING ===\n');
+    } catch (error) {
+      console.log('Error loading draft silently:', error);
+      setIsLoadingDraft(false);
+    }
+  };
+  const checkForDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('jobDraft');
+      console.log('=== CHECKING FOR DRAFT ===');
+      console.log('Raw Draft:', draft);
+      
+      if (draft) {
+        const draftData = JSON.parse(draft);
+        console.log('Parsed Draft Data:', JSON.stringify(draftData, null, 2));
+        
+        const hasData = hasMeaningfulData(draftData);
+        console.log('Has Meaningful Data:', hasData);
+        
+        if (hasData) {
+          setHasDraft(true);
+          setShowDraftAlert(true);
+          console.log('Draft alert will be shown');
+        } else {
+          console.log('No meaningful data in draft');
+        }
+      } else {
+        console.log('No draft found');
+      }
+      console.log('=== END DRAFT CHECK ===\n');
     } catch (error) {
       console.log('Error checking draft:', error);
     }
@@ -148,15 +246,15 @@ export default function CreateJob({ navigation }) {
 
   const saveDraft = async data => {
     try {
-      // Only save if there's meaningful data
-      const hasData =
-        data?.personTitle ||
-        data?.thingTitle ||
-        data?.personDescription ||
-        data?.thingDescription ||
-        data?.selectedSkills?.length > 0;
+      const hasData = hasMeaningfulData(data);
+      
       if (hasData) {
         await AsyncStorage.setItem('jobDraft', JSON.stringify(data));
+        console.log('Draft saved successfully');
+      } else {
+        // Clear draft if no meaningful data
+        await AsyncStorage.removeItem('jobDraft');
+        console.log('Draft cleared - no meaningful data');
       }
     } catch (error) {
       console.log('Error saving draft:', error);
@@ -166,8 +264,16 @@ export default function CreateJob({ navigation }) {
   const loadDraft = async () => {
     try {
       const draft = await AsyncStorage.getItem('jobDraft');
+      console.log('=== LOADING DRAFT ===');
+      console.log('Raw Draft to Load:', draft);
+      
       if (draft) {
         const draftData = JSON.parse(draft);
+        console.log('Parsed Draft Data to Load:', JSON.stringify(draftData, null, 2));
+        
+        setIsLoadingDraft(true); // Prevent save effect during loading
+        
+        // Set all state values
         setJobFor(draftData?.jobFor || 'person');
         setPersonTitle(draftData?.personTitle || '');
         setPersonDescription(draftData?.personDescription || '');
@@ -181,9 +287,21 @@ export default function CreateJob({ navigation }) {
         setPurpose(draftData?.purpose || '');
         setOtherPurpose(draftData?.otherPurpose || '');
         setSelectedThingCategory(draftData?.selectedThingCategory || '');
+        
+        setTimeout(() => setIsLoadingDraft(false), 100); // Re-enable saving after state updates
+        
+        console.log('Draft data loaded into state');
+        console.log('Loaded Values:', {
+          jobFor: draftData?.jobFor,
+          personTitle: draftData?.personTitle,
+          thingTitle: draftData?.thingTitle,
+          selectedSkills: draftData?.selectedSkills
+        });
       }
+      console.log('=== END DRAFT LOADING ===\n');
     } catch (error) {
       console.log('Error loading draft:', error);
+      setIsLoadingDraft(false);
     }
   };
 
@@ -214,9 +332,9 @@ export default function CreateJob({ navigation }) {
     setSelectedThingCategory('');
   };
 
-  const handleResumeDraft = () => {
+  const handleResumeDraft = async () => {
     setShowDraftAlert(false);
-    loadDraft();
+    await loadDraft();
     showSnackbar('Draft loaded successfully', 'success');
   };
 
@@ -253,7 +371,27 @@ export default function CreateJob({ navigation }) {
   };
 
   const validateForm = jobFor => {
-    clearDraft();
+    console.log('=== SCREEN 1 - FORM VALIDATION ===');
+    console.log('Job For:', jobFor);
+    
+    const currentFormData = {
+      jobFor,
+      personTitle: personTitle?.trim(),
+      personDescription: personDescription?.trim(),
+      experienceLevel,
+      selectedSkills,
+      skill: skill?.trim(),
+      requiresExperience,
+      jobType,
+      thingTitle: thingTitle?.trim(),
+      thingDescription: thingDescription?.trim(),
+      purpose,
+      otherPurpose: otherPurpose?.trim(),
+    };
+    
+    console.log('Current Form Data:', JSON.stringify(currentFormData, null, 2));
+    
+    // DO NOT clear draft here - keep it until job is successfully posted
 
     if (jobFor === 'person') {
       // Person validation
@@ -287,18 +425,23 @@ export default function CreateJob({ navigation }) {
         return;
       }
 
+      const personJobData = {
+        jobFor,
+        title: personTitle?.trim(),
+        description: personDescription?.trim(),
+        category: selectedSkills,
+        requirements: skill?.trim(),
+        experienceLevel:
+          requiresExperience === 'yes' ? experienceLevel : null,
+        jobType,
+      };
+      
+      console.log('Person Job Data for Screen 2:', JSON.stringify(personJobData, null, 2));
+      console.log('=== END SCREEN 1 VALIDATION ===\n');
+
       // Navigate with person data
       navigation.push('CreateJobScreen2', {
-        jobData: {
-          jobFor,
-          title: personTitle?.trim(),
-          description: personDescription?.trim(),
-          category: selectedSkills,
-          requirements: skill?.trim(),
-          experienceLevel:
-            requiresExperience === 'yes' ? experienceLevel : null,
-          jobType,
-        },
+        jobData: personJobData,
       });
     } else {
       // Thing validation
@@ -332,16 +475,21 @@ export default function CreateJob({ navigation }) {
         return;
       }
 
+      const thingJobData = {
+        jobFor,
+        purpose: purpose === 'other' ? otherPurpose : purpose,
+        title: thingTitle?.trim(),
+        description: thingDescription?.trim(),
+        category: selectedSkills,
+        jobType,
+      };
+      
+      console.log('Thing Job Data for Screen 2:', JSON.stringify(thingJobData, null, 2));
+      console.log('=== END SCREEN 1 VALIDATION ===\n');
+
       // Navigate with thing data
       navigation.push('CreateJobScreen2', {
-        jobData: {
-          jobFor,
-          purpose: purpose === 'other' ? otherPurpose : purpose,
-          title: thingTitle?.trim(),
-          description: thingDescription?.trim(),
-          category: selectedSkills,
-          jobType,
-        },
+        jobData: thingJobData,
       });
     }
   };
@@ -934,4 +1082,21 @@ const styles = StyleSheet.create({
   //   color: Colors.lightBlackColor,
   // },
   nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  // Checkbox styles
+  option: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1,
+    borderColor: '#171717ff',
+    borderRadius: 4,
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxSelected: {
+    backgroundColor: '#000',
+  },
+  optionText: { fontSize: 12, color: '#000' },
 });
