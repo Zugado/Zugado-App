@@ -66,7 +66,7 @@ export default function CreateJob({ navigation, route }) {
       isNegotiable,
       minAmount,
       maxAmount,
-      unit
+      unit,
     });
     console.log('=== END SCREEN 2 MOUNT DEBUG ===\n');
   }, []);
@@ -78,7 +78,7 @@ export default function CreateJob({ navigation, route }) {
         const existingDraft = await AsyncStorage.getItem('jobDraft');
         if (existingDraft) {
           const draftData = JSON.parse(existingDraft);
-          
+
           // Update draft with Screen 2 data
           const updatedDraft = {
             ...draftData,
@@ -87,7 +87,8 @@ export default function CreateJob({ navigation, route }) {
             coordinates,
             jobLocationType,
             // Timing data
-            timingType: jobData?.jobFor === 'person' ? timingType : thingTimingType,
+            timingType:
+              jobData?.jobFor === 'person' ? timingType : thingTimingType,
             date,
             startTime,
             endTime,
@@ -110,9 +111,9 @@ export default function CreateJob({ navigation, route }) {
             isNegotiable,
             minAmount,
             maxAmount,
-            unit
+            unit,
           };
-          
+
           await AsyncStorage.setItem('jobDraft', JSON.stringify(updatedDraft));
           console.log('Screen 2 draft updated successfully');
         }
@@ -120,14 +121,36 @@ export default function CreateJob({ navigation, route }) {
         console.log('Error updating Screen 2 draft:', error);
       }
     };
-    
+
     saveDraftScreen2();
   }, [
-    address, coordinates, jobLocationType, timingType, thingTimingType,
-    date, startTime, endTime, startDate, endDate, dailyHours, deadline, estimatedHours,
-    thingDate, thingDeadline, thingStartTime, thingEndTime, thingStartDate, thingEndDate,
-    thingDailyHours, thingEstimatedHours, discloseAmount, amount, isNegotiable,
-    minAmount, maxAmount, unit
+    address,
+    coordinates,
+    jobLocationType,
+    timingType,
+    thingTimingType,
+    date,
+    startTime,
+    endTime,
+    startDate,
+    endDate,
+    dailyHours,
+    deadline,
+    estimatedHours,
+    thingDate,
+    thingDeadline,
+    thingStartTime,
+    thingEndTime,
+    thingStartDate,
+    thingEndDate,
+    thingDailyHours,
+    thingEstimatedHours,
+    discloseAmount,
+    amount,
+    isNegotiable,
+    minAmount,
+    maxAmount,
+    unit,
   ]);
 
   //Timings for things
@@ -267,9 +290,9 @@ export default function CreateJob({ navigation, route }) {
       isNegotiable,
       minAmount,
       maxAmount,
-      unit
+      unit,
     });
-    
+
     if (jobFor === 'person') {
       // Person validation
       if (jobLocationType !== 'remote' && !coordinates) {
@@ -278,8 +301,11 @@ export default function CreateJob({ navigation, route }) {
       }
 
       const timingDetails = getTimingDetailsForPerson();
-      console.log('Person Timing Details:', JSON.stringify(timingDetails, null, 2));
-      
+      console.log(
+        'Person Timing Details:',
+        JSON.stringify(timingDetails, null, 2),
+      );
+
       if (
         timingType === 'fixed' &&
         (!timingDetails?.date ||
@@ -347,8 +373,11 @@ export default function CreateJob({ navigation, route }) {
             : null,
         },
       };
-      
-      console.log('Person Job Data for Screen 3:', JSON.stringify(personJobData, null, 2));
+
+      console.log(
+        'Person Job Data for Screen 3:',
+        JSON.stringify(personJobData, null, 2),
+      );
       console.log('=== END SCREEN 2 PERSON VALIDATION ===\n');
 
       // Navigate with person data
@@ -363,8 +392,11 @@ export default function CreateJob({ navigation, route }) {
       }
 
       const timingDetails = getTimingDetailsForThing();
-      console.log('Thing Timing Details:', JSON.stringify(timingDetails, null, 2));
-      
+      console.log(
+        'Thing Timing Details:',
+        JSON.stringify(timingDetails, null, 2),
+      );
+
       if (
         thingTimingType === 'needed-by-date' &&
         (!timingDetails?.thingDate ||
@@ -436,8 +468,11 @@ export default function CreateJob({ navigation, route }) {
             : null,
         },
       };
-      
-      console.log('Thing Job Data for Screen 3:', JSON.stringify(thingJobData, null, 2));
+
+      console.log(
+        'Thing Job Data for Screen 3:',
+        JSON.stringify(thingJobData, null, 2),
+      );
       console.log('=== END SCREEN 2 THING VALIDATION ===\n');
 
       // Navigate with thing data
@@ -484,36 +519,18 @@ export default function CreateJob({ navigation, route }) {
               <Text style={styles.title}>
                 Define Location & Payment Information
               </Text>
-              <TouchableOpacity
-                style={[
-                  styles.urgentToggle,
-                  jobData?.jobType === 'quick' && styles.urgentToggleActive
-                ]}
-                onPress={() => {
-                  // This is read-only display from previous screen
-                }}
-                disabled={true}
-              >
-                <Text style={[
-                  styles.urgentToggleText,
-                  jobData?.jobType === 'quick' && styles.urgentToggleTextActive
-                ]}>Urgent</Text>
-              </TouchableOpacity>
             </View>
-            {jobData?.jobFor === 'person' ? (
-              <>{personForm?.()}</>
-            ) : (
+            {/* {jobData?.jobFor === 'person' ? ( */}
+            <>{personForm?.()}</>
+            {/* { ) : (
               <>{thingForm?.()}</>
-            )}
+             )} */}
             <FaddedIcon />
           </ScrollView>
 
           {/* NEXT BUTTON */}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.nextButton}
-              onPress={handleNext}
-            >
+            <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
               <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
           </View>
@@ -533,47 +550,76 @@ export default function CreateJob({ navigation, route }) {
               Where will the work be performed ?
             </Text>
             <View style={styles.locationRow}>
-              {[
-                {
-                  value: 'onsite',
-                  label: 'On-site',
-                  desc: 'At specific location',
-                },
-                {
-                  value: 'remote',
-                  label: 'Remote',
-                  desc: 'Work from anywhere',
-                },
-                { value: 'hybrid', label: 'Hybrid', desc: 'Mix of both' },
-              ].map(option => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={styles.locationOptionRow}
-                  onPress={() => setJobLocationType(option.value)}
-                >
-                  <View style={[
-                    styles.locationCheckbox,
-                    jobLocationType === option.value && styles.locationCheckboxSelected
-                  ]}>
-                    {jobLocationType === option.value && (
-                      <Feather name="check" size={14} color="#fff" />
-                    )}
-                  </View>
-                  <Text style={styles.locationLabel}>{option.label}</Text>
-                </TouchableOpacity>
-              ))}
+              <View
+                style={{
+                  justifyContent: 'space-between',
+                  flexDirection: 'row',
+                  gap: 5,
+                }}
+              >
+                {[
+                  {
+                    value: 'onsite',
+                    label: 'On-site',
+                    desc: 'At specific location',
+                  },
+                  {
+                    value: 'remote',
+                    label: 'Remote',
+                    desc: 'Work from anywhere',
+                  },
+                  { value: 'hybrid', label: 'Hybrid', desc: 'Mix of both' },
+                ].map(option => (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.locationOptionRow,
+                      {
+                        alignItems:
+                          jobLocationType === option.value
+                            ? 'flex-start'
+                            : 'center',
+                      },
+                    ]}
+                    onPress={() => setJobLocationType(option.value)}
+                  >
+                    <View
+                      style={[
+                        { marginTop: jobLocationType === option.value ? 4 : 0 },
+                        styles.locationCheckbox,
+                        jobLocationType === option.value &&
+                          styles.locationCheckboxSelected,
+                      ]}
+                    >
+                      {jobLocationType === option.value && (
+                        <Feather name="check" size={14} color="#fff" />
+                      )}
+                    </View>
+                    <View>
+                      <Text style={[styles.locationLabel,{color:jobLocationType === option.value ? Colors.primary : Colors.darkGrayColor}]}>{option.label}</Text>
+                      {jobLocationType === option.value && (
+                        <Text style={styles.locationInfoText}>
+                          {option.desc}
+                        </Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-            {jobLocationType && (
+            {/* {jobLocationType && (
               <View style={styles.locationInfo}>
                 <Text style={styles.locationInfoText}>
-                  {[
-                    { value: 'onsite', desc: 'At specific location' },
-                    { value: 'remote', desc: 'Work from anywhere' },
-                    { value: 'hybrid', desc: 'Mix of both' },
-                  ].find(opt => opt.value === jobLocationType)?.desc}
+                  {
+                    [
+                      { value: 'onsite', desc: 'At specific location' },
+                      { value: 'remote', desc: 'Work from anywhere' },
+                      { value: 'hybrid', desc: 'Mix of both' },
+                    ].find(opt => opt.value === jobLocationType)?.desc
+                  }
                 </Text>
               </View>
-            )}
+            )} */}
           </View>
 
           {/* Address Selection */}
@@ -597,7 +643,7 @@ export default function CreateJob({ navigation, route }) {
                 {coordinates ? 'Change Address' : 'Choose Address'}
               </Text>
               <Feather name="chevron-right" size={16} color="#666" />
-            </TouchableOpacity> 
+            </TouchableOpacity>
 
             {coordinates && (
               <View style={styles.selectedAddressContainer}>
@@ -622,14 +668,18 @@ export default function CreateJob({ navigation, route }) {
               ]}
               onPress={() => setTimingClicked(prev => !prev)}
             >
-              <Feather 
+              <Feather
                 name={
-                  timingType === 'fixed' ? 'calendar' :
-                  timingType === 'multiday' ? 'calendar' :
-                  timingType === 'deadline' ? 'clock' : 'zap'
-                } 
-                size={20} 
-                color="#000" 
+                  timingType === 'fixed'
+                    ? 'calendar'
+                    : timingType === 'multiday'
+                    ? 'calendar'
+                    : timingType === 'deadline'
+                    ? 'clock'
+                    : 'zap'
+                }
+                size={20}
+                color="#000"
               />
               <Text
                 style={[
@@ -642,7 +692,8 @@ export default function CreateJob({ navigation, route }) {
                   { value: 'multiday', label: 'Multi-day' },
                   { value: 'deadline', label: 'Deadline' },
                   { value: 'flexible', label: 'Flexible' },
-                ].find(opt => opt.value === timingType)?.label || 'Select Timing'}
+                ].find(opt => opt.value === timingType)?.label ||
+                  'Select Timing'}
               </Text>
 
               <Feather
@@ -654,10 +705,30 @@ export default function CreateJob({ navigation, route }) {
             {isTimingClicked && (
               <View style={styles.suggestionsContainer}>
                 {[
-                  { value: 'fixed', label: 'Fixed', desc: 'Specific date & time', icon: 'calendar' },
-                  { value: 'multiday', label: 'Multi-day', desc: 'Multiple days', icon: 'calendar' },
-                  { value: 'deadline', label: 'Deadline', desc: 'Complete by date', icon: 'clock' },
-                  { value: 'flexible', label: 'Flexible', desc: 'Anytime', icon: 'zap' },
+                  {
+                    value: 'fixed',
+                    label: 'Fixed',
+                    desc: 'Specific date & time',
+                    icon: 'calendar',
+                  },
+                  {
+                    value: 'multiday',
+                    label: 'Multi-day',
+                    desc: 'Multiple days',
+                    icon: 'calendar',
+                  },
+                  {
+                    value: 'deadline',
+                    label: 'Deadline',
+                    desc: 'Complete by date',
+                    icon: 'clock',
+                  },
+                  {
+                    value: 'flexible',
+                    label: 'Flexible',
+                    desc: 'Anytime',
+                    icon: 'zap',
+                  },
                 ].map((item, index) => (
                   <View key={item.value}>
                     <TouchableOpacity
@@ -670,7 +741,9 @@ export default function CreateJob({ navigation, route }) {
                       <View style={styles.suggestionContent}>
                         <Feather name={item.icon} size={16} color="#666" />
                         <View style={styles.suggestionTextContainer}>
-                          <Text style={styles.suggestionText}>{item.label}</Text>
+                          <Text style={styles.suggestionText}>
+                            {item.label}
+                          </Text>
                           <Text style={styles.suggestionDesc}>{item.desc}</Text>
                         </View>
                       </View>
@@ -678,9 +751,7 @@ export default function CreateJob({ navigation, route }) {
                       <Feather name="chevron-right" size={14} color="#ccc" />
                     </TouchableOpacity>
 
-                    {index < 3 && (
-                      <View style={styles.separator} />
-                    )}
+                    {index < 3 && <View style={styles.separator} />}
                   </View>
                 ))}
               </View>
@@ -772,36 +843,44 @@ export default function CreateJob({ navigation, route }) {
 
           {/* Amount Disclosure */}
           <View style={styles.selectorContainer}>
-            <View style={styles.disclosureLabelRow}>
-              <Text style={styles.selectorLabel}>Would you like to disclose the amount?</Text>
-              <TouchableOpacity
-                style={[
-                  styles.disclosureToggle,
-                  { backgroundColor: discloseAmount ? '#000' : '#666' },
-                ]}
-                onPress={() => {
-                  setDiscloseAmount(!discloseAmount);
-                  if (discloseAmount) {
-                    setAmount('');
-                    setIsNegotiable(false);
-                    setMinAmount('');
-                    setMaxAmount('');
-                  }
-                }}
-                activeOpacity={0.8}
-              >
-                {discloseAmount ? (
-                  <>
-                    <Text style={styles.disclosureText}>Yes</Text>
-                    <Feather name="check" style={styles.disclosureIcon} />
-                  </>
-                ) : (
-                  <>
-                    <Feather name="x" style={styles.disclosureIcon} />
-                    <Text style={styles.disclosureText}>No</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+            <View style={[styles.disclosureLabelRow,{ marginBottom: 10,}]}>
+              <Text style={styles.selectorLabel}>
+                Would you like to disclose the amount?
+              </Text>
+            </View>
+            <View style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
+              {[{"Yes": true}, {"No": false}].map((option) => {
+                const [label, value] = Object.entries(option)[0];
+                return (
+                  <TouchableOpacity
+                    key={label}
+                    style={{ display: 'flex', flexDirection: 'row' }}
+                    onPress={() => {
+                      setDiscloseAmount(value);
+                      if (!value) {
+                        setAmount('');
+                        setIsNegotiable(false);
+                        setMinAmount('');
+                        setMaxAmount('');
+                      }
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.locationCheckbox,
+                        discloseAmount === value && styles.locationCheckboxSelected,
+                      ]}
+                    >
+                      {discloseAmount === value && (
+                        <Feather name="check" size={14} color="#fff" />
+                      )}
+                    </View>
+                    <View>
+                      <Text style={[styles.locationLabel,{ color: discloseAmount === value ? Colors.blackColor : Colors.darkGrayColor}]}>{label}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
@@ -819,7 +898,7 @@ export default function CreateJob({ navigation, route }) {
                   />
                 </View>
                 <View style={styles.negotiableContainer}>
-                  <View style={styles.negotiableRow}>
+                  <View style={styles.negotiableCol}>
                     <Text style={styles.negotiableLabel}>Negotiable</Text>
                     <TouchableOpacity
                       style={[
@@ -840,11 +919,17 @@ export default function CreateJob({ navigation, route }) {
                       {isNegotiable ? (
                         <>
                           <Text style={styles.negotiableTextSmall}>Yes</Text>
-                          <Feather name="check" style={styles.negotiableIconSmall} />
+                          <Feather
+                            name="check"
+                            style={styles.negotiableIconSmall}
+                          />
                         </>
                       ) : (
                         <>
-                          <Feather name="x" style={styles.negotiableIconSmall} />
+                          <Feather
+                            name="x"
+                            style={styles.negotiableIconSmall}
+                          />
                           <Text style={styles.negotiableTextSmall}>No</Text>
                         </>
                       )}
@@ -871,11 +956,11 @@ export default function CreateJob({ navigation, route }) {
 
           <TouchableOpacity
             onPress={() => {
-               navigation.navigate('SavedAddressesScreen', {
+              navigation.navigate('SavedAddressesScreen', {
                 returnScreen: 'CreateJobScreen2',
                 jobData,
               });
-             }}
+            }}
             style={styles.mapButton}
           >
             <Feather name="map-pin" size={20} color="#000" />
@@ -1002,7 +1087,7 @@ export default function CreateJob({ navigation, route }) {
             <Text style={styles.toggleLabel}>Disclose Amount</Text>
             <Switch
               value={discloseAmount}
-              onValueChange={(value) => {
+              onValueChange={value => {
                 setDiscloseAmount(value);
                 if (!value) {
                   setAmount('');
@@ -1016,13 +1101,13 @@ export default function CreateJob({ navigation, route }) {
               thumbColor={discloseAmount ? '#fff' : '#f4f3f4'}
             />
           </View>
-          
+
           {discloseAmount && (
             <View style={styles.toggleRow}>
               <Text style={styles.toggleLabel}>Negotiable</Text>
               <Switch
                 value={isNegotiable}
-                onValueChange={(value) => {
+                onValueChange={value => {
                   setIsNegotiable(value);
                   if (value) {
                     setAmount('');
@@ -1191,29 +1276,27 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   selectorHelper: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#666',
     marginBottom: 16,
     lineHeight: 18,
   },
   // Location Styles
   locationRow: {
-    flexDirection: 'row',
     borderWidth: 1,
     borderColor: '#e9ecef',
     borderRadius: 12,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
     backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-    justifyContent: 'space-between',
   },
   locationOptionRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
   },
@@ -1221,7 +1304,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#000',
+    borderColor: Colors.darkGrayColor,
     borderRadius: 4,
     marginRight: 8,
     justifyContent: 'center',
@@ -1229,24 +1312,27 @@ const styles = StyleSheet.create({
   },
   locationCheckboxSelected: {
     backgroundColor: '#000',
+    borderColor:Colors.primary,
   },
   locationLabel: {
     fontSize: 14,
     fontWeight: '500',
     color: '#000',
   },
-  locationInfo: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#000',
-    opacity: 0.9,
-  },
+  // locationInfo: {
+  //   marginTop: 16,
+  //   padding: 12,
+  //   backgroundColor: '#f0f8ff',
+  //   borderRadius: 8,
+  //   // borderLeftWidth: 3,
+  //   // borderLeftColor: '#000',
+  //   opacity: 0.9,
+  // },
   locationInfoText: {
-    fontSize: 13,
+    fontSize: 9,
     color: '#666',
+    textAlign: 'center',
+    // marginTop: 0,
     fontStyle: 'italic',
   },
   // Selected Address Styles
@@ -1673,8 +1759,7 @@ const styles = StyleSheet.create({
   // Amount and Negotiable Row
   amountNegotiableRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 16,
+     gap: 16,
   },
   amountInputContainer: {
     flex: 1,
@@ -1712,22 +1797,22 @@ const styles = StyleSheet.create({
   },
   // Negotiable Styles
   negotiableContainer: {
-    justifyContent: 'center',
-    paddingLeft: 16,
+    paddingHorizontal: 4,
+    // backgroundColor:"#899e8cff"
   },
-  negotiableRow: {
-    flexDirection: 'row',
+  negotiableCol: {
+    flexDirection: 'Col',
     alignItems: 'center',
-    gap: 8,
+    gap: 5,
   },
   negotiableLabel: {
-    fontSize: 12,
+    fontSize: 10,
+    fontWeight:"700",
     color: '#666',
-    fontWeight: '500',
-  },
+   },
   negotiableToggleSmall: {
     flexDirection: 'row',
-    gap: 2,
+    gap: 4,
     alignItems: 'center',
     borderRadius: 20,
     paddingHorizontal: 6,
@@ -1738,7 +1823,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 3,
     color: '#000',
-    fontSize: 12,
+    fontSize: 10,
   },
   negotiableTextSmall: {
     color: '#fff',

@@ -117,7 +117,7 @@ export default function CreateJob({ navigation }) {
   // Save draft whenever form data changes (but not when loading draft)
   useEffect(() => {
     if (isLoadingDraft) return; // Skip saving while loading draft
-    
+
     const draftData = {
       jobFor,
       personTitle,
@@ -134,7 +134,7 @@ export default function CreateJob({ navigation }) {
       selectedThingCategory,
     };
     saveDraft(draftData);
-    
+
     // Debug: Log current form state
     console.log('=== SCREEN 1 - FORM STATE DEBUG ===');
     console.log('Current Draft Data:', JSON.stringify(draftData, null, 2));
@@ -154,15 +154,17 @@ export default function CreateJob({ navigation }) {
     purpose,
     otherPurpose,
     selectedThingCategory,
-    isLoadingDraft
+    isLoadingDraft,
   ]);
 
-  const hasMeaningfulData = (data) => {
-    return data?.personTitle || 
-           data?.thingTitle || 
-           data?.personDescription || 
-           data?.thingDescription || 
-           data?.selectedSkills?.length > 0;
+  const hasMeaningfulData = data => {
+    return (
+      data?.personTitle ||
+      data?.thingTitle ||
+      data?.personDescription ||
+      data?.thingDescription ||
+      data?.selectedSkills?.length > 0
+    );
   };
 
   const autoLoadDraftOnFocus = async () => {
@@ -171,10 +173,10 @@ export default function CreateJob({ navigation }) {
       if (draft) {
         const draftData = JSON.parse(draft);
         const hasData = hasMeaningfulData(draftData);
-        
+
         console.log('Auto-loading draft on screen focus');
         console.log('Has meaningful data:', hasData);
-        
+
         if (hasData) {
           // Auto-load draft without showing alert
           await loadDraftSilently(draftData);
@@ -186,13 +188,13 @@ export default function CreateJob({ navigation }) {
     }
   };
 
-  const loadDraftSilently = async (draftData) => {
+  const loadDraftSilently = async draftData => {
     try {
       console.log('=== SILENTLY LOADING DRAFT ===');
       console.log('Draft Data to Load:', JSON.stringify(draftData, null, 2));
-      
+
       setIsLoadingDraft(true); // Prevent save effect during loading
-      
+
       // Use setTimeout to ensure state updates are processed
       setTimeout(() => {
         // Set all state values
@@ -209,13 +211,13 @@ export default function CreateJob({ navigation }) {
         setPurpose(draftData?.purpose || '');
         setOtherPurpose(draftData?.otherPurpose || '');
         setSelectedThingCategory(draftData?.selectedThingCategory || '');
-        
+
         console.log('Draft silently loaded into state');
-        
+
         // Re-enable saving after state updates
         setTimeout(() => setIsLoadingDraft(false), 200);
       }, 50);
-      
+
       console.log('=== END SILENT DRAFT LOADING ===\n');
     } catch (error) {
       console.log('Error loading draft silently:', error);
@@ -227,14 +229,14 @@ export default function CreateJob({ navigation }) {
       const draft = await AsyncStorage.getItem('jobDraft');
       console.log('=== CHECKING FOR DRAFT ===');
       console.log('Raw Draft:', draft);
-      
+
       if (draft) {
         const draftData = JSON.parse(draft);
         console.log('Parsed Draft Data:', JSON.stringify(draftData, null, 2));
-        
+
         const hasData = hasMeaningfulData(draftData);
         console.log('Has Meaningful Data:', hasData);
-        
+
         if (hasData) {
           setHasDraft(true);
           setShowDraftAlert(true);
@@ -254,7 +256,7 @@ export default function CreateJob({ navigation }) {
   const saveDraft = async data => {
     try {
       const hasData = hasMeaningfulData(data);
-      
+
       if (hasData) {
         await AsyncStorage.setItem('jobDraft', JSON.stringify(data));
         console.log('Draft saved successfully');
@@ -273,13 +275,16 @@ export default function CreateJob({ navigation }) {
       const draft = await AsyncStorage.getItem('jobDraft');
       console.log('=== LOADING DRAFT ===');
       console.log('Raw Draft to Load:', draft);
-      
+
       if (draft) {
         const draftData = JSON.parse(draft);
-        console.log('Parsed Draft Data to Load:', JSON.stringify(draftData, null, 2));
-        
+        console.log(
+          'Parsed Draft Data to Load:',
+          JSON.stringify(draftData, null, 2),
+        );
+
         setIsLoadingDraft(true); // Prevent save effect during loading
-        
+
         // Use setTimeout to ensure state updates are processed
         setTimeout(() => {
           // Set all state values
@@ -296,15 +301,15 @@ export default function CreateJob({ navigation }) {
           setPurpose(draftData?.purpose || '');
           setOtherPurpose(draftData?.otherPurpose || '');
           setSelectedThingCategory(draftData?.selectedThingCategory || '');
-          
+
           console.log('Draft data loaded into state');
           console.log('Loaded Values:', {
             jobFor: draftData?.jobFor,
             personTitle: draftData?.personTitle,
             thingTitle: draftData?.thingTitle,
-            selectedSkills: draftData?.selectedSkills
+            selectedSkills: draftData?.selectedSkills,
           });
-          
+
           // Re-enable saving after state updates
           setTimeout(() => setIsLoadingDraft(false), 200);
         }, 50);
@@ -384,7 +389,7 @@ export default function CreateJob({ navigation }) {
   const validateForm = jobFor => {
     console.log('=== SCREEN 1 - FORM VALIDATION ===');
     console.log('Job For:', jobFor);
-    
+
     const currentFormData = {
       jobFor,
       personTitle: personTitle?.trim(),
@@ -399,9 +404,9 @@ export default function CreateJob({ navigation }) {
       purpose,
       otherPurpose: otherPurpose?.trim(),
     };
-    
+
     console.log('Current Form Data:', JSON.stringify(currentFormData, null, 2));
-    
+
     // DO NOT clear draft here - keep it until job is successfully posted
 
     if (jobFor === 'person') {
@@ -442,12 +447,14 @@ export default function CreateJob({ navigation }) {
         description: personDescription?.trim(),
         category: selectedSkills,
         requirements: skill?.trim(),
-        experienceLevel:
-          requiresExperience === 'yes' ? experienceLevel : null,
+        experienceLevel: requiresExperience === 'yes' ? experienceLevel : null,
         jobType,
       };
-      
-      console.log('Person Job Data for Screen 2:', JSON.stringify(personJobData, null, 2));
+
+      console.log(
+        'Person Job Data for Screen 2:',
+        JSON.stringify(personJobData, null, 2),
+      );
       console.log('=== END SCREEN 1 VALIDATION ===\n');
 
       // Navigate with person data
@@ -494,8 +501,11 @@ export default function CreateJob({ navigation }) {
         category: selectedSkills,
         jobType,
       };
-      
-      console.log('Thing Job Data for Screen 2:', JSON.stringify(thingJobData, null, 2));
+
+      console.log(
+        'Thing Job Data for Screen 2:',
+        JSON.stringify(thingJobData, null, 2),
+      );
       console.log('=== END SCREEN 1 VALIDATION ===\n');
 
       // Navigate with thing data
@@ -547,7 +557,7 @@ export default function CreateJob({ navigation }) {
             <Text style={styles.title}>
               Create and Customize Your Task Posting
             </Text>
-            
+
             {/* Task For */}
             <View style={styles.selectorContainer}>
               <View style={styles.selectorHeaderRow}>
@@ -564,7 +574,9 @@ export default function CreateJob({ navigation }) {
                     styles.urgentToggle,
                     { backgroundColor: jobType === 'quick' ? '#000' : '#666' },
                   ]}
-                  onPress={() => setJobType(jobType === 'quick' ? 'standard' : 'quick')}
+                  onPress={() =>
+                    setJobType(jobType === 'quick' ? 'standard' : 'quick')
+                  }
                   activeOpacity={0.8}
                 >
                   {jobType === 'quick' ? (
@@ -695,7 +707,7 @@ export default function CreateJob({ navigation }) {
 
           {/* Task Type - Remove this section since we have the toggle */}
           {/* Experience Level */}
-          <View style={styles.selectorContainer}>
+          <View style={[styles.selectorContainer, { marginBottom: 0 }]}>
             <View style={styles.selectorHeaderRow}>
               <View>
                 <Text style={styles.selectorLabel}>
@@ -708,9 +720,16 @@ export default function CreateJob({ navigation }) {
               <TouchableOpacity
                 style={[
                   styles.experienceToggle,
-                  { backgroundColor: requiresExperience === 'yes' ? '#000' : '#666' },
+                  {
+                    backgroundColor:
+                      requiresExperience === 'yes' ? '#000' : '#666',
+                  },
                 ]}
-                onPress={() => handleRequiresExperienceChange(requiresExperience === 'yes' ? 'no' : 'yes')}
+                onPress={() =>
+                  handleRequiresExperienceChange(
+                    requiresExperience === 'yes' ? 'no' : 'yes',
+                  )
+                }
                 activeOpacity={0.8}
               >
                 {requiresExperience === 'yes' ? (
@@ -754,34 +773,72 @@ export default function CreateJob({ navigation }) {
                     desc: '5+ years experience',
                   },
                 ].map(option => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={styles.experienceOption}
-                    onPress={() => setExperienceLevel(option.value)}
-                  >
-                    <View style={[
-                      styles.experienceCheckbox,
-                      experienceLevel === option.value && styles.experienceCheckboxSelected
-                    ]}>
-                      {experienceLevel === option.value && (
-                        <Feather name="check" size={14} color="#fff" />
-                      )}
-                    </View>
-                    <Text style={styles.experienceLabel}>{option.label}</Text>
-                  </TouchableOpacity>
+                  <>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      key={option.value}
+                      style={styles.experienceOption}
+                      onPress={() => setExperienceLevel(option.value)}
+                    >
+                      <View
+                        style={[
+                          {},
+                          styles.experienceCheckbox,
+
+                          experienceLevel === option.value &&
+                            styles.experienceCheckboxSelected,
+                        ]}
+                      >
+                        {experienceLevel === option.value && (
+                          <Feather name="check" size={14} color="#fff" />
+                        )}
+                      </View>
+                      <View>
+                      <Text
+                        style={[
+                          styles.experienceLabel,
+                          {
+                            color:
+                              experienceLevel === option.value
+                                ? Colors.blackColor
+                                : Colors.darkGrayColor,
+                          },
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
+                       <Text
+                      style={[
+                        styles.experienceInfoText,
+                        { color: Colors.grayColor },
+                      ]}
+                    >
+                      {option.desc}
+                    </Text>
+                      </View>
+                    </TouchableOpacity>
+                   
+                  </>
                 ))}
               </View>
-              {experienceLevel && (
+              {/* {experienceLevel && (
                 <View style={styles.experienceInfo}>
-                  <Text style={styles.experienceInfoText}>
-                    {[
-                      { value: 'entry', desc: '0-2 years experience' },
-                      { value: 'intermediate', desc: '2-5 years experience' },
-                      { value: 'expert', desc: '5+ years experience' },
-                    ].find(opt => opt.value === experienceLevel)?.desc}
+                  <Text
+                    style={[
+                      styles.experienceInfoText,
+                      { color: Colors.blackColor },
+                    ]}
+                  >
+                    {
+                      [
+                        { value: 'entry', desc: '0-2 years experience' },
+                        { value: 'intermediate', desc: '2-5 years experience' },
+                        { value: 'expert', desc: '5+ years experience' },
+                      ].find(opt => opt.value === experienceLevel)?.desc
+                    }
                   </Text>
                 </View>
-              )}
+              )} */}
             </View>
           )}
         </View>
@@ -964,7 +1021,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 1,
   },
   urgentToggle: {
     flexDirection: 'row',
@@ -991,15 +1048,15 @@ const styles = StyleSheet.create({
     gap: 4,
     alignItems: 'center',
     borderRadius: 25,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 6,
   },
   experienceIcon: {
     backgroundColor: '#fff',
     borderRadius: 15,
-    padding: 5,
+    padding: 2,
     color: '#000',
-    fontSize: 16,
+    fontSize: 12,
   },
   experienceText: {
     color: '#fff',
@@ -1179,25 +1236,31 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    display:"flex",
+    flexDirection:"column",
+    gap:3,
     marginBottom: 16,
   },
   experienceOption: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
+    // alignItems: 'center',
+    paddingVertical: 5,
+   
   },
   experienceCheckbox: {
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#000',
+    borderColor: Colors.darkGrayColor,
     borderRadius: 4,
     marginRight: 12,
+    marginTop:4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   experienceCheckboxSelected: {
     backgroundColor: '#000',
+    borderColor: Colors.blackColor,
   },
   experienceLabel: {
     fontSize: 14,
@@ -1213,8 +1276,7 @@ const styles = StyleSheet.create({
     borderLeftColor: '#000',
   },
   experienceInfoText: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 10,
     fontStyle: 'italic',
   },
   // Custom Toggle Styles
