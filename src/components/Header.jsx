@@ -1,5 +1,5 @@
 // components/Header.js
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,14 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
+import { selectLocationAddress } from '../store/selector';
+import NotificationIcon from './NotificationIcon';
 
-const Header = ({ showSearch = true }) => {
+const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabled, searchQuery, setSearchQuery }) => {
+  const locationAddress = useSelector(selectLocationAddress);
   return (
     <View style={styles.headerContainer}>
       {/* Row 1: Location, Logo & Icons */}
@@ -22,8 +26,12 @@ const Header = ({ showSearch = true }) => {
             style={styles.icon}
           />
           <View>
-            <Text style={styles.locationText}>Noida</Text>
-            <Text style={styles.pincodeText}>201301</Text>
+            <Text style={styles.locationText}>
+              {locationAddress?.city || 'Noida'}
+            </Text>
+            <Text style={styles.pincodeText}>
+              {locationAddress?.postcode || '201301'}
+            </Text>
           </View>
         </View>
 
@@ -33,22 +41,17 @@ const Header = ({ showSearch = true }) => {
         />
 
         <View style={styles.iconsContainer}>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation?.navigate('WishlistScreen')}
+          >
             <Image
               source={require('../assets/Icons/Saved.png')}
               style={styles.icon}
             />
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.bellIconContainer}>
-            <Image
-              source={require('../assets/Icons/Notification.png')}
-              style={styles.icon}
-            />
-            <View style={styles.badgeContainer}>
-              <Text style={styles.badgeText}>12</Text>
-            </View>
-          </TouchableOpacity>
+          <View style={{marginLeft: 18}}><NotificationIcon color={"#fff"} /></View>
+          
+         
         </View>
       </View>
 
@@ -61,11 +64,29 @@ const Header = ({ showSearch = true }) => {
               placeholder="Search Here..."
               placeholderTextColor="#888"
               style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
-          <TouchableOpacity style={styles.jobButton}>
-            <Entypo name="flash" style={styles.jobIcon} />
-            <Text style={styles.jobText}>Job</Text>
+          <TouchableOpacity
+            style={[
+              styles.jobButton,
+              { backgroundColor: isUrgentEnabled ? '#000': '#666' },
+            ]}
+            onPress={() => setUrgentEnabled(!isUrgentEnabled)}
+            activeOpacity={0.8}
+          >
+            {isUrgentEnabled ? (
+              <>
+                <Text style={styles.jobText}>Urgent</Text>
+                <Entypo name="flash" style={styles.jobIcon} />
+              </>
+            ) : (
+              <>
+                <Entypo name="flash" style={styles.jobIcon} />
+                <Text style={styles.jobText}>Urgent</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       )}
@@ -77,7 +98,8 @@ const styles = StyleSheet.create({
   headerContainer: {
     backgroundColor: '#000',
     paddingHorizontal: 15,
-    paddingVertical: 4,
+    paddingTop: 0,
+    paddingBottom: 16,
   },
   topRow: {
     flexDirection: 'row',
@@ -94,11 +116,11 @@ const styles = StyleSheet.create({
   locationText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 12,
   },
   pincodeText: {
     color: '#888',
-    fontSize: 12,
+    fontSize: 8,
   },
   logo: {
     flex: 1,
@@ -113,32 +135,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   icon: {
-    width: 22,  // unified icon size
+    width: 22, // unified icon size
     height: 22,
     resizeMode: 'contain',
   },
-  bellIconContainer: {
-    marginLeft: 18,
-    position: 'relative',
-  },
-  badgeContainer: {
-    position: 'absolute',
-    top: -5,
-    right: -8,
-    backgroundColor: 'red',
-    borderRadius: 12,
-    width: 18,
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: 'bold',
-  },
+  
   searchWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -165,22 +166,33 @@ const styles = StyleSheet.create({
   },
   jobButton: {
     flexDirection: 'row',
+    gap: 4,
+    // borderColor: '#000000ff',
+    // borderWidth: 1,
     alignItems: 'center',
-    backgroundColor: '#000',
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 1 },
+    // shadowOpacity: 0.3,
+    // shadowRadius: 3,
+    // elevation: 5,
     borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     marginRight: 5,
     marginVertical: 5,
   },
   jobIcon: {
-    color: '#fff',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 5,
+    color: '#000',
     fontSize: 16,
-    marginRight: 5,
+    // marginHorizontal: 5,
   },
   jobText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 12,
   },
 });
 

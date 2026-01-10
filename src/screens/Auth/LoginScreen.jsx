@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setGuestMode } from '../../store/slices/authSlice';
 import { sendOtp } from '../../store/thunks/authThunk';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import MyStatusBar from '../../components/MyStatusbar';
 
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
@@ -76,7 +77,7 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <MyStatusBar/>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Image
           source={require('../../assets/illustration.png')}

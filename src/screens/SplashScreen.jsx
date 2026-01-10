@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Animated, StyleSheet, Dimensions, StatusBar } from 'react-native';
 import { loadUserFromStorage } from '../store/store';
+import MyStatusBar from '../components/MyStatusbar';
 
 const APP_NAME = "Zugado";
 const POWERED_BY = "Powered by React Native";
@@ -37,6 +38,7 @@ const SplashScreen = () => {
 
   return (
     <View style={styles.container}>
+         <MyStatusBar/>
       <View style={styles.textContainer}>
         {APP_NAME.split('').map((char, index) => {
           const anim = charAnimations[index];

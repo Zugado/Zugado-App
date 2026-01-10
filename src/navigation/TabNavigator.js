@@ -6,9 +6,11 @@ import { useTranslation } from 'react-i18next';
 import HomeScreen from '../screens/Home/HomeScreen';
 import ManageJobScreen from '../screens/ManageJobScreen';
 import CreateJobScreen from '../screens/Jobs/CreateJobScreen';
+import CreateJobScreen2 from '../screens/Jobs/CreateJobScreen2';
 import MessageScreen from '../screens/MessageScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TabLoadingOverlay from '../components/TabLoadingOverlay';
+import LocationPickerScreen from '../screens/mapAndAddress/LocationPickerScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -24,13 +26,17 @@ const CustomTabBarButton = ({ children, onPress }) => (
   >
     <View
       style={{
-        width: 70,
-        height: 70,
+        width: 60,
+        height: 60,
         borderRadius: 35,
         backgroundColor: '#111',
         justifyContent: 'center',
         alignItems: 'center',
-
+        borderColor: '#fff',
+        borderWidth: 1,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.5,
         // LIGHTER 360° SHADOW
         shadowColor: '#000000ff', // Lighter, pinkish shadow color
         shadowOffset: { width: 0, height: 0 },
@@ -93,7 +99,7 @@ export default function TabNavigator() {
       default:
         icon = icons.home.inactive;
     }
-    return <Image source={icon} style={{ width: 28, height: 28, resizeMode: 'contain' }} />;
+    return <Image source={icon} style={{ width: 20, height: 28, resizeMode: 'contain' }} />;
   };
 
   return (
@@ -101,8 +107,8 @@ export default function TabNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarStyle: { position: 'absolute', height: 80, backgroundColor: '#fff', ...styles.shadow },
-          tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginTop: 4 },
+          tabBarStyle: { position: 'absolute', height: 60, backgroundColor: '#fff', ...styles.shadow },
+          tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 4 },
           tabBarIcon: ({ focused }) => renderTabIcon(route.name, focused),
         })}
         screenListeners={{ tabPress: handleTabPress }}
@@ -111,6 +117,7 @@ export default function TabNavigator() {
         <Tab.Screen name={t('Manage Job')} component={ManageJobScreen} />
         <Tab.Screen
           name="Add"
+          // component={LocationPickerScreen}
           component={CreateJobScreen}
           options={{
             tabBarStyle: { display: 'none' },

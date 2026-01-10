@@ -19,6 +19,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import illustration1 from '../../assets/onboarding1.png';
 import illustration2 from '../../assets/onboarding2.png';
 import illustration3 from '../../assets/onboarding3.png';
+import MyStatusBar from '../../components/MyStatusbar';
 
 const onboardingData = [
   {
@@ -120,8 +121,7 @@ export default function OnboardingScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F4F7F9" />
-
+        <MyStatusBar/>
       {/* Skip Button */}
       <View style={styles.skipContainer}>
         <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>

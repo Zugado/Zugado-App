@@ -26,7 +26,11 @@ import { useSnackbar } from '../contexts/SnackbarContext';
 import { useImagePicker } from '../utils/useImagePicker';
 import { updateProfilePicAPI } from '../store/api/userApi';
 import { updateUserDetails, getUserProfile, updateProfilePic } from '../store/thunks/userThunk';
+import { getWishlist } from '../store/thunks/wishlistThunk';
+import { selectWishlist } from '../store/selector';
 import Header from '../components/Header';
+import MyStatusBar from '../components/MyStatusbar';
+import ImagePreviewModal from '../components/ImagePreviewModal';
 
 const InfoBox = ({ 
   iconName, 
@@ -211,30 +215,9 @@ const GuestFeature = ({ icon, title, desc }) => (
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
   const { user, isGuest } = useSelector((state) => state.auth);
+  const wishlist = useSelector(selectWishlist);
   const { showSnackbar } = useSnackbar();
   const { openCamera, openGallery } = useImagePicker();
-
-  // Set status bar when screen comes into focus - MUST be at top
-  useFocusEffect(
-    React.useCallback(() => {
-      StatusBar.setBarStyle(isGuest ? 'dark-content' : 'light-content');
-      StatusBar.setBackgroundColor(isGuest ? '#ffffff' : '#000000');
-    }, [isGuest])
-  );
-
-  const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
-  const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [verificationModalVisible, setVerificationModalVisible] = useState(false);
-  const [verificationData, setVerificationData] = useState({
-    documentType: '',
-    documentNumber: '',
-    documentImage: null
-  });
-  const [showDocumentDropdown, setShowDocumentDropdown] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Mapping functions for backend API - MUST be before useState
   const mapToBackend = (field, value) => {
@@ -268,12 +251,20 @@ export default function ProfileScreen({ navigation }) {
     return age;
   };
 
-  // Global Edit State (Header Button)
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  
-  // Specific Field Edit State (Pencil Button)
-  const [activeEditField, setActiveEditField] = useState(null); 
-
+  const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
+  const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [verificationModalVisible, setVerificationModalVisible] = useState(false);
+  const [verificationData, setVerificationData] = useState({
+    documentType: '',
+    documentNumber: '',
+    documentImage: null
+  });
+  const [showDocumentDropdown, setShowDocumentDropdown] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [imagePreviewVisible, setImagePreviewVisible] = useState(false);
   const [editedUser, setEditedUser] = useState({
     firstName: user?.firstName || '',
     middleName: user?.middleName || '',
@@ -286,6 +277,19 @@ export default function ProfileScreen({ navigation }) {
     dateOfBirth: user?.dateOfBirth || null,
   });
   const [showDropdown, setShowDropdown] = useState(null);
+
+  // Set status bar when screen comes into focus - MUST be at top
+  useFocusEffect(
+    React.useCallback(() => {
+      StatusBar.setBarStyle(isGuest ? 'dark-content' : 'light-content');
+      StatusBar.setBackgroundColor(isGuest ? '#ffffff' : '#000000');
+      if (!isGuest) {
+        dispatch(getWishlist());
+      }
+    }, [isGuest, dispatch])
+  );
+
+  // Remove edit profile functionality - using separate EditProfileScreen
 
   // Field name formatting
   const formatFieldName = (field) => {
@@ -403,7 +407,10 @@ export default function ProfileScreen({ navigation }) {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await dispatch(getUserProfile());
+      await Promise.all([
+        dispatch(getUserProfile()),
+        dispatch(getWishlist())
+      ]);
       showSnackbar('Profile refreshed successfully', 'success');
     } catch (error) {
       showSnackbar('Failed to refresh profile', 'error');
@@ -412,71 +419,7 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // Global Edit Handler (Header Button)
-  const handleGlobalEditToggle = () => {
-    if (isEditingProfile) {
-      // If we are exiting edit mode (pressing CHECK)
-      // 1. Clear any active field editing state
-      setActiveEditField(null);
-      setShowDropdown(null);
-      // 2. Perform global save logic here (e.g., dispatch(updateUserProfileAPI(editedUser)));
-      showSnackbar('Profile edit mode turned off.', 'success');
-    }else{
-      showSnackbar('Profile edit mode turned on.', 'warning');
-
-    }
-    // Toggle the overall editing state
-    setIsEditingProfile(prev => !prev);
-  };
-  
-  // Individual Field Edit Handler (Pencil Button)
-  const handleFieldEditToggle = async (field) => {
-    if (activeEditField === field) {
-      // If the field is currently active (pressing CHECK)
-      try {
-        setLoading(true);
-        
-        // Prepare data based on field type
-        let updateData = {};
-        
-        if (field === 'name') {
-          updateData = {
-            firstName: editedUser.firstName,
-            middleName: editedUser.middleName,
-            lastName: editedUser.lastName
-          };
-        } else if (field === 'age') {
-          updateData = {
-            dateOfBirth: editedUser.dateOfBirth
-          };
-        } else {
-          const backendValue = mapToBackend(field, editedUser[field]);
-          updateData = { [field]: backendValue };
-        }
-        
-        const response = await dispatch(updateUserDetails(updateData));
-        
-        if (updateUserDetails.fulfilled.match(response)) {
-          const fieldName = formatFieldName(field);
-          showSnackbar(`${fieldName} updated successfully`, 'success');
-          setActiveEditField(null);
-        } else {
-          const fieldName = formatFieldName(field);
-          showSnackbar(response?.payload?.message || `Failed to update ${fieldName}`, 'error');
-        }
-      } catch (error) {
-        const fieldName = formatFieldName(field);
-        showSnackbar(`Error updating ${fieldName}`, 'error');
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // If pressing the pencil icon
-      setActiveEditField(null);
-      setShowDropdown(null);
-      setActiveEditField(field);
-    }
-  };
+  // Removed edit handlers - using separate EditProfileScreen
 
   
 
@@ -511,6 +454,7 @@ export default function ProfileScreen({ navigation }) {
   if (isGuest) {
     return (
       <SafeAreaView style={styles.safeArea}>
+           <MyStatusBar/>
         <View style={styles.guestContainer}>
           <View style={styles.topNav}>
             <Text style={styles.screenTitle}>Profile</Text>
@@ -567,19 +511,16 @@ export default function ProfileScreen({ navigation }) {
 
       {/* Header */}
       <View style={styles.header}>
-        <Header showSearch={false} />
+        <Header showSearch={false} navigation={navigation} />
 
-        {/* Profile Image and Edit Camera */}
+        {/* Profile Image */}
         <View style={styles.imageContainer}>
-          <Image
-            source={user?.avatar ? { uri: user.avatar } : require('../assets/profile.png')}
-            style={styles.profileImage}
-          />
-          {isEditingProfile && (
-            <TouchableOpacity style={styles.imageEditButton} onPress={() => setPickerSheetVisible(true)}>
-              <Feather name="camera" size={16} color="#fff" />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity onPress={() => setImagePreviewVisible(true)}>
+            <Image
+              source={user?.avatar ? { uri: user.avatar } : require('../assets/profile.png')}
+              style={styles.profileImage}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -599,163 +540,75 @@ export default function ProfileScreen({ navigation }) {
         }
       >
 
-          {/* Global edit button */}
-           <TouchableOpacity style={styles.globalEditButton} onPress={handleGlobalEditToggle}>
-            <Feather
-            name={isEditingProfile ? "check" : "edit-2"}
-            size={20}
-            color="#000000ff"
-          />
-        </TouchableOpacity>
+          {/* Removed global edit button - using separate EditProfileScreen */}
 
         <View style={styles.profileHeader}>
           <View style={styles.nameContainer}>
-            {isEditingProfile && activeEditField === 'name' ? (
-              <View style={styles.nameEditContainer}>
-                <TextInput
-                  style={styles.nameInput}
-                  value={editedUser.firstName}
-                  onChangeText={(text) => handleInputChange('firstName', text)}
-                  placeholder="First Name"
-                />
-                <TextInput
-                  style={styles.nameInput}
-                  value={editedUser.middleName}
-                  onChangeText={(text) => handleInputChange('middleName', text)}
-                  placeholder="Middle Name"
-                />
-                <TextInput
-                  style={styles.nameInput}
-                  value={editedUser.lastName}
-                  onChangeText={(text) => handleInputChange('lastName', text)}
-                  placeholder="Last Name"
-                />
-              </View>
-            ) : (
-              <Text style={styles.profileName}>{`${editedUser.firstName} ${editedUser.middleName || ''} ${editedUser.lastName}` || "User Name"}</Text>
-            )}
-            
-            {/* Name Edit Toggle */}
-            {isEditingProfile && (
-              <TouchableOpacity 
-                style={[styles.editButton, activeEditField === 'name' && styles.activeEditButton]} 
-                onPress={() => handleFieldEditToggle('name')}
-              >
-                <Feather 
-                  name={activeEditField === 'name' ? "check" : "edit-2"} 
-                  size={18} 
-                  color={activeEditField === 'name' ? "#fff" : "#000"} 
-                />
-              </TouchableOpacity>
-            )}
+            <Text style={styles.profileName}>{`${user?.firstName || ''} ${user?.middleName || ''} ${user?.lastName || ''}` || "User Name"}</Text>
           </View>
 
           <View style={styles.subHeader}>
             <View style={styles.ageContainer}>
-              {isEditingProfile && activeEditField === 'age' ? (
-                <TouchableOpacity
-                  style={styles.datePickerButton}
-                  onPress={() => setShowDatePicker(true)}
-                >
-                  <Text style={styles.datePickerText}>
-                    {editedUser.dateOfBirth 
-                      ? new Date(editedUser.dateOfBirth).toLocaleDateString()
-                      : 'Select Date of Birth'
-                    }
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <Text style={styles.ageText}>{editedUser.age ? `Age - ${editedUser.age} Yrs` : "Age 0"}</Text>
-              )}
-              
-              {/* Age Edit Toggle */}
-              {isEditingProfile && (
-                <TouchableOpacity 
-                  style={[styles.ageEditButton, activeEditField === 'age' && styles.activeAgeEditButton]} 
-                  onPress={() => handleFieldEditToggle('age')}
-                >
-                  <Feather 
-                    name={activeEditField === 'age' ? "check" : "edit-2"} 
-                    size={14} 
-                    color={activeEditField === 'age' ? "#fff" : "#666"} 
-                  />
-                </TouchableOpacity>
-              )}
+              <Text style={styles.ageText}>{user?.dateOfBirth ? `Age - ${calculateAge(user.dateOfBirth)} Yrs` : "Age 0"}</Text>
             </View>
 
             <View style={styles.ratingContainer}>
               <FontAwesome name="star" size={14} color="#FF9529" />
               <Text style={styles.ratingText}>{user?.ratings?.averageRating || '0.0'}</Text>
             </View>
+
+            <View style={styles.balanceContainer}>
+              <Feather name="dollar-sign" size={14} color="#4CAF50" />
+              <Text style={styles.balanceText}>{user?.balance || '0'}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Info Grid */}
+        {/* Info Grid - Read Only */}
         <View style={styles.infoGrid}>
-          <InfoBox
-            iconName="phone"
-            title="Contact"
-            value={editedUser.mobile || "98765 43210"}
-            field="mobile"
-            // isEditingProfile={isEditingProfile}
-            // activeEditField={activeEditField}
-            onEditFieldToggle={handleFieldEditToggle}
-            onInputChange={handleInputChange}
-            editValue={editedUser.mobile}
-          />
-          <InfoBox
-            iconName="briefcase"
-            title="Job Type"
-            value={editedUser.jobType}
-            field="jobType"
-            isEditingProfile={isEditingProfile}
-            activeEditField={activeEditField}
-            onEditFieldToggle={handleFieldEditToggle}
-            editValue={editedUser.jobType}
-            isDropdown={true}
-            options={jobTypeOptions}
-            onDropdownSelect={handleDropdownSelect}
-            showDropdown={activeEditField === 'jobType' && showDropdown === 'jobType'}
-            onDropdownToggle={() => handleDropdownToggle('jobType')}
-          />
-          <InfoBox
-            iconName="monitor"
-            title="Working Model"
-            value={editedUser.workingModel}
-            field="workingModel"
-            isEditingProfile={isEditingProfile}
-            activeEditField={activeEditField}
-            onEditFieldToggle={handleFieldEditToggle}
-            editValue={editedUser.workingModel}
-            isDropdown={true}
-            options={workingModelOptions}
-            onDropdownSelect={handleDropdownSelect}
-            showDropdown={activeEditField === 'workingModel' && showDropdown === 'workingModel'}
-            onDropdownToggle={() => handleDropdownToggle('workingModel')}
-          />
-          <InfoBox
-            iconName="trending-up"
-            title="Level"
-            value={editedUser.level}
-            field="level"
-            isEditingProfile={isEditingProfile}
-            activeEditField={activeEditField}
-            onEditFieldToggle={handleFieldEditToggle}
-            editValue={editedUser.level}
-            isDropdown={true}
-            options={levelOptions}
-            onDropdownSelect={handleDropdownSelect}
-            showDropdown={activeEditField === 'level' && showDropdown === 'level'}
-            onDropdownToggle={() => handleDropdownToggle('level')}
-          />
+          <View style={styles.infoBox}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="phone" size={20} color="#666" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoTitle}>Contact</Text>
+              <Text style={styles.infoValue}>{user?.mobile || "98765 43210"}</Text>
+            </View>
+          </View>
+          <View style={styles.infoBox}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="briefcase" size={20} color="#666" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoTitle}>Job Type</Text>
+              <Text style={styles.infoValue}>{mapFromBackend('jobType', user?.jobType) || 'Full-Time'}</Text>
+            </View>
+          </View>
+          <View style={styles.infoBox}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="monitor" size={20} color="#666" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoTitle}>Working Model</Text>
+              <Text style={styles.infoValue}>{mapFromBackend('workingModel', user?.workingModel) || 'Remote'}</Text>
+            </View>
+          </View>
+          <View style={styles.infoBox}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="trending-up" size={20} color="#666" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoTitle}>Level</Text>
+              <Text style={styles.infoValue}>{mapFromBackend('level', user?.level) || 'Advanced'}</Text>
+            </View>
+          </View>
         </View>
 
-        {/* Role Selection (Disabled when editing) */}
+        {/* Role Selection */}
         <View style={styles.roleSelectionContainer}>
           <TouchableOpacity
             style={styles.roleButton}
             onPress={() => console.log('Job Provider selected')}
-            disabled={isEditingProfile}
           >
             <MaterialCommunityIcons
               name="briefcase-variant"
@@ -770,7 +623,6 @@ export default function ProfileScreen({ navigation }) {
           <TouchableOpacity
             style={styles.roleButton}
             onPress={() => console.log('Job Seeker selected')}
-            disabled={isEditingProfile}
           >
             <MaterialCommunityIcons
               name="account-search"
@@ -783,12 +635,11 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Other Sections (Disabled when editing) */}
+        {/* Other Sections */}
         <View style={styles.sectionContainer}>
           <TouchableOpacity
             style={styles.verificationButton}
             onPress={() => setIsVerificationExpanded(!isVerificationExpanded)}
-            disabled={isEditingProfile}
           >
             <MaterialCommunityIcons name="shield-check-outline" size={24} color="#000" />
             <Text style={styles.verificationTitle}>Verification</Text>
@@ -819,31 +670,114 @@ export default function ProfileScreen({ navigation }) {
           )}
         </View>
 
+        
+
         {/* Settings Section */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+        <View style={styles.settingsContainer}>
+          <Text style={styles.settingsTitle}>Settings</Text>
           
-          <TouchableOpacity style={styles.settingItem} onPress={guestAction} disabled={isEditingProfile}>
-            <Feather name="user" size={20} color="#000" />
-            <Text style={styles.settingText}>Account Settings</Text>
-            <Feather name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
+          {/* Preferences Group */}
+          <View style={styles.settingsGroup}>
+            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate('PreferencesScreen')}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="settings" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Preferences</Text>
+                <Text style={styles.settingsItemSubtitle}>Notifications, Language, Appearance</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Account Group */}
+          <View style={styles.settingsGroup}>
+            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("EditProfileScreen")}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="user" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Account</Text>
+                <Text style={styles.settingsItemSubtitle}>Profile, Security, Privacy</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+            
+            <View style={styles.settingsDivider} />
+            
+            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate('WishlistScreen')}>
+              <View style={styles.settingsIconContainer}>
+                <Image
+                  source={require('../assets/Icons/SavedGolden.png')}
+                  style={styles.settingsWishlistIcon}
+                />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>My Wishlist</Text>
+                <Text style={styles.settingsItemSubtitle}>{wishlist.length} saved tasks</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+            
+            {/* <View style={styles.settingsDivider} />
+            
+            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("SavedAddressesScreen")}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="map-pin" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Saved Addresses</Text>
+                <Text style={styles.settingsItemSubtitle}>Manage your saved locations</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity> */}
+          </View>
+
+          {/* Resources Group */}
+          <Text style={styles.settingsGroupTitle}>Resources</Text>
           
-          <TouchableOpacity style={styles.settingItem} onPress={guestAction} disabled={isEditingProfile}>
-            <Ionicons name="card-outline" size={20} color="#000" />
-            <Text style={styles.settingText}>Payment Details</Text>
-            <Feather name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.settingItem} onPress={guestAction} disabled={isEditingProfile}>
-            <Feather name="globe" size={20} color="#000" />
-            <Text style={styles.settingText}>Language</Text>
-            <Feather name="chevron-right" size={16} color="#666" />
-          </TouchableOpacity>
+          <View style={styles.settingsGroup}>
+            <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="help-circle" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Support</Text>
+                <Text style={styles.settingsItemSubtitle}>Help Center, Contact Us</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+            
+            <View style={styles.settingsDivider} />
+            
+            <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="info" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Community and Legal</Text>
+                <Text style={styles.settingsItemSubtitle}>Terms, Privacy Policy</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+            
+            <View style={styles.settingsDivider} />
+            
+            <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
+              <View style={styles.settingsIconContainer}>
+                <Feather name="briefcase" size={20} color="#666" />
+              </View>
+              <View style={styles.settingsContent}>
+                <Text style={styles.settingsItemTitle}>Become a Seller</Text>
+                <Text style={styles.settingsItemSubtitle}>Start offering services</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#666" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.sectionContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} disabled={isEditingProfile}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Feather name="log-out" size={24} color="#ff4444" />
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
@@ -1054,6 +988,12 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
       )}
+
+      <ImagePreviewModal
+        image={user?.avatar}
+        visibility={imagePreviewVisible}
+        setVisibility={setImagePreviewVisible}
+      />
     </SafeAreaView>
   );
 }
@@ -1186,18 +1126,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
     paddingBottom: 100,
   },
-  globalEditButton: {
-    position: 'absolute',
-    top: -40,
-    right: -10,
-    zIndex: 10,
-    padding: 8,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 20,
-    // borderWidth: 2,
-    // borderColor: '#000000ff',
-    // borderRadius: 50,
-  },
+  // Removed globalEditButton styles
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -1318,13 +1247,56 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontWeight: 'bold',
   },
+  balanceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E8',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginLeft: 15,
+  },
+  balanceText: {
+    color: '#4CAF50',
+    marginLeft: 5,
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
   infoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginBottom: 20,
-    zIndex: 1,
-    overflow: 'visible',
+  },
+  infoBox: {
+    width: '48%',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 15,
+    padding: 12,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  infoIconContainer: {
+    marginRight: 12,
+  },
+  infoTextContainer: {
+    flex: 1,
+  },
+  infoTitle: {
+    fontSize: 12,
+    color: '#777',
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
   },
   roleSelectionContainer: {
     flexDirection: 'row',
@@ -1747,5 +1719,114 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     marginTop: 10,
+  },
+  // Professional Settings Styles
+  settingsContainer: {
+    marginBottom: 20,
+  },
+  settingsTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 20,
+  },
+  settingsGroup: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 16,
+    marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: 'transparent',
+  },
+  settingsIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  settingsContent: {
+    flex: 1,
+  },
+  settingsItemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 2,
+  },
+  settingsItemSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
+  },
+  settingsGroupTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 12,
+    marginTop: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  settingsDivider: {
+    height: 1,
+    backgroundColor: '#e9ecef',
+    marginHorizontal: 16,
+  },
+  wishlistButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  wishlistTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    marginLeft: 16,
+    flex: 1,
+  },
+  wishlistRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  wishlistCount: {
+    fontSize: 14,
+    color: '#666',
+    marginRight: 8,
+  },
+  wishlistIcon: {
+    width: 24,
+    height: 27,
+    resizeMode: 'contain',
+    marginRight: 16,
+  },
+  settingsWishlistIcon: {
+    width: 20,
+    height: 23,
+    resizeMode: 'contain',
   },
 });

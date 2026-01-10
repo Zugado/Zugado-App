@@ -1,11 +1,11 @@
 import { View, Text, StatusBar, StyleSheet } from 'react-native';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import MyStatusBar from '../components/MyStatusbar';
 export default function NotificationScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <MyStatusBar/>
       <View style={styles.container}>
         <Text>NotificationScreen</Text>
       </View>
