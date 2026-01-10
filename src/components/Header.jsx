@@ -71,7 +71,7 @@ const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabl
           <TouchableOpacity
             style={[
               styles.jobButton,
-              { backgroundColor: isUrgentEnabled ?  '#22c55e' :'#000' },
+              { backgroundColor: isUrgentEnabled ? '#000': '#666' },
             ]}
             onPress={() => setUrgentEnabled(!isUrgentEnabled)}
             activeOpacity={0.8}

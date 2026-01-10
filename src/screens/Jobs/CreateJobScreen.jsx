@@ -8,6 +8,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   FlatList,
+  Switch,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector, useDispatch } from 'react-redux';
@@ -191,24 +193,29 @@ export default function CreateJob({ navigation }) {
       
       setIsLoadingDraft(true); // Prevent save effect during loading
       
-      // Set all state values
-      setJobFor(draftData?.jobFor || 'person');
-      setPersonTitle(draftData?.personTitle || '');
-      setPersonDescription(draftData?.personDescription || '');
-      setExperienceLevel(draftData?.experienceLevel || '');
-      setSelectedSkills(draftData?.selectedSkills || []);
-      setSkill(draftData?.skill || '');
-      setRequiresExperience(draftData?.requiresExperience || 'no');
-      setJobType(draftData?.jobType || 'standard');
-      setThingTitle(draftData?.thingTitle || '');
-      setThingDescription(draftData?.thingDescription || '');
-      setPurpose(draftData?.purpose || '');
-      setOtherPurpose(draftData?.otherPurpose || '');
-      setSelectedThingCategory(draftData?.selectedThingCategory || '');
+      // Use setTimeout to ensure state updates are processed
+      setTimeout(() => {
+        // Set all state values
+        setJobFor(draftData?.jobFor || 'person');
+        setPersonTitle(draftData?.personTitle || '');
+        setPersonDescription(draftData?.personDescription || '');
+        setExperienceLevel(draftData?.experienceLevel || '');
+        setSelectedSkills(draftData?.selectedSkills || []);
+        setSkill(draftData?.skill || '');
+        setRequiresExperience(draftData?.requiresExperience || 'no');
+        setJobType(draftData?.jobType || 'standard');
+        setThingTitle(draftData?.thingTitle || '');
+        setThingDescription(draftData?.thingDescription || '');
+        setPurpose(draftData?.purpose || '');
+        setOtherPurpose(draftData?.otherPurpose || '');
+        setSelectedThingCategory(draftData?.selectedThingCategory || '');
+        
+        console.log('Draft silently loaded into state');
+        
+        // Re-enable saving after state updates
+        setTimeout(() => setIsLoadingDraft(false), 200);
+      }, 50);
       
-      setTimeout(() => setIsLoadingDraft(false), 100); // Re-enable saving after state updates
-      
-      console.log('Draft silently loaded into state');
       console.log('=== END SILENT DRAFT LOADING ===\n');
     } catch (error) {
       console.log('Error loading draft silently:', error);
@@ -273,30 +280,34 @@ export default function CreateJob({ navigation }) {
         
         setIsLoadingDraft(true); // Prevent save effect during loading
         
-        // Set all state values
-        setJobFor(draftData?.jobFor || 'person');
-        setPersonTitle(draftData?.personTitle || '');
-        setPersonDescription(draftData?.personDescription || '');
-        setExperienceLevel(draftData?.experienceLevel || '');
-        setSelectedSkills(draftData?.selectedSkills || []);
-        setSkill(draftData?.skill || '');
-        setRequiresExperience(draftData?.requiresExperience || 'no');
-        setJobType(draftData?.jobType || 'standard');
-        setThingTitle(draftData?.thingTitle || '');
-        setThingDescription(draftData?.thingDescription || '');
-        setPurpose(draftData?.purpose || '');
-        setOtherPurpose(draftData?.otherPurpose || '');
-        setSelectedThingCategory(draftData?.selectedThingCategory || '');
-        
-        setTimeout(() => setIsLoadingDraft(false), 100); // Re-enable saving after state updates
-        
-        console.log('Draft data loaded into state');
-        console.log('Loaded Values:', {
-          jobFor: draftData?.jobFor,
-          personTitle: draftData?.personTitle,
-          thingTitle: draftData?.thingTitle,
-          selectedSkills: draftData?.selectedSkills
-        });
+        // Use setTimeout to ensure state updates are processed
+        setTimeout(() => {
+          // Set all state values
+          setJobFor(draftData?.jobFor || 'person');
+          setPersonTitle(draftData?.personTitle || '');
+          setPersonDescription(draftData?.personDescription || '');
+          setExperienceLevel(draftData?.experienceLevel || '');
+          setSelectedSkills(draftData?.selectedSkills || []);
+          setSkill(draftData?.skill || '');
+          setRequiresExperience(draftData?.requiresExperience || 'no');
+          setJobType(draftData?.jobType || 'standard');
+          setThingTitle(draftData?.thingTitle || '');
+          setThingDescription(draftData?.thingDescription || '');
+          setPurpose(draftData?.purpose || '');
+          setOtherPurpose(draftData?.otherPurpose || '');
+          setSelectedThingCategory(draftData?.selectedThingCategory || '');
+          
+          console.log('Draft data loaded into state');
+          console.log('Loaded Values:', {
+            jobFor: draftData?.jobFor,
+            personTitle: draftData?.personTitle,
+            thingTitle: draftData?.thingTitle,
+            selectedSkills: draftData?.selectedSkills
+          });
+          
+          // Re-enable saving after state updates
+          setTimeout(() => setIsLoadingDraft(false), 200);
+        }, 50);
       }
       console.log('=== END DRAFT LOADING ===\n');
     } catch (error) {
@@ -536,14 +547,39 @@ export default function CreateJob({ navigation }) {
             <Text style={styles.title}>
               Create and Customize Your Task Posting
             </Text>
+            
             {/* Task For */}
             <View style={styles.selectorContainer}>
-              <Text style={styles.selectorLabel}>
-                Task For <Text style={styles.required}>*</Text>
-              </Text>
-              <Text style={styles.selectorHelper}>
-                What type of work are you posting?
-              </Text>
+              <View style={styles.selectorHeaderRow}>
+                <View>
+                  <Text style={styles.selectorLabel}>
+                    Task For <Text style={styles.required}>*</Text>
+                  </Text>
+                  <Text style={styles.selectorHelper}>
+                    What type of work are you posting?
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.urgentToggle,
+                    { backgroundColor: jobType === 'quick' ? '#000' : '#666' },
+                  ]}
+                  onPress={() => setJobType(jobType === 'quick' ? 'standard' : 'quick')}
+                  activeOpacity={0.8}
+                >
+                  {jobType === 'quick' ? (
+                    <>
+                      <Text style={styles.urgentText}>Urgent</Text>
+                      <Feather name="zap" style={styles.urgentIcon} />
+                    </>
+                  ) : (
+                    <>
+                      <Feather name="zap" style={styles.urgentIcon} />
+                      <Text style={styles.urgentText}>Urgent</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
               <View style={styles.selectorGrid}>
                 {jobForOptions.map(option => (
                   <TouchableOpacity
@@ -657,46 +693,50 @@ export default function CreateJob({ navigation }) {
             onFocus={ref => scrollToInput(ref, scrollViewRef)}
           />
 
-          {/* Task Type */}
-          <View style={styles.selectorContainer}>
-            <Text style={styles.selectorLabel}>
-              Task Type <Text style={styles.required}>*</Text>
-            </Text>
-            <Text style={styles.selectorHelper}>Choose the urgency level</Text>
-            <SelectorToggleButton
-              options={['Standard', 'Urgent']}
-              selectedValue={jobType === 'standard' ? 'Standard' : 'Urgent'}
-              onValueChange={value =>
-                setJobType(value === 'Standard' ? 'standard' : 'quick')
-              }
-            />
-          </View>
+          {/* Task Type - Remove this section since we have the toggle */}
           {/* Experience Level */}
           <View style={styles.selectorContainer}>
-            <Text style={styles.selectorLabel}>
-              Requires Specific Experience Level?
-            </Text>
-            <Text style={styles.selectorHelper}>
-              Do you need candidates with specific experience?
-            </Text>
-            <SelectorToggleButton
-              options={['No', 'Yes']}
-              selectedValue={requiresExperience === 'no' ? 'No' : 'Yes'}
-              onValueChange={value =>
-                handleRequiresExperienceChange(value === 'No' ? 'no' : 'yes')
-              }
-            />
+            <View style={styles.selectorHeaderRow}>
+              <View>
+                <Text style={styles.selectorLabel}>
+                  Requires Specific Experience Level?
+                </Text>
+                <Text style={styles.selectorHelper}>
+                  Do you need candidates with specific experience?
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[
+                  styles.experienceToggle,
+                  { backgroundColor: requiresExperience === 'yes' ? '#000' : '#666' },
+                ]}
+                onPress={() => handleRequiresExperienceChange(requiresExperience === 'yes' ? 'no' : 'yes')}
+                activeOpacity={0.8}
+              >
+                {requiresExperience === 'yes' ? (
+                  <>
+                    <Text style={styles.experienceText}>Yes</Text>
+                    <Feather name="check" style={styles.experienceIcon} />
+                  </>
+                ) : (
+                  <>
+                    <Feather name="x" style={styles.experienceIcon} />
+                    <Text style={styles.experienceText}>No</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {requiresExperience === 'yes' && (
             <View style={styles.selectorContainer}>
-              <Text style={styles.selectorLabel}>
+              {/* <Text style={styles.selectorLabel}>
                 Experience Level <Text style={styles.required}>*</Text>
               </Text>
               <Text style={styles.selectorHelper}>
                 Select the required experience level
-              </Text>
-              <View style={styles.experienceRow}>
+              </Text> */}
+              <View style={styles.experienceRowContainer}>
                 {[
                   {
                     value: 'entry',
@@ -714,15 +754,34 @@ export default function CreateJob({ navigation }) {
                     desc: '5+ years experience',
                   },
                 ].map(option => (
-                  <RoundRadioButton
+                  <TouchableOpacity
                     key={option.value}
-                    label={option.label}
-                    description={option.desc}
-                    selected={experienceLevel === option.value}
+                    style={styles.experienceOption}
                     onPress={() => setExperienceLevel(option.value)}
-                  />
+                  >
+                    <View style={[
+                      styles.experienceCheckbox,
+                      experienceLevel === option.value && styles.experienceCheckboxSelected
+                    ]}>
+                      {experienceLevel === option.value && (
+                        <Feather name="check" size={14} color="#fff" />
+                      )}
+                    </View>
+                    <Text style={styles.experienceLabel}>{option.label}</Text>
+                  </TouchableOpacity>
                 ))}
               </View>
+              {experienceLevel && (
+                <View style={styles.experienceInfo}>
+                  <Text style={styles.experienceInfoText}>
+                    {[
+                      { value: 'entry', desc: '0-2 years experience' },
+                      { value: 'intermediate', desc: '2-5 years experience' },
+                      { value: 'expert', desc: '5+ years experience' },
+                    ].find(opt => opt.value === experienceLevel)?.desc}
+                  </Text>
+                </View>
+              )}
             </View>
           )}
         </View>
@@ -901,6 +960,52 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     textAlign: 'center',
   },
+  selectorHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  urgentToggle: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'center',
+    borderRadius: 25,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  urgentIcon: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 5,
+    color: '#000',
+    fontSize: 16,
+  },
+  urgentText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+  experienceToggle: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'center',
+    borderRadius: 25,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  experienceIcon: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 5,
+    color: '#000',
+    fontSize: 16,
+  },
+  experienceText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
   form: { width: '100%' },
   required: { color: '#FF0000', fontSize: 14 },
 
@@ -912,12 +1017,105 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   selectorHelper: {
     fontSize: 13,
     color: '#666',
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  // Location Styles
+  locationContainer: {
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: '#f8f9fa',
+  },
+  locationOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  locationCheckbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 4,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  locationCheckboxSelected: {
+    backgroundColor: '#000',
+  },
+  locationLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000',
+  },
+  locationInfo: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#000',
+  },
+  locationInfoText: {
+    fontSize: 13,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  // Suggestions Container
+  suggestionsContainer: {
+    position: 'absolute',
+    top: 112,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderTopWidth: 0,
+    borderColor: '#e5e7eb',
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 1000,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  suggestionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  suggestionTextContainer: {
+    flex: 1,
+  },
+  suggestionText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  suggestionDesc: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#f3f4f6',
   },
   selectorGrid: {
     flexDirection: 'row',
@@ -970,9 +1168,73 @@ const styles = StyleSheet.create({
   },
 
   // Experience Level Styles
-  experienceRow: {
+  experienceRowContainer: {
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 16,
+  },
+  experienceOption: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  experienceCheckbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 4,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  experienceCheckboxSelected: {
+    backgroundColor: '#000',
+  },
+  experienceLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#484040ff',
+  },
+  experienceInfo: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#000',
+  },
+  experienceInfoText: {
+    fontSize: 13,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  // Custom Toggle Styles
+  customToggleContainer: {
+    flexDirection: 'row',
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  customToggle: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  customToggleText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   roundOption: {
     flexDirection: 'column',
@@ -1082,6 +1344,20 @@ const styles = StyleSheet.create({
   //   color: Colors.lightBlackColor,
   // },
   nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  // Toggle Row Styles
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  toggleLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    flex: 1,
+  },
 
   // Checkbox styles
   option: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },

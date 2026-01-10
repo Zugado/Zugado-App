@@ -65,21 +65,24 @@ const LocationPickerScreen = ({ navigation, route }) => {
   const [selectedLocation, setSelectedLocation] = useState(null);
 
   const [addressComponents, setAddressComponents] = useState({
-    country: '',
-    state: '',
+    streetNumber: '',
+    route: '',
+    sublocality: '',
+    locality: '',
     city: '',
-    pincode: '',
+    state: '',
+    country: '',
+    postalCode: '',
     formattedAddress: '',
   });
-  const [country, setCountry] = useState(addressComponents?.country);
-  const [city, setCity] = useState(addressComponents?.city);
-  const [address, setAddress] = useState(addressComponents?.formattedAddress);
-  const [pinCode, setPinCode] = useState(addressComponents?.pinCode);
-  const [state, setState] = useState(addressComponents?.state);
-  const [name, setName] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
+  const [address, setAddress] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [state, setState] = useState('');
   const [landmark, setLandmark] = useState('');
   const [addressType, setAddressType] = useState('Home');
+  const [customAddressName, setCustomAddressName] = useState('');
   const [isConfirmed, setConfirmed] = useState(false);
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -126,28 +129,45 @@ const LocationPickerScreen = ({ navigation, route }) => {
 
   const addressTypes = ['Home', 'Office', 'Work', 'Other'];
 
+  const getReadableArea = (components) => {
+    const parts = [];
+    if (components?.route) parts.push(components.route);
+    if (components?.sublocality) parts.push(components.sublocality);
+    if (components?.locality && components?.locality !== components?.city) parts.push(components.locality);
+    return parts.join(', ') || components?.formattedAddress?.split(',')[1]?.trim() || '';
+  };
+
   const decodeAddress = addressComponents => {
     const decoded = {
-      country: '',
-      state: '',
+      streetNumber: '',
+      route: '',
+      sublocality: '',
+      locality: '',
       city: '',
-      pincode: '',
+      state: '',
+      country: '',
+      postalCode: '',
       formattedAddress: '',
     };
 
     addressComponents.forEach(component => {
       const types = component.types;
-      if (types.includes('country')) {
-        decoded.country = component.long_name;
+      if (types.includes('street_number')) {
+        decoded.streetNumber = component.long_name;
+      } else if (types.includes('route')) {
+        decoded.route = component.long_name;
+      } else if (types.includes('sublocality_level_1') || types.includes('sublocality')) {
+        decoded.sublocality = component.long_name;
+      } else if (types.includes('locality')) {
+        decoded.locality = component.long_name;
+      } else if (types.includes('administrative_area_level_2')) {
+        decoded.city = component.long_name;
       } else if (types.includes('administrative_area_level_1')) {
         decoded.state = component.long_name;
-      } else if (
-        types.includes('locality') ||
-        types.includes('administrative_area_level_2')
-      ) {
-        decoded.city = component.long_name;
+      } else if (types.includes('country')) {
+        decoded.country = component.long_name;
       } else if (types.includes('postal_code')) {
-        decoded.pincode = component.long_name;
+        decoded.postalCode = component.long_name;
       }
     });
 
@@ -426,30 +446,66 @@ const LocationPickerScreen = ({ navigation, route }) => {
 
   const handleAddAddress = async () => {
     if (!address.trim()) {
-      Alert.alert('Missing Fields', 'Please ensure location is selected.');
+      Alert.alert('Missing Fields', 'Please enter house/flat/building number.');
+      return;
+    }
+
+    if (addressType === 'Other' && !customAddressName.trim()) {
+      Alert.alert('Missing Fields', 'Please enter a custom name for this address.');
+      return;
+    }
+
+    const areaValue = getReadableArea(addressComponents);
+    if (!areaValue.trim()) {
+      Alert.alert('Missing Area', 'Area information is required from selected location.');
       return;
     }
 
     try {
+      const combinedAddress = [
+        address.trim(),
+        areaValue.trim(),
+        landmark.trim(),
+        city || addressComponents?.locality || addressComponents?.city,
+        state || addressComponents?.state,
+        country || addressComponents?.country,
+        postalCode || addressComponents?.postalCode
+      ].filter(Boolean).join(', ');
+
       const addressData = {
+        houseNumber: address.trim(),
+        area: areaValue.trim(),
         landmark: landmark.trim(),
-        addressType,
-        address: address.trim(),
+        city: city || addressComponents?.locality || addressComponents?.city,
+        state: state || addressComponents?.state,
+        country: country || addressComponents?.country,
+        postalCode: postalCode || addressComponents?.postalCode,
+        addressType: addressType === 'Other' ? customAddressName.trim() : addressType,
+        fullAddress: combinedAddress,
         coordinates: selectedLocation,
         addressComponents,
       };
 
       if (editAddressId) {
-        // Update existing address
         await updateAddress(user?.id || user?._id, editAddressId, addressData);
         showSnackbar('Address updated successfully', 'success');
       } else {
-        // Save new address
         await saveAddress(user?.id || user?._id, addressData);
         showSnackbar('Address saved successfully', 'success');
       }
 
-      navigation.goBack();
+      if (route.params?.returnScreen) {
+        navigation.navigate(route.params.returnScreen, {
+          selectedLocation: {
+            address: combinedAddress,
+            coordinates: selectedLocation,
+            addressData: addressData
+          },
+          jobData: route.params?.jobData
+        });
+      } else {
+        navigation.goBack();
+      }
     } catch (error) {
       showSnackbar(
         editAddressId ? 'Failed to update address' : 'Failed to save address',
@@ -552,6 +608,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
             <TouchableOpacity
               style={styles.bottomBtn}
               onPress={() => {
+                setAddress(''); // Clear address field for user input
                 setConfirmed(true);
                 Animated.spring(bottomSheetHeight, {
                   toValue: maxHeight,
@@ -608,6 +665,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
               style={styles.sheetContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: 100 }}
             >
               <View style={styles.addressComponentsContainer}>
                 <Text style={styles.componentText}>
@@ -616,58 +674,6 @@ const LocationPickerScreen = ({ navigation, route }) => {
               </View>
 
               <View style={styles.inputsContainer}>
-                <View style={styles.inputRow}>
-                  <FloatingLabelInput
-                    label="Country"
-                    value={country || addressComponents?.country}
-                    onChangeText={setCountry}
-                    placeholder="Enter Country"
-                    editable={false}
-                    required
-                  />
-                  <FloatingLabelInput
-                    label="State"
-                    value={state || addressComponents?.state}
-                    onChangeText={setState}
-                    placeholder="Enter State"
-                    editable={false}
-                    required
-                  />
-                </View>
-                <View style={styles.inputRow}>
-                  <FloatingLabelInput
-                    label="City"
-                    value={city || addressComponents?.city}
-                    onChangeText={setCity}
-                    placeholder="Enter City"
-                    editable={false}
-                    required
-                  />
-                  <FloatingLabelInput
-                    label="Pin Code"
-                    value={pinCode || addressComponents?.pincode}
-                    onChangeText={setPinCode}
-                    placeholder="Enter Pin Code"
-                    editable={false}
-                    keyboardType="phone-pad"
-                    required
-                  />
-                </View>
-                <FloatingLabelInput
-                  label="Landmark"
-                  value={landmark}
-                  onChangeText={setLandmark}
-                  placeholder="Enter landmark (optional)"
-                />
-                <FloatingLabelInput
-                  label="Address"
-                  required={true}
-                  value={address}
-                  onChangeText={setAddress}
-                  multiline
-                  numberOfLines={2}
-                  placeholder="Enter or edit address manually"
-                />
 
                 <Text style={styles.label}>Address Type</Text>
                 <View style={styles.addressTypeContainer}>
@@ -691,17 +697,97 @@ const LocationPickerScreen = ({ navigation, route }) => {
                     </TouchableOpacity>
                   ))}
                 </View>
+
+                {addressType === 'Other' && (
+                  <FloatingLabelInput
+                    label="Custom Address Name"
+                    value={customAddressName}
+                    onChangeText={setCustomAddressName}
+                    placeholder="Enter custom name for this address"
+                    required={true}
+                  />
+                )}
+
+                <FloatingLabelInput
+                  label="House/Flat/Building No."
+                  required={true}
+                  value={address}
+                  onChangeText={setAddress}
+                  placeholder="Enter house, flat or building number"
+                />
+
+                <FloatingLabelInput
+                  label="Area/Locality"
+                  value={getReadableArea(addressComponents)}
+                  onChangeText={() => {}}
+                  placeholder="Area from selected location"
+                  editable={false}
+                  required={true}
+                />
+
+                <FloatingLabelInput
+                  label="Landmark (Optional)"
+                  value={landmark}
+                  onChangeText={setLandmark}
+                  placeholder="Enter nearby landmark"
+                />
+
+
+                <View style={styles.inputRow}>
+                  <FloatingLabelInput
+                    label="Country"
+                    value={country || addressComponents?.country}
+                    onChangeText={setCountry}
+                    placeholder="Enter Country"
+                    editable={false}
+                    required
+                  />
+                  <FloatingLabelInput
+                    label="State"
+                    value={state || addressComponents?.state}
+                    onChangeText={setState}
+                    placeholder="Enter State"
+                    editable={false}
+                    required
+                  />
+                </View>
+                <View style={styles.inputRow}>
+                  <FloatingLabelInput
+                    label="City"
+                    value={city || addressComponents?.locality || addressComponents?.city}
+                    onChangeText={setCity}
+                    placeholder="Enter City"
+                    editable={false}
+                    required
+                  />
+                  <FloatingLabelInput
+                    label="Postal Code"
+                    value={postalCode || addressComponents?.postalCode}
+                    onChangeText={setPostalCode}
+                    placeholder="Enter Postal Code"
+                    editable={false}
+                    keyboardType="phone-pad"
+                    required
+                  />
+                </View>
+                
+                
+                
+
+                
               </View>
 
-              <TouchableOpacity
-                style={[styles.bottomBtn, { marginBottom: 40 }]}
-                onPress={handleAddAddress}
-                activeOpacity={0.9}
-              >
-                <Text style={styles.bottomBtnText}>
-                  {editAddressId ? 'Update Address' : 'Save Address'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.buttonWrapper}>
+                <TouchableOpacity
+                  style={styles.bottomBtn}
+                  onPress={handleAddAddress}
+                  activeOpacity={0.9}
+                >
+                  <Text style={styles.bottomBtnText}>
+                    {editAddressId ? 'Update Address' : 'Save Address'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
           </Animated.View>
           </View>
@@ -835,7 +921,11 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     alignItems: 'center',
-    marginHorizontal: 16,
+  },
+  buttonWrapper: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    paddingBottom: 40,
   },
   bottomBtnText: {
     color: Colors.whiteColor,
@@ -890,6 +980,7 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     flex: 1,
+    maxHeight: '85%',
   },
   closeButton: {
     height: 30,

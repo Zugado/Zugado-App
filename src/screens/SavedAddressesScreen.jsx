@@ -86,9 +86,9 @@ const SavedAddressesScreen = ({ navigation,route}) => {
       navigation.replace('CreateJobScreen2', {
         jobData,
         selectedLocation: {
-          address: address.address,
+          address: address.fullAddress || address.address,
           coordinates: address.coordinates,
-          addressComponents: address.addressComponents,
+          addressData: address,
         },
       });
     } else {
@@ -162,13 +162,13 @@ const SavedAddressesScreen = ({ navigation,route}) => {
         <View style={styles.addressContent}>
           <View style={styles.addressRow}>
             <Feather name="map-pin" size={14} color={Colors.grayColor} />
-            <Text style={styles.addressText}>{item.address}</Text>
+            <Text style={styles.addressText}>{item.fullAddress || item.address}</Text>
           </View>
           
           {item.landmark && (
             <View style={styles.addressRow}>
               <Feather name="navigation" size={14} color={Colors.grayColor} />
-              <Text style={styles.landmarkText}>{item.landmark}</Text>
+              <Text style={styles.landmarkText}>Near {item.landmark}</Text>
             </View>
           )}
         </View>
