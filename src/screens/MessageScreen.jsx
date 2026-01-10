@@ -9,11 +9,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MyStatusBar from '../components/MyStatusbar';
+import { useNavigation } from '@react-navigation/native';
 
 export default function MessageScreen() {
+   const navigation = useNavigation();
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={styles.safeAreaBlack}>
+        <MyStatusBar/>
+        <View style={styles.container}>
       
       {/* Header */}
       <View style={styles.header}>
@@ -52,6 +56,7 @@ export default function MessageScreen() {
           <Text style={styles.notifyText}>Notify me when ready</Text>
         </TouchableOpacity>
       </View>
+        </View>
     </SafeAreaView>
   );
 }
@@ -64,6 +69,10 @@ const FeatureItem = ({ icon, text }) => (
 );
 
 const styles = StyleSheet.create({
+  safeAreaBlack: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

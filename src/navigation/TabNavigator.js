@@ -1,29 +1,76 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 
 import HomeScreen from '../screens/Home/HomeScreen';
 import ManageJobScreen from '../screens/ManageJobScreen';
 import CreateJobScreen from '../screens/Jobs/CreateJobScreen';
+import CreateJobScreen2 from '../screens/Jobs/CreateJobScreen2';
 import MessageScreen from '../screens/MessageScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TabLoadingOverlay from '../components/TabLoadingOverlay';
+import LocationPickerScreen from '../screens/mapAndAddress/LocationPickerScreen';
 
 const Tab = createBottomTabNavigator();
 
 // Custom FAB Button
 const CustomTabBarButton = ({ children, onPress }) => (
   <TouchableOpacity
-    style={{ top: -25, justifyContent: 'center', alignItems: 'center', ...styles.shadow }}
+    style={{
+      top: -30,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
     onPress={onPress}
   >
-    <View style={{ width: 70, height: 70, borderRadius: 35, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        width: 60,
+        height: 60,
+        borderRadius: 35,
+        backgroundColor: '#111',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderColor: '#fff',
+        borderWidth: 1,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.5,
+        // LIGHTER 360° SHADOW
+        shadowColor: '#000000ff', // Lighter, pinkish shadow color
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.35, // Lighter shadow
+        shadowRadius: 8,
+
+        elevation: 20, // Android lighter shadow
+      }}
+    >
       {children}
     </View>
   </TouchableOpacity>
 );
+
+
+// Import your PNGs
+const icons = {
+  home: {
+    active: require('../assets/Icons/HomeFill.png'),
+    inactive: require('../assets/Icons/Home.png'),
+  },
+  manageJob: {
+    active: require('../assets/Icons/ManageJobBlack.png'),
+    inactive: require('../assets/Icons/ManageJob.png'),
+  },
+  message: {
+    active: require('../assets/Icons/MessageBlack.png'),
+    inactive: require('../assets/Icons/Message.png'),
+  },
+  profile: {
+    active: require('../assets/Icons/ProfileBlack.png'),
+    inactive: require('../assets/Icons/Profile.png'),
+  },
+};
 
 export default function TabNavigator() {
   const { t } = useTranslation();
@@ -31,9 +78,28 @@ export default function TabNavigator() {
 
   const handleTabPress = () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    setTimeout(() => setIsLoading(false), 1000);
+  };
+
+  const renderTabIcon = (routeName, focused) => {
+    let icon;
+    switch (routeName) {
+      case t('Home'):
+        icon = focused ? icons.home.active : icons.home.inactive;
+        break;
+      case t('Manage Job'):
+        icon = focused ? icons.manageJob.active : icons.manageJob.inactive;
+        break;
+      case t('Message'):
+        icon = focused ? icons.message.active : icons.message.inactive;
+        break;
+      case t('Profile'):
+        icon = focused ? icons.profile.active : icons.profile.inactive;
+        break;
+      default:
+        icon = icons.home.inactive;
+    }
+    return <Image source={icon} style={{ width: 20, height: 28, resizeMode: 'contain' }} />;
   };
 
   return (
@@ -41,34 +107,23 @@ export default function TabNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarStyle: { position: 'absolute', height: 80, backgroundColor: '#fff', ...styles.shadow },
-          tabBarLabelStyle: { fontSize: 12, fontWeight: '600', marginTop: 4 },
-          tabBarIcon: ({ focused }) => {
-            const iconColor = focused ? '#111' : '#888';
-            const iconSize = 28;
-            switch (route.name) {
-              case t('Home'): return <MaterialCommunityIcons name="home-variant-outline" size={iconSize} color={iconColor} />;
-              case t('Manage Job'): return <MaterialCommunityIcons name="briefcase-outline" size={iconSize} color={iconColor} />;
-              case t('Message'): return <MaterialCommunityIcons name="chat-outline" size={iconSize} color={iconColor} />;
-              case t('Profile'): return <MaterialCommunityIcons name="account-outline" size={iconSize} color={iconColor} />;
-              default: return <MaterialCommunityIcons name="circle-outline" size={iconSize} color={iconColor} />;
-            }
-          },
+          tabBarStyle: { position: 'absolute', height: 60, backgroundColor: '#fff', ...styles.shadow },
+          tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 4 },
+          tabBarIcon: ({ focused }) => renderTabIcon(route.name, focused),
         })}
-        screenListeners={{
-          tabPress: handleTabPress,
-        }}
+        screenListeners={{ tabPress: handleTabPress }}
       >
         <Tab.Screen name={t('Home')} component={HomeScreen} />
         <Tab.Screen name={t('Manage Job')} component={ManageJobScreen} />
         <Tab.Screen
           name="Add"
+          // component={LocationPickerScreen}
           component={CreateJobScreen}
           options={{
             tabBarStyle: { display: 'none' },
             tabBarButton: (props) => (
               <CustomTabBarButton {...props}>
-                <MaterialCommunityIcons name="plus" size={34} color="#fff" />
+                <Image source={require('../assets/Icons/PlusHome.png')} style={{ width: 34, height: 34 }} />
               </CustomTabBarButton>
             ),
           }}

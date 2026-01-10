@@ -7,9 +7,11 @@ import LanguageSelectScreen from '../screens/LanguageSelectScreen';
 import OnboardingNavigator from './OnboardingNavigator';
 import AppStackNavigator from './AppStackNavigator';
 import RegisterScreen from '../screens/Auth/RegisterScreen';
+import LocationPermissionScreen from '../screens/LocationPermissionScreen';
 
 export default function RootNavigator() {
-  const { user, isGuest, loading, isNewUser } = useSelector(state => state.auth);
+  const { user, isGuest, isNewUser } = useSelector(state => state.auth);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const [appLanguage, setAppLanguage] = useState(null);
 
@@ -23,24 +25,32 @@ export default function RootNavigator() {
     };
     loadLanguage();
 
-    const timer = setTimeout(() => setShowSplash(false), 1000);
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+      setInitialLoading(false);
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
-  if (showSplash) return <SplashScreen />;
+  // Render logic after all hooks
+  if (showSplash || initialLoading) {
+    return <SplashScreen />;
+  }
 
   if (!appLanguage) {
     return <LanguageSelectScreen onComplete={(lang) => setAppLanguage(lang)} />;
   }
 
-  if (isGuest) return <AppStackNavigator />;
+  if (isGuest) {
+    return <AppStackNavigator />;
+  }
 
   if (isNewUser) {
-    return  <RegisterScreen />;
+    return <RegisterScreen />;
   }
 
   if (user) {
-    return <AppStackNavigator /> ;
+    return <AppStackNavigator />;
   }
 
   return <OnboardingNavigator />;
