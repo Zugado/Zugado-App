@@ -1,73 +1,105 @@
 // components/Header.js
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  // ScrollView is not used, you can remove it
+  Image,
 } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
-import Entypo from 'react-native-vector-icons/Entypo'; // For the 'flash' icon
+import Entypo from 'react-native-vector-icons/Entypo';
+import { selectLocationAddress } from '../store/selector';
+import NotificationIcon from './NotificationIcon';
 
-const Header = () => {
+const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabled, searchQuery, setSearchQuery }) => {
+  const locationAddress = useSelector(selectLocationAddress);
   return (
     <View style={styles.headerContainer}>
-      {/* Row 1: Location & Logo */}
+      {/* Row 1: Location, Logo & Icons */}
       <View style={styles.topRow}>
         <View style={styles.locationContainer}>
-          <MaterialIcons name="location-on" style={styles.locationIcon} />
+          <Image
+            source={require('../assets/Icons/Location2.png')}
+            style={styles.icon}
+          />
           <View>
-            <Text style={styles.locationText}>Noida</Text>
-            <Text style={styles.pincodeText}>201301</Text>
+            <Text style={styles.locationText}>
+              {locationAddress?.city || 'Noida'}
+            </Text>
+            <Text style={styles.pincodeText}>
+              {locationAddress?.postcode || '201301'}
+            </Text>
           </View>
         </View>
 
-        <Text style={styles.logo}>Zugado</Text>
+        <Image
+          source={require('../assets/Icons/LogoSplash.png')}
+          style={styles.logo}
+        />
 
-        {/* --- ICONS ADDED HERE --- */}
         <View style={styles.iconsContainer}>
-          <TouchableOpacity>
-            <Feather name="bookmark" style={styles.icon} />
+          <TouchableOpacity
+            onPress={() => navigation?.navigate('WishlistScreen')}
+          >
+            <Image
+              source={require('../assets/Icons/Saved.png')}
+              style={styles.icon}
+            />
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.bellIconContainer}>
-            <Feather name="bell" style={styles.icon} />
-            <View style={styles.badgeContainer}>
-              <Text style={styles.badgeText}>12</Text>
-            </View>
-          </TouchableOpacity>
+          <View style={{marginLeft: 18}}><NotificationIcon color={"#fff"} /></View>
+          
+         
         </View>
-        {/* --- End of icons --- */}
-
       </View>
 
-      {/* Row 2: Search & Job Button */}
-      <View style={styles.searchWrapper}>
-        <View style={styles.searchSection}>
-          <Feather name="search" style={styles.searchIcon} />
-          <TextInput
-            placeholder="Search Here..."
-            placeholderTextColor="#888"
-            style={styles.searchInput}
-          />
+      {/* Row 2: Search bar + Job button */}
+      {showSearch && (
+        <View style={styles.searchWrapper}>
+          <View style={styles.searchSection}>
+            <Feather name="search" style={styles.searchIcon} />
+            <TextInput
+              placeholder="Search Here..."
+              placeholderTextColor="#888"
+              style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.jobButton,
+              { backgroundColor: isUrgentEnabled ? '#000': '#666' },
+            ]}
+            onPress={() => setUrgentEnabled(!isUrgentEnabled)}
+            activeOpacity={0.8}
+          >
+            {isUrgentEnabled ? (
+              <>
+                <Text style={styles.jobText}>Urgent</Text>
+                <Entypo name="flash" style={styles.jobIcon} />
+              </>
+            ) : (
+              <>
+                <Entypo name="flash" style={styles.jobIcon} />
+                <Text style={styles.jobText}>Urgent</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.jobButton}>
-          <Entypo name="flash" style={styles.jobIcon} />
-          <Text style={styles.jobText}>Job</Text>
-        </TouchableOpacity>
-      </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: '#000000',
+    backgroundColor: '#000',
     paddingHorizontal: 15,
-    paddingVertical: 1,
+    paddingTop: 0,
+    paddingBottom: 16,
   },
   topRow: {
     flexDirection: 'row',
@@ -76,74 +108,43 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   locationContainer: {
-    flex: 1, // Takes up 1/3 of the space
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  locationIcon: {
-    color: '#fff',
-    fontSize: 22,
-    marginRight: 5,
+    gap: 4,
   },
   locationText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 12,
   },
   pincodeText: {
     color: '#888',
-    fontSize: 12,
+    fontSize: 8,
   },
   logo: {
-    flex: 1, // Takes up 1/3 of the space
-    textAlign: 'center',
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
+    flex: 1,
+    resizeMode: 'contain',
+    height: 30,
+    marginTop: 6,
   },
-
-  // --- NEW STYLES FOR ICONS ---
   iconsContainer: {
-    flex: 1, // Takes up 1/3 of the space
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
   icon: {
-    color: '#fff',
-    fontSize: 24,
+    width: 22, // unified icon size
+    height: 22,
+    resizeMode: 'contain',
   },
-  bellIconContainer: {
-    marginLeft: 20, // Space between bookmark and bell
-    position: 'relative', // Needed for the badge
-  },
-  badgeContainer: {
-    position: 'absolute',
-    top: -8,
-    right: -10,
-    backgroundColor: 'red',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  // --- END OF NEW STYLES ---
-
-  // Styles for Search Bar (from previous step)
+  
   searchWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 30,
-    marginBottom: 15, // Adjusted from 15 to 0 as it's the last item
     overflow: 'hidden',
   },
   searchSection: {
@@ -165,22 +166,33 @@ const styles = StyleSheet.create({
   },
   jobButton: {
     flexDirection: 'row',
+    gap: 4,
+    // borderColor: '#000000ff',
+    // borderWidth: 1,
     alignItems: 'center',
-    backgroundColor: '#000',
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 1 },
+    // shadowOpacity: 0.3,
+    // shadowRadius: 3,
+    // elevation: 5,
     borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     marginRight: 5,
     marginVertical: 5,
   },
   jobIcon: {
-    color: '#fff',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 5,
+    color: '#000',
     fontSize: 16,
-    marginRight: 5,
+    // marginHorizontal: 5,
   },
   jobText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 12,
   },
 });
 

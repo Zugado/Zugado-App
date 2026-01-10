@@ -1,322 +1,448 @@
 // components/JobCard.js
-import React from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  Dimensions,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useDispatch } from 'react-redux';
-import { logout } from '../../store/slices/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
-const JobCard = () => {
+import { Colors } from '../../styles/commonStyles';
+import { selectWishlistIds } from '../../store/selector';
+import { handleWishlistToggle } from '../../utils/wishlistUtils';
+import { useSnackbar } from '../../contexts/SnackbarContext';
+
+const JobCard = ({ job }) => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const wishlistIds = useSelector(selectWishlistIds);
+  const { showSnackbar } = useSnackbar();
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  const isWishlisted = wishlistIds.includes(job?._id);
+  const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
+  const { width } = Dimensions.get('window');
+  const cardWidth = width - 30; // Account for margins
+
+  const imageList =
+    job?.attachments?.length > 0
+      ? job.attachments.map(a => a.url)
+      : [
+          'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
+          'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
+          'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
+        ];
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const sliderRef = useRef(null);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      setCurrentIndex(viewableItems[0].index);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({
+    viewAreaCoveragePercentThreshold: 60,
+  }).current;
+
+  const onWishlistToggle = () => {
+    handleWishlistToggle(dispatch, job?._id, isWishlisted, showSnackbar);
+  };
+
   return (
-    <TouchableOpacity style={styles.cardContainer}>
-      {/* Image */}
-      <Image
-        source={require('../../assets/jobCard.png')} 
-        style={styles.cardImage}
-        resizeMode='cover'
-      />
-      {/* Urgent Tag */}
-      <View style={styles.urgentTag}>
-        <Text style={styles.urgentText}>Urgent</Text>
-      </View>
-
-      {/* Content */}
-      <View style={styles.contentContainer}>
-        {/* Title & Price */}
-        <View style={styles.row}>
-          <Text style={styles.title}>Job Title</Text>
-          <Text style={styles.price}>₹ 500</Text>
+    <View style={styles.cardContainer}>
+      {/* ---------- IMAGE SLIDER ---------- */}
+      {imageList.length > 0 && (
+        <View>
+          <FlatList
+            ref={sliderRef}
+            data={imageList}
+            keyExtractor={(item, index) => index.toString()}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => {
+                  navigation.navigate('JobDetailedScreen', { jobId: job?._id  });
+                }}
+              >
+                <Image
+                  source={{ uri: item }}
+                  style={[styles.cardImage, { width: cardWidth }]}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            )}
+          />
+          {/* Dots */}
+          <LinearGradient
+            colors={['transparent', 'rgba(0, 0, 0, 0.91)']}
+            style={styles.gradientOverlay}
+          >
+            <View style={styles.overlayContent}>
+              <View style={styles.infoRow}>
+                <MaterialIcons name="watch-later" style={styles.locationIcon} />
+                <Text style={styles.overlayText}>23 hrs left</Text>
+              </View>
+              {imageList.length > 1 && (
+                <View style={styles.dotsWrapper}>
+                  {imageList.map((_, index) => (
+                    <View
+                      key={index}
+                      style={[styles.dot, index === currentIndex && styles.activeDot]}
+                    />
+                  ))}
+                </View>
+              )}
+              <View style={styles.infoRow}>
+                <MaterialIcons name="location-on" style={styles.locationIcon} />
+                <Text style={styles.overlayText}>
+                  {job?.location?.address || 'Location 500 m'}
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
         </View>
-
-        {/* Description */}
-        <Text style={styles.description}>
-          Etiam tincidunt, ex id vestibulum ultrices, libero...
-        </Text>
-
-        {/* Location */}
-        <View style={styles.locationRow}>
-          <MaterialIcons name="location-on" style={styles.locationIcon} />
-          <Text style={styles.locationText}>22 Km left</Text>
+      )}
+      {/* ---------- This is to make height ---------- */}
+      {imageList.length === 0 && <View style={styles.emptyImageHeight} />}
+      {/* ---------- URGENT TAG ---------- */}
+      {isUrgent && (
+        <View style={styles.urgentTag}>
+          <Image
+            source={require('../../assets/Icons/urgentTag.png')}
+            style={styles.urgentTagImage}
+          />
+          <Text style={styles.urgentText}>Urgent</Text>
         </View>
+      )}
 
-        {/* Vendor & Rating */}
-        <View style={styles.row}>
-          <Text style={styles.vendorName}>Vendor Name</Text>
-          <View style={styles.ratingContainer}>
-            <FontAwesome name="star" style={styles.starIcon} />
-            <Text style={styles.ratingText}>4.9 (2.2K)</Text>
+      {/* ---------- SAVE BUTTON ---------- */}
+      <TouchableOpacity style={styles.saveTag} onPress={onWishlistToggle}>
+        <Image
+          source={
+            isWishlisted
+              ? require('../../assets/Icons/SavedGolden.png')
+              : require('../../assets/Icons/SavedBlack.png')
+          }
+          style={styles.saveTagImage}
+        />
+      </TouchableOpacity>
+
+      {/* ---------- CONTENT ---------- */}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() =>
+          navigation.navigate('JobDetailedScreen', { jobId: job?._id })
+        }
+      >
+        <View style={styles.contentContainer}>
+          {/* Title + Price */}
+          <View style={styles.row}>
+            <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
+
+            <Text style={styles.price}>
+              {job?.amount?.disclose && job?.amount?.value
+                ? `₹ ${job.amount.value}`
+                : 'Price on request'}
+            </Text>
+          </View>
+
+          {/* Description */}
+          <Text style={styles.description}>
+            {job?.description || 'No description available'}
+          </Text>
+
+          {/* this is the place to put location for without image card */}
+          {imageList.length === 0 && (
+            <View style={styles.noImageInfoContainer}>
+              <View style={styles.infoRow}>
+                <MaterialIcons name="watch-later" style={styles.noImageIcon} />
+                <Text style={styles.noImageText}>23 hrs left</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <MaterialIcons name="location-on" style={styles.noImageIcon} />
+                <Text style={styles.noImageText}>
+                    
+                
+                  {job?.location?.address || 'Location 500 m'}
+                </Text>
+              </View>
+            </View>
+          )}
+          {/* Vendor + Ratings */}
+          <View style={styles.row}>
+            <Text style={styles.vendorName}>
+              {job?.createdBy
+                ? `${job.createdBy.firstName} ${job.createdBy.lastName}`
+                : 'Unknown'}
+            </Text>
+
+            <View style={styles.ratingContainer}>
+              <FontAwesome name="star" style={styles.starIcon} />
+              <Text style={styles.ratingText}>4.9 (2.2K)</Text>
+            </View>
+          </View>
+
+          {/* Buttons */}
+        
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.bidButton}
+              onPress={() => console.log('Bid clicked')}
+            >
+              <Text style={styles.bidButtonText}>Bid</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.chatButton}
+              onPress={() => console.log('Chat clicked')}
+            >
+              <Text style={styles.chatButtonText}>Chat</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        {/* Buttons */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.bidButton}
-           onPress={() => dispatch(logout())}
-          >
-            <Text style={styles.bidButtonText}>Bid</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.chatButton}
-          onPress={() => dispatch(logout())}
-          >
-            <Text style={styles.chatButtonText}>Chat</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
 
-// const styles = StyleSheet.create({
-//   cardContainer: {
-//     backgroundColor: '#fff',
-//     borderRadius: 15,
-//     marginHorizontal: 15,
-//     marginVertical: 10,
-//     elevation: 3,
-//     shadowColor: '#000',
-//     shadowOffset: {width: 0, height: 1},
-//     shadowOpacity: 0.2,
-//     shadowRadius: 1.41,
-//   },
-//   cardImage: {
-//     width: '100%',
-//     height: 200,
-//     borderTopLeftRadius: 15,
-//     borderTopRightRadius: 15,
-//   },
-//   urgentTag: {
-//     position: 'absolute',
-//     top: 10,
-//     right: 10,
-//     backgroundColor: '#ff6600',
-//     paddingHorizontal: 10,
-//     paddingVertical: 3,
-//     borderRadius: 7,
-//   },
-//   urgentText: {
-//     color: '#fff',
-//     fontWeight: 'bold',
-//     fontSize: 12,
-//   },
-//   contentContainer: {
-//     padding: 15,
-//   },
-//   row: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//     marginBottom: 10,
-//   },
-//   title: {
-//     fontSize: 18,
-//     fontWeight: 'bold',
-//     color: '#333',
-//   },
-//   price: {
-//     fontSize: 18,
-//     fontWeight: 'bold',
-//     color: '#333',
-//   },
-//   description: {
-//     color: '#666',
-//     fontSize: 14,
-//     marginBottom: 10,
-//   },
-//   locationRow: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     marginBottom: 10,
-//   },
-//   locationIcon: {
-//     color: '#888',
-//     fontSize: 16,
-//     marginRight: 5,
-//   },
-//   locationText: {
-//     color: '#888',
-//     fontSize: 14,
-//   },
-//   vendorName: {
-//     fontSize: 16,
-//     fontWeight: 'bold',
-//     color: '#333',
-//   },
-//   ratingContainer: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//   },
-//   starIcon: {
-//     color: '#FFD700',
-//     fontSize: 16,
-//     marginRight: 5,
-//   },
-//   ratingText: {
-//     color: '#666',
-//     fontSize: 14,
-//   },
-//   buttonRow: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     marginTop: 15,
-//   },
-//   bidButton: {
-//     flex: 1,
-//     backgroundColor: '#111',
-//     borderRadius: 25,
-//     paddingVertical: 12,
-//     alignItems: 'center',
-//     marginRight: 10,
-//   },
-//   bidButtonText: {
-//     color: '#fff',
-//     fontWeight: 'bold',
-//     fontSize: 16,
-//   },
-//   chatButton: {
-//     flex: 1,
-//     borderWidth: 1.5,
-//     borderColor: '#111',
-//     borderRadius: 25,
-//     paddingVertical: 12,
-//     alignItems: 'center',
-//     marginLeft: 10,
-//   },
-//   chatButtonText: {
-//     color: '#111',
-//     fontWeight: 'bold',
-//     fontSize: 16,
-//   },
-// });
-
-// components/JobCard.js - Updated Styles
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: '#fff',
-    borderRadius: 15,
+    borderRadius: 24,
     marginHorizontal: 15,
-    marginVertical: 7,
-    // Android shadow
-    elevation: 3,
-    // iOS shadow
+    marginVertical: 10,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
+
+  // ---------- IMAGE SLIDER ----------
   cardImage: {
-    // *** KEY CHANGE: Reduced Image Height from 200 to 120-130 ***
     width: '100%',
-    height: 120, // Adjusted from 200
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
+    height: 160,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
+
+  dotsWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // ---------- GRADIENT OVERLAY ----------
+  gradientOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    justifyContent: 'flex-end',
+    paddingBottom: 10,
+  },
+
+  overlayContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    alignItems: 'center',
+  },
+
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  overlayText: {
+    color: Colors.whiteColor,
+    fontWeight: '700',
+    fontSize: 12,
+  },
+
+  // ---------- NO IMAGE STYLES ----------
+  emptyImageHeight: {
+    height: 30,
+  },
+
+  noImageInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  noImageIcon: {
+    color: Colors.blackColor,
+    fontSize: 16,
+    marginRight: 5,
+  },
+
+  noImageText: {
+    color: Colors.grayColor,
+    fontWeight: '700',
+    fontSize: 12,
+  },
+
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.whiteColor,
+    marginHorizontal: 4,
+  },
+
+  activeDot: {
+    width: 9,
+    height: 9,
+    backgroundColor: '#ff8808ff',
+  },
+
+  // ---------- TAGS ----------
   urgentTag: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#ff6600',
-    paddingHorizontal: 8, // Reduced padding
-    paddingVertical: 2,   // Reduced padding
-    borderRadius: 7,
+    top: 12,
+    right: -1,
   },
+
+  urgentTagImage: {
+    width: 75,
+    height: 16,
+  },
+
   urgentText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 10, // Reduced font size slightly
+    position: 'absolute',
+    right: 20,
+    top: 1,
+    fontSize: 10,
+    color: Colors.whiteColor,
+    fontWeight: '700',
   },
+
+  saveTag: {
+    position: 'absolute',
+    top: 12,
+    left: 15,
+  },
+
+  saveTagImage: {
+    width: 18,
+    height: 20,
+  },
+
+  // ---------- CONTENT ----------
   contentContainer: {
-    // Reduced padding from 15 to 10
-    padding: 10, 
+    padding: 12,
   },
+
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // Reduced bottom margin
-    marginBottom: 5, 
+    marginTop: 4,
   },
+
   title: {
-    fontSize: 16, // Reduced font size
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1a1a1a',
   },
+
   price: {
-    fontSize: 16, // Reduced font size
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1a1a1a',
   },
+
   description: {
-    color: '#666',
-    fontSize: 13, // Reduced font size
-    // Reduced bottom margin
-    marginBottom: 5, 
+    color: '#555',
+    fontSize: 12,
+    marginBottom: 6,
   },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    // Reduced bottom margin
-    marginBottom: 5, 
-  },
+
   locationIcon: {
-    color: '#888',
-    fontSize: 14, // Reduced icon size
+    color: '#ffffffff',
+    fontSize: 20,
     marginRight: 5,
   },
+
   locationText: {
     color: '#888',
-    fontSize: 13, // Reduced font size
+    fontSize: 12,
   },
+
   vendorName: {
-    fontSize: 14, // Reduced font size
-    fontWeight: 'bold',
+    fontSize: 12,
+    fontWeight: '600',
     color: '#333',
   },
+
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
   starIcon: {
-    color: '#FFD700',
-    fontSize: 14, // Reduced icon size
-    marginRight: 5,
+    color: '#ff8808ff',
+    fontSize: 12,
+    marginRight: 4,
   },
+
   ratingText: {
     color: '#666',
-    fontSize: 13, // Reduced font size
+    fontSize: 12,
   },
+
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    // Reduced top margin
-    marginTop: 10, 
+    marginTop: 12,
   },
+
   bidButton: {
     flex: 1,
-    backgroundColor: '#111',
-    borderRadius: 20, // Reduced border radius slightly
-    paddingVertical: 8, // Reduced padding
+    backgroundColor: '#000',
+    borderRadius: 25,
+    paddingVertical: 8,
     alignItems: 'center',
-    marginRight: 8, // Reduced margin
+    marginRight: 8,
   },
+
   bidButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14, // Reduced font size
+    fontWeight: '700',
+    fontSize: 14,
   },
+
   chatButton: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: '#111',
-    borderRadius: 20, // Reduced border radius slightly
-    paddingVertical: 8, // Reduced padding
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 25,
+    paddingVertical: 8,
     alignItems: 'center',
-    marginLeft: 8, // Reduced margin
+    marginLeft: 8,
+    backgroundColor: '#fff',
   },
+
   chatButtonText: {
-    color: '#111',
-    fontWeight: 'bold',
-    fontSize: 14, // Reduced font size
+    color: '#444',
+    fontWeight: '700',
+    fontSize: 14,
   },
 });
 

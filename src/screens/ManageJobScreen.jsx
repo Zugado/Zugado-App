@@ -1,157 +1,280 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  StatusBar,
   TouchableOpacity,
+  FlatList,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Feather from 'react-native-vector-icons/Feather';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import JobCard from '../screens/Home/JobCard';
+import MyStatusBar from '../components/MyStatusbar';
+import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
+import SwipableTabs from '../components/SwipableTabs';
+import { Colors } from '../styles/commonStyles';
+import LoaderCard from '../components/LoaderCard';
+// Dummy data for My Jobs (jobs I applied to)
+const myJobsData = [
+  {
+    id: 1,
+    title: 'Newspaper Collection',
+    price: 500,
+    description: 'Old newspapers and magazines to be collected',
+    distance: '22 Km left',
+    vendorName: 'Ramesh Traders',
+    rating: 4.9,
+    reviews: '2.2K',
+    saved: true,
+    urgent: true,
+    status: 'Active',
+  },
+  {
+    id: 2,
+    title: 'Plastic Scrap Pickup',
+    price: 350,
+    description: 'Household plastic waste pickup',
+    distance: '10 Km left',
+    vendorName: 'Green Scrap Hub',
+    rating: 4.6,
+    reviews: '1.1K',
+    saved: false,
+    urgent: false,
+    status: 'Incomplete',
+  },
+  {
+    id: 6,
+    title: 'E-Waste Collection',
+    price: 800,
+    description: 'Old electronics and cables',
+    distance: '18 Km left',
+    vendorName: 'Eco Recycle',
+    rating: 4.7,
+    reviews: '540',
+    saved: false,
+    urgent: true,
+    status: 'Out for pickup',
+  },
+];
 
-export default function ManageJobScreen() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Manage Jobs</Text>
-      </View>
+// Dummy data for Posted Jobs (jobs I created)
+const postedJobsData = [];
 
-      {/* Main Content */}
-      <View style={styles.content}>
-        {/* Icon */}
-        <View style={styles.iconContainer}>
-          <MaterialCommunityIcons name="briefcase-outline" size={80} color="#E0E0E0" />
-          <View style={styles.toolsContainer}>
-            <Feather name="settings" size={24} color="#BDBDBD" style={styles.tool1} />
-            <Feather name="edit-3" size={20} color="#BDBDBD" style={styles.tool2} />
-            <Feather name="plus" size={18} color="#BDBDBD" style={styles.tool3} />
-          </View>
-        </View>
-
-        {/* Text Content */}
-        <Text style={styles.title}>Job Management Coming Soon</Text>
-        <Text style={styles.subtitle}>
-          We're building powerful tools to help you create, edit, and manage your job postings with ease.
-        </Text>
-
-        {/* Features List */}
-        <View style={styles.featuresList}>
-          <FeatureItem icon="plus-circle" text="Create new job postings" />
-          <FeatureItem icon="edit" text="Edit existing listings" />
-          <FeatureItem icon="users" text="Manage applications" />
-          <FeatureItem icon="bar-chart" text="Track job performance" />
-        </View>
-
-        {/* Action Button */}
-        <TouchableOpacity style={styles.notifyButton}>
-          <Feather name="bell" size={20} color="#666" />
-          <Text style={styles.notifyText}>Notify me when ready</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-const FeatureItem = ({ icon, text }) => (
-  <View style={styles.featureItem}>
-    <Feather name={icon} size={16} color="#999" />
-    <Text style={styles.featureText}>{text}</Text>
+const EmptyList = ({ message }) => (
+  <View style={styles.emptyContainer}>
+    <FaddedIcon />
+    <Text style={styles.emptyText}>{message}</Text>
   </View>
 );
 
+const MyJobsSection = ({ isLoading }) => {
+  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [refreshing, setRefreshing] = useState(false);
+  const filters = ['filter1', 'filter2', 'filter3'];
+
+  const filteredJobs =
+    selectedFilter === 'All'
+      ? myJobsData
+      : myJobsData.filter(job => job.status === selectedFilter);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  if (isLoading) {
+    return (
+      <ScrollView>
+        <LoaderCard count={5} cardHeight={12} />
+      </ScrollView>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      {myJobsData.length > 0 && (
+        <View style={styles.filterContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScrollContent}
+          >
+            {filters.map(filter => (
+              <TouchableOpacity
+                key={filter}
+                style={[
+                  styles.filterButton,
+                  selectedFilter === filter && styles.selectedFilterButton,
+                ]}
+                onPress={() => setSelectedFilter(filter)}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    selectedFilter === filter && styles.selectedFilterText,
+                  ]}
+                >
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+      <FlatList
+        data={filteredJobs}
+        keyExtractor={item => item.id.toString()}
+        renderItem={({ item }) => <JobCard job={item} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListFooterComponent={<>{filteredJobs.length >= 2 && <FaddedIcon />}</>}
+        ListEmptyComponent={<EmptyList message="You don't have any jobs yet" />}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+};
+
+const PostedJobsSection = ({ isLoading }) => {
+  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [refreshing, setRefreshing] = useState(false);
+  const filters = ['filter1', 'filter2', 'filter3'];
+  const filteredJobs =
+    selectedFilter === 'All'
+      ? postedJobsData
+      : postedJobsData.filter(job => job.status === selectedFilter);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  if (isLoading) {
+    return (
+      <ScrollView>
+        <LoaderCard count={5} cardHeight={12} />
+      </ScrollView>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      {postedJobsData.length > 0 && (
+        <View style={styles.filterContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScrollContent}
+          >
+            {filters.map(filter => (
+              <TouchableOpacity
+                key={filter}
+                style={[
+                  styles.filterButton,
+                  selectedFilter === filter && styles.selectedFilterButton,
+                ]}
+                onPress={() => setSelectedFilter(filter)}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    selectedFilter === filter && styles.selectedFilterText,
+                  ]}
+                >
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      <FlatList
+        data={filteredJobs}
+        keyExtractor={item => item.id.toString()}
+        renderItem={({ item }) => <JobCard job={item} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListFooterComponent={<>{filteredJobs.length >= 2 && <FaddedIcon />}</>}
+        ListEmptyComponent={
+          <EmptyList message="You haven't posted any jobs yet" />
+        }
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+};
+
+const ManageJobScreen = ({ navigation }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  return (
+    <View style={{ flex: 1, backgroundColor: Colors.whiteColor }}>
+      <MyStatusBar />
+      <CommonAppBar navigation={navigation} title="Manage Jobs" />
+      <SwipableTabs
+        titles={['My Jobs', 'Posted Jobs']}
+        components={[
+          <MyJobsSection isLoading={isLoading} />,
+          <PostedJobsSection isLoading={isLoading} />,
+        ]}
+      />
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
+  filterContainer: {
+    height: 50,
+    paddingVertical: 5,
+    backgroundColor: Colors.whiteColor,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  content: {
-    flex: 1,
+  filterScrollContent: {
+    paddingHorizontal: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 30,
   },
-  iconContainer: {
-    position: 'relative',
-    marginBottom: 30,
-  },
-  toolsContainer: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-  },
-  tool1: {
-    position: 'absolute',
-    top: 10,
-    right: -10,
-  },
-  tool2: {
-    position: 'absolute',
-    bottom: 20,
-    left: -15,
-  },
-  tool3: {
-    position: 'absolute',
-    top: 30,
-    left: 10,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000',
-    textAlign: 'center',
-    marginBottom: 15,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 40,
-  },
-  featuresList: {
-    width: '100%',
-    marginBottom: 40,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-    paddingLeft: 20,
-  },
-  featureText: {
-    fontSize: 16,
-    color: '#555',
-    marginLeft: 15,
-  },
-  notifyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    paddingHorizontal: 25,
-    paddingVertical: 15,
-    borderRadius: 25,
+  filterButton: {
+    marginHorizontal: 2,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#ccc',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    minHeight: 30,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  notifyText: {
-    fontSize: 16,
-    color: '#666',
-    marginLeft: 10,
-    fontWeight: '500',
+  selectedFilterButton: {
+    borderColor: Colors.primary,
+    backgroundColor: '#f0f8ff',
+  },
+  filterText: {
+    fontSize: 12,
+    color: '#555',
+    textAlign: 'center',
+  },
+  selectedFilterText: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.extraLightGrayColor,
+    textAlign: 'center',
+    marginTop: 0,
   },
 });
+
+export default ManageJobScreen;

@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { register } from '../../store/thunks/authThunk';
 import Snackbar from '../../components/Snackbar';
+import MyStatusBar from '../../components/MyStatusbar';
 
 export default function RegisterScreen({ navigation }) {  
   const dispatch = useDispatch();
@@ -61,7 +62,7 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+       <MyStatusBar/>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
         <View style={styles.header}>
