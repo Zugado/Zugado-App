@@ -757,17 +757,17 @@ export default function CreateJob({ navigation }) {
               </Text> */}
               <View style={styles.experienceRowContainer}>
                 {[
-                  {
+                  { id:1,
                     value: 'entry',
                     label: 'Entry Level',
                     desc: '0-2 years experience',
                   },
-                  {
+                  { id:2,
                     value: 'intermediate',
                     label: 'Intermediate',
                     desc: '2-5 years experience',
                   },
-                  {
+                  { id:3,
                     value: 'expert',
                     label: 'Expert',
                     desc: '5+ years experience',
@@ -776,7 +776,7 @@ export default function CreateJob({ navigation }) {
                   <>
                     <TouchableOpacity
                       activeOpacity={0.8}
-                      key={option.value}
+                      key={option.id}
                       style={styles.experienceOption}
                       onPress={() => setExperienceLevel(option.value)}
                     >

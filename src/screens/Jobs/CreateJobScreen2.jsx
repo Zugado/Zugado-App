@@ -39,9 +39,22 @@ export default function CreateJob({ navigation, route }) {
   const [dailyHours, setDailyHours] = useState('');
   const [deadline, setDeadline] = useState('');
   const [estimatedHours, setEstimatedHours] = useState('');
+  //Timings for things
+  const [thingTimingType, setThingTimingType] = useState('needed-by-date');
+  const [thingDate, setThingDate] = useState('');
+  const [thingDeadline, setThingDeadline] = useState('');
+  const [thingStartTime, setThingStartTime] = useState('');
+  const [thingEndTime, setThingEndTime] = useState('');
+  const [thingStartDate, setThingStartDate] = useState('');
+  const [thingEndDate, setThingEndDate] = useState('');
+  const [thingDailyHours, setThingDailyHours] = useState('');
+  const [thingEstimatedHours, setThingEstimatedHours] = useState('');
+//
   {
     /* Amount Disclosure Common*/
   }
+  
+  
   const [discloseAmount, setDiscloseAmount] = useState(false);
   const [amount, setAmount] = useState('');
   const [isNegotiable, setIsNegotiable] = useState(false);
@@ -152,17 +165,6 @@ export default function CreateJob({ navigation, route }) {
     maxAmount,
     unit,
   ]);
-
-  //Timings for things
-  const [thingTimingType, setThingTimingType] = useState('needed-by-date');
-  const [thingDate, setThingDate] = useState('');
-  const [thingDeadline, setThingDeadline] = useState('');
-  const [thingStartTime, setThingStartTime] = useState('');
-  const [thingEndTime, setThingEndTime] = useState('');
-  const [thingStartDate, setThingStartDate] = useState('');
-  const [thingEndDate, setThingEndDate] = useState('');
-  const [thingDailyHours, setThingDailyHours] = useState('');
-  const [thingEstimatedHours, setThingEstimatedHours] = useState('');
 
   const clearTimingFieldsOfPerson = newType => {
     if (newType !== 'fixed') {
@@ -520,11 +522,14 @@ export default function CreateJob({ navigation, route }) {
                 Define Location & Payment Information
               </Text>
             </View>
-            {/* {jobData?.jobFor === 'person' ? ( */}
+
+            {/* {thingForm?.()} */}
+            {/* {personForm?.()} */}
+            {jobData?.jobFor === 'person' ? (
             <>{personForm?.()}</>
-            {/* { ) : (
+            ) : (
               <>{thingForm?.()}</>
-             )} */}
+             )} 
             <FaddedIcon />
           </ScrollView>
 
@@ -607,19 +612,7 @@ export default function CreateJob({ navigation, route }) {
                 ))}
               </View>
             </View>
-            {/* {jobLocationType && (
-              <View style={styles.locationInfo}>
-                <Text style={styles.locationInfoText}>
-                  {
-                    [
-                      { value: 'onsite', desc: 'At specific location' },
-                      { value: 'remote', desc: 'Work from anywhere' },
-                      { value: 'hybrid', desc: 'Mix of both' },
-                    ].find(opt => opt.value === jobLocationType)?.desc
-                  }
-                </Text>
-              </View>
-            )} */}
+       
           </View>
 
           {/* Address Selection */}
@@ -653,7 +646,7 @@ export default function CreateJob({ navigation, route }) {
           </View>
 
           {/* Timing Type */}
-          <View style={styles.selectorContainer}>
+          <View style={[styles.selectorContainer,{ marginBottom: 0,}]}>
             <Text style={styles.selectorLabel}>Timing Type</Text>
             <Text style={styles.selectorHelper}>
               Choose how you want to schedule this task
@@ -976,38 +969,112 @@ export default function CreateJob({ navigation, route }) {
             </View>
           )}
         </View>
-        {/* Timing Type */}
-        <View style={styles.selectorContainer}>
-          <Text style={styles.selectorLabel}>Timing Type</Text>
-          <Text style={styles.selectorHelper}>
-            Choose how you want to schedule this task
-          </Text>
-          <View style={styles.radioRow}>
-            {[
-              {
-                value: 'needed-by-date',
-                label: 'Needed By date',
-              },
-              {
-                value: 'start-end-date',
-                label: 'Start-End-Date',
-              },
-              {
-                value: 'deadline',
-                label: 'Deadline',
-              },
-              { value: 'flexible', label: 'Flexible' },
-            ].map(option => (
-              <RoundRadioButton
-                key={option?.value}
-                label={option?.label}
-                description={option?.desc}
-                selected={thingTimingType === option.value}
-                onPress={() => handleTimingTypeChangeForThing(option.value)}
+         {/* Timing Type */}
+         <View style={[styles.selectorContainer,{ marginBottom: 0,}]}>
+            <Text style={styles.selectorLabel}>Timing Type</Text>
+            <Text style={styles.selectorHelper}>
+              Choose how you want to schedule this task
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.mapButton,
+                {
+                  backgroundColor: isTimingClicked ? '#fff' : '#f8f9fa',
+                  borderColor: isTimingClicked ? '#000000ff' : '#e9ecef',
+                },
+              ]}
+              onPress={() => setTimingClicked(prev => !prev)}
+            >
+              <Feather
+                name={
+                  thingTimingType === 'needed-by-date'
+                    ? 'calendar'
+                    : thingTimingType === 'start-end-date'
+                    ? 'calendar'
+                    : thingTimingType === 'deadline'
+                    ? 'clock'
+                    : 'zap'
+                }
+                size={20}
+                color="#000"
               />
-            ))}
+              <Text
+                style={[
+                  styles.mapButtonText,
+                  { color: isTimingClicked ? '#000000ff' : '#666666' },
+                ]}
+              >
+                {[
+                  { value: 'needed-by-date', label: 'Needed By date' },
+                  { value: 'start-end-date', label: 'Start-End-Date' },
+                  { value: 'deadline', label: 'Deadline' },
+                  { value: 'flexible', label: 'Flexible' },
+                ].find(opt => opt.value === thingTimingType)?.label ||
+                  'Select Timing'}
+              </Text>
+
+              <Feather
+                name={isTimingClicked ? 'chevron-down' : 'chevron-right'}
+                size={16}
+                color={isTimingClicked ? '#000000ff' : '#666666'}
+              />
+            </TouchableOpacity>
+            {isTimingClicked && (
+              <View style={styles.suggestionsContainer}>
+                {[
+                  {
+                    value: 'needed-by-date',
+                    label: 'Needed By date',
+                    desc: 'Specific date & time',
+                    icon: 'calendar',
+                  },
+                  {
+                    value: 'start-end-date',
+                    label: 'Start-End-Date',
+                    desc: 'Multiple days',
+                    icon: 'calendar',
+                  },
+                  {
+                    value: 'deadline',
+                    label: 'Deadline',
+                    desc: 'Complete by date',
+                    icon: 'clock',
+                  },
+                  {
+                    value: 'flexible',
+                    label: 'Flexible',
+                    desc: 'Anytime',
+                    icon: 'zap',
+                  },
+                ].map((item, index) => (
+                  <View key={item.value}>
+                    <TouchableOpacity
+                      style={styles.suggestionItem}
+                      onPress={() => {
+                        handleTimingTypeChangeForThing(item.value);
+                        setTimingClicked(false);
+                      }}
+                    >
+                      <View style={styles.suggestionContent}>
+                        <Feather name={item.icon} size={16} color="#666" />
+                        <View style={styles.suggestionTextContainer}>
+                          <Text style={styles.suggestionText}>
+                            {item.label}
+                          </Text>
+                          <Text style={styles.suggestionDesc}>{item.desc}</Text>
+                        </View>
+                      </View>
+
+                      <Feather name="chevron-right" size={14} color="#ccc" />
+                    </TouchableOpacity>
+
+                    {index < 3 && <View style={styles.separator} />}
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
-        </View>
+       
         {/* Input forms based on timing type */}
         {thingTimingType === 'needed-by-date' && (
           <>
@@ -1081,62 +1148,62 @@ export default function CreateJob({ navigation, route }) {
             />
           </>
         )}
-        {/* Amount Disclosure */}
-        <View style={styles.selectorContainer}>
-          <View style={styles.toggleRow}>
-            <Text style={styles.toggleLabel}>Disclose Amount</Text>
-            <Switch
-              value={discloseAmount}
-              onValueChange={value => {
-                setDiscloseAmount(value);
-                if (!value) {
-                  setAmount('');
-                  setIsNegotiable(false);
-                  setMinAmount('');
-                  setMaxAmount('');
-                  setUnit('');
-                }
-              }}
-              trackColor={{ false: '#e9ecef', true: '#000' }}
-              thumbColor={discloseAmount ? '#fff' : '#f4f3f4'}
-            />
+          {/* Amount Disclosure */}
+          <View style={styles.selectorContainer}>
+            <View style={[styles.disclosureLabelRow,{ marginBottom: 10,}]}>
+              <Text style={styles.selectorLabel}>
+                Would you like to disclose the amount?
+              </Text>
+            </View>
+            <View style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
+              {[{"Yes": true}, {"No": false}].map((option) => {
+                const [label, value] = Object.entries(option)[0];
+                return (
+                  <TouchableOpacity
+                    key={label}
+                    style={{ display: 'flex', flexDirection: 'row' }}
+                    onPress={() => {
+                      setDiscloseAmount(value);
+                      if (!value) {
+                        setAmount('');
+                        setIsNegotiable(false);
+                        setMinAmount('');
+                        setMaxAmount('');
+                      }
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.locationCheckbox,
+                        discloseAmount === value && styles.locationCheckboxSelected,
+                      ]}
+                    >
+                      {discloseAmount === value && (
+                        <Feather name="check" size={14} color="#fff" />
+                      )}
+                    </View>
+                    <View>
+                      <Text style={[styles.locationLabel,{ color: discloseAmount === value ? Colors.blackColor : Colors.darkGrayColor}]}>{label}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
-
           {discloseAmount && (
-            <View style={styles.toggleRow}>
-              <Text style={styles.toggleLabel}>Negotiable</Text>
-              <Switch
-                value={isNegotiable}
-                onValueChange={value => {
-                  setIsNegotiable(value);
-                  if (value) {
-                    setAmount('');
-                  } else {
-                    setMinAmount('');
-                    setMaxAmount('');
-                  }
-                }}
-                trackColor={{ false: '#e9ecef', true: '#000' }}
-                thumbColor={isNegotiable ? '#fff' : '#f4f3f4'}
-              />
-            </View>
-          )}
-        </View>
-
-        {discloseAmount && !isNegotiable && (
-          <View style={styles.amountContainer}>
-            <View style={styles.amountInputWrapper}>
-              <FloatingLabelInput
-                label="Amount (INR) ₹"
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-                placeholder="Enter fixed amount"
-                onFocus={ref => scrollToInput(ref, scrollViewRef)}
-              />
-            </View>
-
-            <View style={styles.unitDropdownWrapper}>
+            <View style={styles.selectorContainer}>
+              <View style={styles.amountNegotiableRow}>
+                <View style={[styles.amountInputContainer,{flex:2}]}>
+                  <FloatingLabelInput
+                    label="Amount (INR) ₹"
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="numeric"
+                    placeholder="Enter Amount"
+                    onFocus={ref => scrollToInput(ref, scrollViewRef)}
+                  />
+                </View>
+                <View style={styles.unitDropdownWrapper}>
               <TouchableOpacity
                 style={[
                   styles.unitButton,
@@ -1188,39 +1255,54 @@ export default function CreateJob({ navigation, route }) {
                   ))}
                 </View>
               )}
+               </View>
+                <View style={styles.negotiableContainer}>
+                  <View style={styles.negotiableCol}>
+                    <Text style={styles.negotiableLabel}>Negotiable</Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.negotiableToggleSmall,
+                        { backgroundColor: isNegotiable ? '#000' : '#666' },
+                      ]}
+                      onPress={() => {
+                        setIsNegotiable(!isNegotiable);
+                        if (isNegotiable) {
+                          setMinAmount('');
+                          setMaxAmount('');
+                        } else {
+                          setAmount('');
+                        }
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      {isNegotiable ? (
+                        <>
+                          <Text style={styles.negotiableTextSmall}>Yes</Text>
+                          <Feather
+                            name="check"
+                            style={styles.negotiableIconSmall}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <Feather
+                            name="x"
+                            style={styles.negotiableIconSmall}
+                          />
+                          <Text style={styles.negotiableTextSmall}>No</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              
+              </View>
+              
             </View>
-          </View>
-        )}
+          )}
 
-        {discloseAmount && isNegotiable && (
-          <>
-            <Text style={[styles.selectorLabel, { marginBottom: 10 }]}>
-              Amount Range
-            </Text>
-            <View style={styles.amountRangeContainer}>
-              <View style={styles.rangeInputWrapper}>
-                <FloatingLabelInput
-                  label="Min Amount (INR) ₹"
-                  value={minAmount}
-                  onChangeText={setMinAmount}
-                  keyboardType="numeric"
-                  placeholder="Enter minimum amount"
-                  onFocus={ref => scrollToInput(ref, scrollViewRef)}
-                />
-              </View>
-              <View style={styles.rangeInputWrapper}>
-                <FloatingLabelInput
-                  label="Max Amount (INR) ₹"
-                  value={maxAmount}
-                  onChangeText={setMaxAmount}
-                  keyboardType="numeric"
-                  placeholder="Enter maximum amount"
-                  onFocus={ref => scrollToInput(ref, scrollViewRef)}
-                />
-              </View>
-            </View>
-          </>
-        )}
+       
+      
       </>
     );
   }
@@ -1337,7 +1419,7 @@ const styles = StyleSheet.create({
   },
   // Selected Address Styles
   selectedAddressContainer: {
-    marginTop: 12,
+    marginBottom: 12,
     padding: 12,
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
@@ -1345,7 +1427,7 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
   },
   selectedAddressText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#000',
     lineHeight: 20,
   },
@@ -1452,9 +1534,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 10,
   },
-  amountInputWrapper: {
-    flex: 2,
-  },
+ 
   unitDropdownWrapper: {
     flex: 1,
     position: 'relative',
@@ -1519,7 +1599,7 @@ const styles = StyleSheet.create({
   },
   // Address Selection Styles
   addressContainer: {
-    marginBottom: 24,
+    // marginBottom: 24,
   },
   mapButton: {
     flexDirection: 'row',
@@ -1613,10 +1693,10 @@ const styles = StyleSheet.create({
   optionText: { fontSize: 12, color: '#000' },
 
   // Radio Button Styles
-  radioRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
+  // radioRow: {
+  //   flexDirection: 'row',
+  //   justifyContent: 'space-around',
+  // },
   // Checkbox Container
   checkboxContainer: {
     flexDirection: 'row',
@@ -1705,7 +1785,7 @@ const styles = StyleSheet.create({
   timePickerRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 20,
+    // marginBottom: 20,
   },
   timePickerWrapper: {
     flex: 1,
