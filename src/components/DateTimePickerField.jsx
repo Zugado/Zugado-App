@@ -85,11 +85,14 @@ export default function DateTimePickerField({
         <DateTimePicker
           value={new Date()}
           mode={mode === "datetime" ? (showTime ? "time" : "date") : mode}
-          display={Platform.OS === "ios" ? "spinner" : "default"}
+          display={Platform.OS === "ios" ? "spinner" : "spinner"}
           is24Hour={true}
           minimumDate={mode === "date" || mode === "datetime" ? new Date() : undefined}
           onChange={handleChange}
-        />
+          timeZoneName={'Asia/Kolkata'}
+          neutralButtonLabel="clear"
+          themeVariant="dark"
+             />
       )}
     </View>
   );
