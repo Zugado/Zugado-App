@@ -68,10 +68,10 @@ const EmptyList = ({ message }) => (
   </View>
 );
 
-const MyJobsSection = ({ isLoading }) => {
+const AppliedTasksSection = ({ isLoading }) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
-  const filters = ['filter1', 'filter2', 'filter3'];
+  const filters = ['All','Pending', 'Active', 'Completed', 'Cancelled', 'Rejected'];
 
   const filteredJobs =
     selectedFilter === 'All'
@@ -138,7 +138,7 @@ const MyJobsSection = ({ isLoading }) => {
   );
 };
 
-const PostedJobsSection = ({ isLoading }) => {
+const CreatedTasksSection = ({ isLoading }) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
   const filters = ['filter1', 'filter2', 'filter3'];
@@ -216,12 +216,12 @@ const ManageJobScreen = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.whiteColor }}>
       <MyStatusBar />
-      <CommonAppBar navigation={navigation} title="Manage Jobs" />
+      <CommonAppBar navigation={navigation} title="Manage Tasks" />
       <SwipableTabs
-        titles={['My Jobs', 'Posted Jobs']}
+        titles={['Applied Tasks', 'Created Tasks']}
         components={[
-          <MyJobsSection isLoading={isLoading} />,
-          <PostedJobsSection isLoading={isLoading} />,
+          <AppliedTasksSection isLoading={isLoading} />,
+          <CreatedTasksSection isLoading={isLoading} />,
         ]}
       />
     </View>

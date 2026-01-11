@@ -20,6 +20,7 @@ import { Colors } from '../../styles/commonStyles';
 import { selectWishlistIds } from '../../store/selector';
 import { handleWishlistToggle } from '../../utils/wishlistUtils';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import { getRelativeTime } from '../../utils/timeUtils';
 
 const JobCard = ({ job }) => {
   const dispatch = useDispatch();
@@ -95,7 +96,7 @@ const JobCard = ({ job }) => {
             <View style={styles.overlayContent}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.locationIcon} />
-                <Text style={styles.overlayText}>23 hrs left</Text>
+                <Text style={styles.overlayText}>{job?.createdAt ? getRelativeTime(job.createdAt) : "23 hrs left"}</Text>
               </View>
               {imageList.length > 1 && (
                 <View style={styles.dotsWrapper}>
@@ -171,7 +172,7 @@ const JobCard = ({ job }) => {
             <View style={styles.noImageInfoContainer}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.noImageIcon} />
-                <Text style={styles.noImageText}>23 hrs left</Text>
+                <Text style={styles.noImageText}>{job?.createdAt ? getRelativeTime(job.createdAt) : "23 hrs left"}</Text>
               </View>
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.noImageIcon} />
