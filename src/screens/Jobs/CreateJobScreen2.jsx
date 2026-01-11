@@ -21,7 +21,63 @@ import { Colors } from '../../styles/commonStyles';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { FaddedIcon } from '../../components/CommonComponents';
 import { scrollToInput } from '../../utils/commonMethods';
+const timingTypeListThings = [
+  {
+    value: 'needed-by-date',
+    label: 'Needed By date',
+    desc: 'Specific date & time',
+    icon: 'calendar',
+    visibleIfPurpose: ['buy', 'other'],
+  },
+  {
+    value: 'start-end-date',
+    label: 'Start-End-Date',
+    desc: 'Multiple days',
+    icon: 'calendar',
+    visibleIfPurpose: ['rent_in', 'rent_out', 'other'],
+  },
+  {
+    value: 'deadline',
+    label: 'Deadline',
+    desc: 'Complete by date',
+    icon: 'clock',
+    visibleIfPurpose: ['buy', 'sell', 'other'],
+  },
+  {
+    value: 'flexible',
+    label: 'Flexible',
+    desc: 'Anytime',
+    icon: 'zap',
+    visibleIfPurpose: ['buy', 'sell', 'rent_in', 'rent_out', 'other'],
+  },
+];
 
+const timingTypeListPerson = [
+  {
+    value: 'fixed',
+    label: 'Fixed',
+    desc: 'Specific date & time',
+    icon: 'calendar',
+  },
+  {
+    value: 'multiday',
+    label: 'Multi-day',
+    desc: 'Multiple days',
+    icon: 'calendar',
+  },
+  {
+    value: 'deadline',
+    label: 'Deadline',
+    desc: 'Complete by date',
+    icon: 'clock',
+  },
+  {
+    value: 'flexible',
+    label: 'Flexible',
+    desc: 'Anytime',
+    icon: 'zap',
+  },
+];
 export default function CreateJob({ navigation, route }) {
   const { jobData } = route.params || {};
   const { showSnackbar } = useSnackbar();
@@ -30,7 +86,7 @@ export default function CreateJob({ navigation, route }) {
   const scrollViewRef = React.useRef(null);
   const [jobLocationType, setJobLocationType] = useState('onsite');
   //timing for person
-  const [timingType, setTimingType] = useState('fixed');
+  const [timingType, setTimingType] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -40,7 +96,7 @@ export default function CreateJob({ navigation, route }) {
   const [deadline, setDeadline] = useState('');
   const [estimatedHours, setEstimatedHours] = useState('');
   //Timings for things
-  const [thingTimingType, setThingTimingType] = useState('needed-by-date');
+  const [thingTimingType, setThingTimingType] = useState('');
   const [thingDate, setThingDate] = useState('');
   const [thingDeadline, setThingDeadline] = useState('');
   const [thingStartTime, setThingStartTime] = useState('');
@@ -49,12 +105,9 @@ export default function CreateJob({ navigation, route }) {
   const [thingEndDate, setThingEndDate] = useState('');
   const [thingDailyHours, setThingDailyHours] = useState('');
   const [thingEstimatedHours, setThingEstimatedHours] = useState('');
-//
   {
     /* Amount Disclosure Common*/
   }
-  
-  
   const [discloseAmount, setDiscloseAmount] = useState(false);
   const [amount, setAmount] = useState('');
   const [isNegotiable, setIsNegotiable] = useState(false);
@@ -526,10 +579,10 @@ export default function CreateJob({ navigation, route }) {
             {/* {thingForm?.()} */}
             {/* {personForm?.()} */}
             {jobData?.jobFor === 'person' ? (
-            <>{personForm?.()}</>
+              <>{personForm?.()}</>
             ) : (
               <>{thingForm?.()}</>
-             )} 
+            )}
             <FaddedIcon />
           </ScrollView>
 
@@ -601,7 +654,19 @@ export default function CreateJob({ navigation, route }) {
                       )}
                     </View>
                     <View>
-                      <Text style={[styles.locationLabel,{color:jobLocationType === option.value ? Colors.primary : Colors.darkGrayColor}]}>{option.label}</Text>
+                      <Text
+                        style={[
+                          styles.locationLabel,
+                          {
+                            color:
+                              jobLocationType === option.value
+                                ? Colors.primary
+                                : Colors.darkGrayColor,
+                          },
+                        ]}
+                      >
+                        {option.label}
+                      </Text>
                       {jobLocationType === option.value && (
                         <Text style={styles.locationInfoText}>
                           {option.desc}
@@ -612,7 +677,6 @@ export default function CreateJob({ navigation, route }) {
                 ))}
               </View>
             </View>
-       
           </View>
 
           {/* Address Selection */}
@@ -646,7 +710,7 @@ export default function CreateJob({ navigation, route }) {
           </View>
 
           {/* Timing Type */}
-          <View style={[styles.selectorContainer,{ marginBottom: 0,}]}>
+          <View style={[styles.selectorContainer, { marginBottom: 0 }]}>
             <Text style={styles.selectorLabel}>Timing Type</Text>
             <Text style={styles.selectorHelper}>
               Choose how you want to schedule this task
@@ -663,13 +727,8 @@ export default function CreateJob({ navigation, route }) {
             >
               <Feather
                 name={
-                  timingType === 'fixed'
-                    ? 'calendar'
-                    : timingType === 'multiday'
-                    ? 'calendar'
-                    : timingType === 'deadline'
-                    ? 'clock'
-                    : 'zap'
+                  timingTypeListPerson.find(opt => opt.value === timingType)
+                    ?.icon || 'clock'
                 }
                 size={20}
                 color="#000"
@@ -680,13 +739,8 @@ export default function CreateJob({ navigation, route }) {
                   { color: isTimingClicked ? '#000000ff' : '#666666' },
                 ]}
               >
-                {[
-                  { value: 'fixed', label: 'Fixed' },
-                  { value: 'multiday', label: 'Multi-day' },
-                  { value: 'deadline', label: 'Deadline' },
-                  { value: 'flexible', label: 'Flexible' },
-                ].find(opt => opt.value === timingType)?.label ||
-                  'Select Timing'}
+                {timingTypeListPerson.find(opt => opt.value === timingType)
+                  ?.label || 'Select Timing'}
               </Text>
 
               <Feather
@@ -697,32 +751,7 @@ export default function CreateJob({ navigation, route }) {
             </TouchableOpacity>
             {isTimingClicked && (
               <View style={styles.suggestionsContainer}>
-                {[
-                  {
-                    value: 'fixed',
-                    label: 'Fixed',
-                    desc: 'Specific date & time',
-                    icon: 'calendar',
-                  },
-                  {
-                    value: 'multiday',
-                    label: 'Multi-day',
-                    desc: 'Multiple days',
-                    icon: 'calendar',
-                  },
-                  {
-                    value: 'deadline',
-                    label: 'Deadline',
-                    desc: 'Complete by date',
-                    icon: 'clock',
-                  },
-                  {
-                    value: 'flexible',
-                    label: 'Flexible',
-                    desc: 'Anytime',
-                    icon: 'zap',
-                  },
-                ].map((item, index) => (
+                {timingTypeListPerson.map((item, index) => (
                   <View key={item.value}>
                     <TouchableOpacity
                       style={styles.suggestionItem}
@@ -836,13 +865,13 @@ export default function CreateJob({ navigation, route }) {
 
           {/* Amount Disclosure */}
           <View style={styles.selectorContainer}>
-            <View style={[styles.disclosureLabelRow,{ marginBottom: 10,}]}>
+            <View style={[styles.disclosureLabelRow, { marginBottom: 10 }]}>
               <Text style={styles.selectorLabel}>
                 Would you like to disclose the amount?
               </Text>
             </View>
             <View style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
-              {[{"Yes": true}, {"No": false}].map((option) => {
+              {[{ Yes: true }, { No: false }].map(option => {
                 const [label, value] = Object.entries(option)[0];
                 return (
                   <TouchableOpacity
@@ -861,7 +890,8 @@ export default function CreateJob({ navigation, route }) {
                     <View
                       style={[
                         styles.locationCheckbox,
-                        discloseAmount === value && styles.locationCheckboxSelected,
+                        discloseAmount === value &&
+                          styles.locationCheckboxSelected,
                       ]}
                     >
                       {discloseAmount === value && (
@@ -869,7 +899,19 @@ export default function CreateJob({ navigation, route }) {
                       )}
                     </View>
                     <View>
-                      <Text style={[styles.locationLabel,{ color: discloseAmount === value ? Colors.blackColor : Colors.darkGrayColor}]}>{label}</Text>
+                      <Text
+                        style={[
+                          styles.locationLabel,
+                          {
+                            color:
+                              discloseAmount === value
+                                ? Colors.blackColor
+                                : Colors.darkGrayColor,
+                          },
+                        ]}
+                      >
+                        {label}
+                      </Text>
                     </View>
                   </TouchableOpacity>
                 );
@@ -969,112 +1011,84 @@ export default function CreateJob({ navigation, route }) {
             </View>
           )}
         </View>
-         {/* Timing Type */}
-         <View style={[styles.selectorContainer,{ marginBottom: 0,}]}>
-            <Text style={styles.selectorLabel}>Timing Type</Text>
-            <Text style={styles.selectorHelper}>
-              Choose how you want to schedule this task
-            </Text>
-            <TouchableOpacity
+        {/* Timing Type */}
+        <View style={[styles.selectorContainer, { marginBottom: 0 }]}>
+          <Text style={styles.selectorLabel}>Timing Type</Text>
+          <Text style={styles.selectorHelper}>
+            Choose how you want to schedule this task
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.mapButton,
+              {
+                backgroundColor: isTimingClicked ? '#fff' : '#f8f9fa',
+                borderColor: isTimingClicked ? '#000000ff' : '#e9ecef',
+              },
+            ]}
+            onPress={() => setTimingClicked(prev => !prev)}
+          >
+            <Feather
+              name={
+                timingTypeListThings.find(opt => opt.value === thingTimingType)
+                  ?.icon || 'clock'
+              }
+              size={20}
+              color="#000"
+            />
+            <Text
               style={[
-                styles.mapButton,
-                {
-                  backgroundColor: isTimingClicked ? '#fff' : '#f8f9fa',
-                  borderColor: isTimingClicked ? '#000000ff' : '#e9ecef',
-                },
+                styles.mapButtonText,
+                { color: isTimingClicked ? '#000000ff' : '#666666' },
               ]}
-              onPress={() => setTimingClicked(prev => !prev)}
             >
-              <Feather
-                name={
-                  thingTimingType === 'needed-by-date'
-                    ? 'calendar'
-                    : thingTimingType === 'start-end-date'
-                    ? 'calendar'
-                    : thingTimingType === 'deadline'
-                    ? 'clock'
-                    : 'zap'
-                }
-                size={20}
-                color="#000"
-              />
-              <Text
-                style={[
-                  styles.mapButtonText,
-                  { color: isTimingClicked ? '#000000ff' : '#666666' },
-                ]}
-              >
-                {[
-                  { value: 'needed-by-date', label: 'Needed By date' },
-                  { value: 'start-end-date', label: 'Start-End-Date' },
-                  { value: 'deadline', label: 'Deadline' },
-                  { value: 'flexible', label: 'Flexible' },
-                ].find(opt => opt.value === thingTimingType)?.label ||
-                  'Select Timing'}
-              </Text>
+              {timingTypeListThings.find(opt => opt.value === thingTimingType)
+                ?.label || 'Select Timing'}
+            </Text>
 
-              <Feather
-                name={isTimingClicked ? 'chevron-down' : 'chevron-right'}
-                size={16}
-                color={isTimingClicked ? '#000000ff' : '#666666'}
-              />
-            </TouchableOpacity>
-            {isTimingClicked && (
-              <View style={styles.suggestionsContainer}>
-                {[
-                  {
-                    value: 'needed-by-date',
-                    label: 'Needed By date',
-                    desc: 'Specific date & time',
-                    icon: 'calendar',
-                  },
-                  {
-                    value: 'start-end-date',
-                    label: 'Start-End-Date',
-                    desc: 'Multiple days',
-                    icon: 'calendar',
-                  },
-                  {
-                    value: 'deadline',
-                    label: 'Deadline',
-                    desc: 'Complete by date',
-                    icon: 'clock',
-                  },
-                  {
-                    value: 'flexible',
-                    label: 'Flexible',
-                    desc: 'Anytime',
-                    icon: 'zap',
-                  },
-                ].map((item, index) => (
-                  <View key={item.value}>
-                    <TouchableOpacity
-                      style={styles.suggestionItem}
-                      onPress={() => {
-                        handleTimingTypeChangeForThing(item.value);
-                        setTimingClicked(false);
-                      }}
-                    >
-                      <View style={styles.suggestionContent}>
-                        <Feather name={item.icon} size={16} color="#666" />
-                        <View style={styles.suggestionTextContainer}>
-                          <Text style={styles.suggestionText}>
-                            {item.label}
-                          </Text>
-                          <Text style={styles.suggestionDesc}>{item.desc}</Text>
-                        </View>
+            <Feather
+              name={isTimingClicked ? 'chevron-down' : 'chevron-right'}
+              size={16}
+              color={isTimingClicked ? '#000000ff' : '#666666'}
+            />
+          </TouchableOpacity>
+          {isTimingClicked && (
+            <View style={styles.suggestionsContainer}>
+               {(!['buy', 'sell', 'rent_in', 'rent_out'].includes(
+                jobData?.purpose,
+                 )
+                ? timingTypeListThings
+                : timingTypeListThings.filter(item =>
+                    item?.visibleIfPurpose?.includes(jobData?.purpose),
+                  )
+                 ).map((item, index) => (
+                <View key={item.value}>
+                  <TouchableOpacity
+                    style={styles.suggestionItem}
+                    onPress={() => {
+                      handleTimingTypeChangeForThing(item.value);
+                      setTimingClicked(false);
+                    }}
+                  >
+                    <View style={styles.suggestionContent}>
+                      <Feather name={item.icon} size={16} color="#666" />
+                      <View style={styles.suggestionTextContainer}>
+                        <Text style={styles.suggestionText}>{item.label}</Text>
+                        <Text style={styles.suggestionDesc}>{item.desc}</Text>
                       </View>
+                    </View>
 
-                      <Feather name="chevron-right" size={14} color="#ccc" />
-                    </TouchableOpacity>
+                    <Feather name="chevron-right" size={14} color="#ccc" />
+                  </TouchableOpacity>
 
-                    {index < 3 && <View style={styles.separator} />}
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-       
+                  {index < timingTypeListThings.length - 1 && (
+                    <View style={styles.separator} />
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
         {/* Input forms based on timing type */}
         {thingTimingType === 'needed-by-date' && (
           <>
@@ -1148,161 +1162,166 @@ export default function CreateJob({ navigation, route }) {
             />
           </>
         )}
-          {/* Amount Disclosure */}
+        {/* Amount Disclosure */}
+        <View style={styles.selectorContainer}>
+          <View style={[styles.disclosureLabelRow, { marginBottom: 10 }]}>
+            <Text style={styles.selectorLabel}>
+              Would you like to disclose the amount?
+            </Text>
+          </View>
+          <View style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
+            {[{ Yes: true }, { No: false }].map(option => {
+              const [label, value] = Object.entries(option)[0];
+              return (
+                <TouchableOpacity
+                  key={label}
+                  style={{ display: 'flex', flexDirection: 'row' }}
+                  onPress={() => {
+                    setDiscloseAmount(value);
+                    if (!value) {
+                      setAmount('');
+                      setIsNegotiable(false);
+                      setMinAmount('');
+                      setMaxAmount('');
+                    }
+                  }}
+                >
+                  <View
+                    style={[
+                      styles.locationCheckbox,
+                      discloseAmount === value &&
+                        styles.locationCheckboxSelected,
+                    ]}
+                  >
+                    {discloseAmount === value && (
+                      <Feather name="check" size={14} color="#fff" />
+                    )}
+                  </View>
+                  <View>
+                    <Text
+                      style={[
+                        styles.locationLabel,
+                        {
+                          color:
+                            discloseAmount === value
+                              ? Colors.blackColor
+                              : Colors.darkGrayColor,
+                        },
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+        {discloseAmount && (
           <View style={styles.selectorContainer}>
-            <View style={[styles.disclosureLabelRow,{ marginBottom: 10,}]}>
-              <Text style={styles.selectorLabel}>
-                Would you like to disclose the amount?
-              </Text>
-            </View>
-            <View style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
-              {[{"Yes": true}, {"No": false}].map((option) => {
-                const [label, value] = Object.entries(option)[0];
-                return (
+            <View style={styles.amountNegotiableRow}>
+              <View style={[styles.amountInputContainer, { flex: 2 }]}>
+                <FloatingLabelInput
+                  label="Amount (INR) ₹"
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="numeric"
+                  placeholder="Enter Amount"
+                  onFocus={ref => scrollToInput(ref, scrollViewRef)}
+                />
+              </View>
+              <View style={styles.unitDropdownWrapper}>
+                <TouchableOpacity
+                  style={[
+                    styles.unitButton,
+                    {
+                      backgroundColor: isUnitClicked ? '#fff' : '#f8f9fa',
+                      borderColor: isUnitClicked ? '#000' : '#e9ecef',
+                    },
+                  ]}
+                  onPress={() => setUnitClicked(prev => !prev)}
+                >
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      styles.unitButtonText,
+                      { color: isUnitClicked ? '#000' : '#666' },
+                    ]}
+                  >
+                    {unit || 'Unit'}
+                  </Text>
+                  <Feather
+                    name={isUnitClicked ? 'chevron-down' : 'chevron-right'}
+                    size={14}
+                    color={isUnitClicked ? '#000' : '#666'}
+                  />
+                </TouchableOpacity>
+
+                {isUnitClicked && (
+                  <View style={styles.unitSuggestionsContainer}>
+                    {[
+                      { value: 'per/hr', label: 'per/hr' },
+                      { value: 'per/day', label: 'per/day' },
+                      { value: 'per/week', label: 'per/week' },
+                      { value: 'per/month', label: 'per/month' },
+                    ].map((item, index) => (
+                      <View key={item.value}>
+                        <TouchableOpacity
+                          style={styles.unitSuggestionItem}
+                          onPress={() => {
+                            setUnit(item.value);
+                            setUnitClicked(false);
+                          }}
+                        >
+                          <Text style={styles.unitSuggestionText}>
+                            {item.label}
+                          </Text>
+                        </TouchableOpacity>
+                        {index < 3 && <View style={styles.unitSeparator} />}
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+              <View style={styles.negotiableContainer}>
+                <View style={styles.negotiableCol}>
+                  <Text style={styles.negotiableLabel}>Negotiable</Text>
                   <TouchableOpacity
-                    key={label}
-                    style={{ display: 'flex', flexDirection: 'row' }}
+                    style={[
+                      styles.negotiableToggleSmall,
+                      { backgroundColor: isNegotiable ? '#000' : '#666' },
+                    ]}
                     onPress={() => {
-                      setDiscloseAmount(value);
-                      if (!value) {
-                        setAmount('');
-                        setIsNegotiable(false);
+                      setIsNegotiable(!isNegotiable);
+                      if (isNegotiable) {
                         setMinAmount('');
                         setMaxAmount('');
+                      } else {
+                        setAmount('');
                       }
                     }}
+                    activeOpacity={0.8}
                   >
-                    <View
-                      style={[
-                        styles.locationCheckbox,
-                        discloseAmount === value && styles.locationCheckboxSelected,
-                      ]}
-                    >
-                      {discloseAmount === value && (
-                        <Feather name="check" size={14} color="#fff" />
-                      )}
-                    </View>
-                    <View>
-                      <Text style={[styles.locationLabel,{ color: discloseAmount === value ? Colors.blackColor : Colors.darkGrayColor}]}>{label}</Text>
-                    </View>
+                    {isNegotiable ? (
+                      <>
+                        <Text style={styles.negotiableTextSmall}>Yes</Text>
+                        <Feather
+                          name="check"
+                          style={styles.negotiableIconSmall}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Feather name="x" style={styles.negotiableIconSmall} />
+                        <Text style={styles.negotiableTextSmall}>No</Text>
+                      </>
+                    )}
                   </TouchableOpacity>
-                );
-              })}
+                </View>
+              </View>
             </View>
           </View>
-          {discloseAmount && (
-            <View style={styles.selectorContainer}>
-              <View style={styles.amountNegotiableRow}>
-                <View style={[styles.amountInputContainer,{flex:2}]}>
-                  <FloatingLabelInput
-                    label="Amount (INR) ₹"
-                    value={amount}
-                    onChangeText={setAmount}
-                    keyboardType="numeric"
-                    placeholder="Enter Amount"
-                    onFocus={ref => scrollToInput(ref, scrollViewRef)}
-                  />
-                </View>
-                <View style={styles.unitDropdownWrapper}>
-              <TouchableOpacity
-                style={[
-                  styles.unitButton,
-                  {
-                    backgroundColor: isUnitClicked ? '#fff' : '#f8f9fa',
-                    borderColor: isUnitClicked ? '#000' : '#e9ecef',
-                  },
-                ]}
-                onPress={() => setUnitClicked(prev => !prev)}
-              >
-                <Text
-                  numberOfLines={1}
-                  style={[
-                    styles.unitButtonText,
-                    { color: isUnitClicked ? '#000' : '#666' },
-                  ]}
-                >
-                  {unit || 'Unit'}
-                </Text>
-                <Feather
-                  name={isUnitClicked ? 'chevron-down' : 'chevron-right'}
-                  size={14}
-                  color={isUnitClicked ? '#000' : '#666'}
-                />
-              </TouchableOpacity>
-
-              {isUnitClicked && (
-                <View style={styles.unitSuggestionsContainer}>
-                  {[
-                    { value: 'per/hr', label: 'per/hr' },
-                    { value: 'per/day', label: 'per/day' },
-                    { value: 'per/week', label: 'per/week' },
-                    { value: 'per/month', label: 'per/month' },
-                  ].map((item, index) => (
-                    <View key={item.value}>
-                      <TouchableOpacity
-                        style={styles.unitSuggestionItem}
-                        onPress={() => {
-                          setUnit(item.value);
-                          setUnitClicked(false);
-                        }}
-                      >
-                        <Text style={styles.unitSuggestionText}>
-                          {item.label}
-                        </Text>
-                      </TouchableOpacity>
-                      {index < 3 && <View style={styles.unitSeparator} />}
-                    </View>
-                  ))}
-                </View>
-              )}
-               </View>
-                <View style={styles.negotiableContainer}>
-                  <View style={styles.negotiableCol}>
-                    <Text style={styles.negotiableLabel}>Negotiable</Text>
-                    <TouchableOpacity
-                      style={[
-                        styles.negotiableToggleSmall,
-                        { backgroundColor: isNegotiable ? '#000' : '#666' },
-                      ]}
-                      onPress={() => {
-                        setIsNegotiable(!isNegotiable);
-                        if (isNegotiable) {
-                          setMinAmount('');
-                          setMaxAmount('');
-                        } else {
-                          setAmount('');
-                        }
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      {isNegotiable ? (
-                        <>
-                          <Text style={styles.negotiableTextSmall}>Yes</Text>
-                          <Feather
-                            name="check"
-                            style={styles.negotiableIconSmall}
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <Feather
-                            name="x"
-                            style={styles.negotiableIconSmall}
-                          />
-                          <Text style={styles.negotiableTextSmall}>No</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              
-              </View>
-              
-            </View>
-          )}
-
-       
-      
+        )}
       </>
     );
   }
@@ -1394,7 +1413,7 @@ const styles = StyleSheet.create({
   },
   locationCheckboxSelected: {
     backgroundColor: '#000',
-    borderColor:Colors.primary,
+    borderColor: Colors.primary,
   },
   locationLabel: {
     fontSize: 14,
@@ -1534,7 +1553,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 10,
   },
- 
+
   unitDropdownWrapper: {
     flex: 1,
     position: 'relative',
@@ -1839,7 +1858,7 @@ const styles = StyleSheet.create({
   // Amount and Negotiable Row
   amountNegotiableRow: {
     flexDirection: 'row',
-     gap: 16,
+    gap: 16,
   },
   amountInputContainer: {
     flex: 1,
@@ -1887,9 +1906,9 @@ const styles = StyleSheet.create({
   },
   negotiableLabel: {
     fontSize: 10,
-    fontWeight:"700",
+    fontWeight: '700',
     color: '#666',
-   },
+  },
   negotiableToggleSmall: {
     flexDirection: 'row',
     gap: 4,

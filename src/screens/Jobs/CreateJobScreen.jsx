@@ -867,14 +867,17 @@ export default function CreateJob({ navigation }) {
               ]}
               onPress={() => setPurposeClicked(prev => !prev)}
             >
-              <Feather name="target" size={20} color="#000" />
+              <Feather name={purposeOptions.find(item => item.value === purpose)?.icon || 'target'} size={20} color="#000" />
               <Text
                 style={[
                   styles.mapButtonText,
                   { color: isPurposeClicked ? '#000000ff' : '#666666' },
                 ]}
               >
-                {purpose || 'Select Purpose'}
+               {
+                purposeOptions.find(item => item.value === purpose)?.label || 'Select Purpose'
+               }
+
               </Text>
 
               <Feather
@@ -1128,7 +1131,7 @@ const styles = StyleSheet.create({
   // Suggestions Container
   suggestionsContainer: {
     position: 'absolute',
-    top: 112,
+    top: 118,
     left: 0,
     right: 0,
     backgroundColor: '#fff',
@@ -1357,54 +1360,9 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.extraLightGrayColor,
   },
-  suggestionsContainer: {
-    position: 'absolute',
-    top: 112,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    borderWidth: 1.5,
-    borderTopWidth: 0,
-    borderColor: '#e5e7eb',
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 10,
-    zIndex: 1000,
-  },
-  suggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  suggestionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 12,
-  },
-  suggestionText: {
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
-  },
+  
+  
 
-  // suggestionItem: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   paddingHorizontal: 12,
-  //   paddingVertical: 12,
-  // },
-  // suggestionText: {
-  //   marginLeft: 8,
-  //   flex: 1,
-  //   color: Colors.lightBlackColor,
-  // },
   nextButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
   // Toggle Row Styles
