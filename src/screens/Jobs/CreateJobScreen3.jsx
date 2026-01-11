@@ -281,8 +281,7 @@ export default function CreateJobPageThree({ navigation, route }) {
       
       console.log('\n=== JOB SUBMISSION COMPLETE ===\n');
       
-      // Uncomment below for actual API submission
-      /*
+      
       const jobResponse = await dispatch(createJob(formattedJobData));
       
       if (createJob.fulfilled.match(jobResponse)) {
@@ -308,7 +307,7 @@ export default function CreateJobPageThree({ navigation, route }) {
       } else {
         throw new Error(jobResponse.payload?.message || 'Failed to create job');
       }
-      */
+      
     } catch (error) {
       console.error('\n=== JOB SUBMISSION ERROR ===');
       console.error('Error Details:', error);

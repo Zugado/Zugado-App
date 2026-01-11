@@ -7,6 +7,7 @@ import {
   FlatList,
   ScrollView,
   RefreshControl,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import JobCard from '../screens/Home/JobCard';
@@ -94,35 +95,35 @@ const AppliedTasksSection = ({ isLoading }) => {
   return (
     <View style={{ flex: 1 }}>
       {myJobsData.length > 0 && (
-        <View style={styles.filterContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScrollContent}
-          >
-            {filters.map(filter => (
-              <TouchableOpacity
-                key={filter}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterContainer}
+          nestedScrollEnabled={true}
+        >
+          {filters.map(filter => ( 
+            <TouchableOpacity
+              key={filter}
+              style={[
+                styles.filterButton,
+                selectedFilter === filter && styles.selectedFilterButton,
+              ]}
+              onPress={() => setSelectedFilter(filter)}
+            >
+              <Text
                 style={[
-                  styles.filterButton,
-                  selectedFilter === filter && styles.selectedFilterButton,
+                  styles.filterText,
+                  selectedFilter === filter && styles.selectedFilterText,
                 ]}
-                onPress={() => setSelectedFilter(filter)}
               >
-                <Text
-                  style={[
-                    styles.filterText,
-                    selectedFilter === filter && styles.selectedFilterText,
-                  ]}
-                >
-                  {filter}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       )}
       <FlatList
+       style={{ flex: 1 }}
         data={filteredJobs}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => <JobCard job={item} />}
@@ -167,7 +168,7 @@ const CreatedTasksSection = ({ isLoading }) => {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScrollContent}
+            style={{ paddingHorizontal: 10 }}
           >
             {filters.map(filter => (
               <TouchableOpacity
@@ -230,13 +231,14 @@ const ManageJobScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   filterContainer: {
-    height: 50,
-    paddingVertical: 5,
-    backgroundColor: Colors.whiteColor,
+    marginVertical: 10,
+    maxHeight: 40,
+    paddingHorizontal: 10,
   },
   filterScrollContent: {
     paddingHorizontal: 10,
     alignItems: 'center',
+    flexGrow: 1,
   },
   filterButton: {
     marginHorizontal: 2,
