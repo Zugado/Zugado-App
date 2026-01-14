@@ -773,52 +773,49 @@ export default function CreateJob({ navigation }) {
                     desc: '5+ years experience',
                   },
                 ].map(option => (
-                  <>
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      key={option.id}
-                      style={styles.experienceOption}
-                      onPress={() => setExperienceLevel(option.value)}
-                    >
-                      <View
-                        style={[
-                          {},
-                          styles.experienceCheckbox,
-
-                          experienceLevel === option.value &&
-                            styles.experienceCheckboxSelected,
-                        ]}
-                      >
-                        {experienceLevel === option.value && (
-                          <Feather name="check" size={14} color="#fff" />
-                        )}
-                      </View>
-                      <View>
-                      <Text
-                        style={[
-                          styles.experienceLabel,
-                          {
-                            color:
-                              experienceLevel === option.value
-                                ? Colors.blackColor
-                                : Colors.darkGrayColor,
-                          },
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                       <Text
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    key={option.id}
+                    style={styles.experienceOption}
+                    onPress={() => setExperienceLevel(option.value)}
+                  >
+                    <View
                       style={[
-                        styles.experienceInfoText,
-                        { color: Colors.grayColor },
+                        {},
+                        styles.experienceCheckbox,
+
+                        experienceLevel === option.value &&
+                          styles.experienceCheckboxSelected,
                       ]}
                     >
-                      {option.desc}
+                      {experienceLevel === option.value && (
+                        <Feather name="check" size={14} color="#fff" />
+                      )}
+                    </View>
+                    <View>
+                    <Text
+                      style={[
+                        styles.experienceLabel,
+                        {
+                          color:
+                            experienceLevel === option.value
+                              ? Colors.blackColor
+                              : Colors.darkGrayColor,
+                        },
+                      ]}
+                    >
+                      {option.label}
                     </Text>
-                      </View>
-                    </TouchableOpacity>
-                   
-                  </>
+                     <Text
+                    style={[
+                      styles.experienceInfoText,
+                      { color: Colors.grayColor },
+                    ]}
+                  >
+                    {option.desc}
+                  </Text>
+                    </View>
+                  </TouchableOpacity>
                 ))}
               </View>
               {/* {experienceLevel && (
@@ -951,11 +948,11 @@ export default function CreateJob({ navigation }) {
 
           {/* Task Skills/Category */}
           <FloatingLabelSkillsInput
-            label="Task Skills & Categories"
+            label="Categories"
             selectedSkills={selectedSkills}
             onSkillsChange={setSelectedSkills}
             availableTags={availableTags}
-            placeholder="E.g Software,Design..."
+            placeholder="E.g Electronics,Metal,Plastic..."
             maxSkills={8}
             required={true}
             onFocus={ref => scrollToInput(ref, scrollViewRef)}

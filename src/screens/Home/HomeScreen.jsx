@@ -21,24 +21,34 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllJobs, getAllTags } from '../../store/thunks/jobThunk';
 import { getWishlist } from '../../store/thunks/wishlistThunk';
 import { getUserLocation, updateUserLocation } from '../../store/thunks/locationThunk';
-import { selectJobs, selectJobsLoading, selectLocationAddress, selectTags } from '../../store/selector';
+import { selectJobs, selectJobsLoading, selectLocationAddress, selectLocationCoordinates, selectTags } from '../../store/selector';
 import { FaddedIcon } from '../../components/CommonComponents';
+import { calculateDistance } from '../../utils/distanceUtils';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const allJobs = useSelector(selectJobs);
+  const allJobs = useSelector(selectJobs || []);
   const loading = useSelector(selectJobsLoading);
   const locationAddress = useSelector(selectLocationAddress);
+  const userCoordinates = useSelector(selectLocationCoordinates);
   const tags = useSelector(selectTags);
   const [isUrgentEnabled, setUrgentEnabled] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState(['All']);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   
-  // First layer: Filter urgent jobs
-  const jobs = isUrgentEnabled 
+  // First layer: Filter urgent jobs and add distance
+  const jobs = (isUrgentEnabled 
     ? allJobs.filter(job => job.jobType === 'quick' || job.jobType !== 'standard')
-    : allJobs;
+    : allJobs
+  ).map(job => ({
+    ...job,
+    distanceFromUser: job.location?.coordinates 
+      ? calculateDistance(userCoordinates, job.location.coordinates)
+      : null
+  }));
+
+  console.log('All jobs:', jobs);
   
   // Create tag filter list from tags and subtags
   const tagFilterList = ['All'];
@@ -77,6 +87,9 @@ const HomeScreen = ({ navigation }) => {
         return false;
       });
   
+      console.log('Filtered jobs:', filteredJobs);
+
+
   const handleTagPress = (tag) => {
     if (tag === 'All') {
       setSelectedFilters(['All']);
@@ -85,7 +98,7 @@ const HomeScreen = ({ navigation }) => {
         const newFilters = prev.filter(f => f !== 'All');
         if (newFilters.includes(tag)) {
           const updated = newFilters.filter(f => f !== tag);
-          return updated.length === 0 ? ['All'] : updated;
+          return updated?.length === 0 ? ['All'] : updated;
         } else {
           return [...newFilters, tag];
         }
@@ -97,10 +110,11 @@ const HomeScreen = ({ navigation }) => {
     loadInitialData();
   }, []);
 
-  const loadInitialData = () => {
-    dispatch(getAllJobs({ pageNo: 1, limit: 20 }));
-    dispatch(getAllTags());
-    dispatch(getWishlist());
+  const loadInitialData = async() => {
+     updateLocation();
+     await dispatch(getAllTags());
+     await dispatch(getWishlist());
+    await dispatch(getAllJobs({ pageNo: 1, limit: 20 }));
   };
 
   const updateLocation = () => {
@@ -146,12 +160,7 @@ const HomeScreen = ({ navigation }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([
-      dispatch(getAllJobs({ pageNo: 1, limit: 20 })),
-      dispatch(getAllTags()),
-      dispatch(getWishlist()),
-      updateLocation()
-    ]);
+    loadInitialData();
     setRefreshing(false);
   };
 
@@ -235,7 +244,7 @@ const HomeScreen = ({ navigation }) => {
                 }
               />
             }
-            ListFooterComponent={<>{filteredJobs.length >= 2 && <FaddedIcon />}</>}
+            ListFooterComponent={<>{filteredJobs?.length >= 2 && <FaddedIcon />}</>}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}

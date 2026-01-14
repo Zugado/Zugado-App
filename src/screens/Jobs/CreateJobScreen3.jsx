@@ -226,10 +226,10 @@ export default function CreateJobPageThree({ navigation, route }) {
       const formattedJobData = {
         jobFor: jobData?.jobFor,
         purpose: jobData?.purpose || null,
-        title: jobData?.title,
-        description: jobData?.description,
-        tags: jobData?.category || [],
-        requirements: jobData?.requirements || '',
+        title: jobData?.title || null,
+        description: jobData?.description || null,
+        tags: jobData?.category || null,
+        requirements: jobData?.requirements || null,
         experienceLevel: jobData?.experienceLevel,
         locationType: jobData?.locationType || null,
         location: jobData?.location,
@@ -237,11 +237,11 @@ export default function CreateJobPageThree({ navigation, route }) {
         timingType: jobData?.timingType,
         timingDetails: formattedTimingDetails,
         amount: {
-          value: jobData?.amount?.value || 0,
+          value: jobData?.amount?.value || null,
           unit: jobData?.amount?.unit || null,
           disclose: jobData?.amount?.disclose || false,
-          negotiable: jobData?.amount?.negotiable || false,
-          range: jobData?.amount?.range || null
+          negotiable: jobData?.amount?.negotiable || false
+         
         }
       };
 

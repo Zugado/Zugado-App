@@ -84,7 +84,7 @@ export default function CreateJob({ navigation, route }) {
   const [address, setAddress] = useState('');
   const [coordinates, setCoordinates] = useState(null);
   const scrollViewRef = React.useRef(null);
-  const [jobLocationType, setJobLocationType] = useState('onsite');
+  const [jobLocationType, setJobLocationType] = useState('');
   //timing for person
   const [timingType, setTimingType] = useState('');
   const [date, setDate] = useState('');
@@ -111,9 +111,8 @@ export default function CreateJob({ navigation, route }) {
   const [discloseAmount, setDiscloseAmount] = useState(false);
   const [amount, setAmount] = useState('');
   const [isNegotiable, setIsNegotiable] = useState(false);
-  const [minAmount, setMinAmount] = useState('');
-  const [maxAmount, setMaxAmount] = useState('');
   const [unit, setUnit] = useState('');
+  const [deposit, setDeposit] = useState('');
   const [isUnitClicked, setUnitClicked] = useState(false);
   const [isTimingClicked, setTimingClicked] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -130,8 +129,6 @@ export default function CreateJob({ navigation, route }) {
       discloseAmount,
       amount,
       isNegotiable,
-      minAmount,
-      maxAmount,
       unit,
     });
     console.log('=== END SCREEN 2 MOUNT DEBUG ===\n');
@@ -175,9 +172,8 @@ export default function CreateJob({ navigation, route }) {
             discloseAmount,
             amount,
             isNegotiable,
-            minAmount,
-            maxAmount,
             unit,
+            deposit,
           };
 
           await AsyncStorage.setItem('jobDraft', JSON.stringify(updatedDraft));
@@ -214,9 +210,8 @@ export default function CreateJob({ navigation, route }) {
     discloseAmount,
     amount,
     isNegotiable,
-    minAmount,
-    maxAmount,
     unit,
+    deposit,
   ]);
 
   const clearTimingFieldsOfPerson = newType => {
@@ -343,8 +338,6 @@ export default function CreateJob({ navigation, route }) {
       discloseAmount,
       amount,
       isNegotiable,
-      minAmount,
-      maxAmount,
       unit,
     });
 
@@ -393,16 +386,8 @@ export default function CreateJob({ navigation, route }) {
         showSnackbar('Flexible timing requires estimated hours', 'error');
         return;
       }
-      if (discloseAmount && !isNegotiable && !amount?.trim()) {
+      if (discloseAmount && !amount?.trim()) {
         showSnackbar('Please enter an amount', 'error');
-        return;
-      }
-      if (
-        discloseAmount &&
-        isNegotiable &&
-        (!minAmount?.trim() || !maxAmount?.trim())
-      ) {
-        showSnackbar('Please enter both minimum and maximum amounts', 'error');
         return;
       }
 
@@ -419,13 +404,9 @@ export default function CreateJob({ navigation, route }) {
         timingType,
         timingDetails,
         amount: {
-          value: isNegotiable ? 0 : Number(amount) || 0,
-          unit: null,
+          value: Number(amount) || 0,
           disclose: discloseAmount,
-          negotiable: isNegotiable,
-          range: isNegotiable
-            ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 }
-            : null,
+          ...(isNegotiable && { negotiable: true }),
         },
       };
 
@@ -487,21 +468,29 @@ export default function CreateJob({ navigation, route }) {
         showSnackbar('Flexible timing requires estimated hours', 'error');
         return;
       }
-      if (discloseAmount && !isNegotiable && !amount?.trim()) {
-        showSnackbar('Please enter an amount', 'error');
-        return;
+      // Thing validation based on purpose
+      const purpose = jobData?.purpose;
+      
+      // Validate amount based on purpose rules
+      if (purpose === 'sell' && discloseAmount) {
+        if (!amount?.trim()) {
+          showSnackbar('Please enter selling price', 'error');
+          return;
+        }
+        if (!unit) {
+          showSnackbar('Please select unit (per/piece)', 'error');
+          return;
+        }
       }
-      if (discloseAmount && !unit && !isNegotiable) {
-        showSnackbar('Please select a unit', 'error');
-        return;
-      }
-      if (
-        discloseAmount &&
-        isNegotiable &&
-        (!minAmount?.trim() || !maxAmount?.trim())
-      ) {
-        showSnackbar('Please enter both minimum and maximum amounts', 'error');
-        return;
+      if (['rent_in', 'rent_out'].includes(purpose) && discloseAmount) {
+        if (!amount?.trim()) {
+          showSnackbar('Please enter rent amount', 'error');
+          return;
+        }
+        if (!unit) {
+          showSnackbar('Please select rent unit (per/hr, per/day, per/month)', 'error');
+          return;
+        }
       }
 
       const thingJobData = {
@@ -514,13 +503,11 @@ export default function CreateJob({ navigation, route }) {
         timingType: thingTimingType,
         timingDetails,
         amount: {
-          value: isNegotiable ? 0 : Number(amount) || 0,
-          unit: isNegotiable ? null : unit,
+          value: Number(amount) || 0,
+          unit: ['sell', 'rent_in', 'rent_out'].includes(purpose) ? unit : null,
           disclose: discloseAmount,
-          negotiable: isNegotiable,
-          range: isNegotiable
-            ? { min: Number(minAmount) || 0, max: Number(maxAmount) || 0 }
-            : null,
+          ...(isNegotiable && ['sell', 'rent_out', 'other'].includes(purpose) && { negotiable: true }),
+          ...(purpose === 'rent_out' && deposit && { deposit: Number(deposit) }),
         },
       };
 
@@ -578,11 +565,7 @@ export default function CreateJob({ navigation, route }) {
 
             {/* {thingForm?.()} */}
             {/* {personForm?.()} */}
-            {jobData?.jobFor === 'person' ? (
-              <>{personForm?.()}</>
-            ) : (
-              <>{thingForm?.()}</>
-            )}
+            {jobData?.jobFor === 'person' ? personForm() : thingForm()}
             <FaddedIcon />
           </ScrollView>
 
@@ -882,8 +865,6 @@ export default function CreateJob({ navigation, route }) {
                       if (!value) {
                         setAmount('');
                         setIsNegotiable(false);
-                        setMinAmount('');
-                        setMaxAmount('');
                       }
                     }}
                   >
@@ -940,15 +921,7 @@ export default function CreateJob({ navigation, route }) {
                         styles.negotiableToggleSmall,
                         { backgroundColor: isNegotiable ? '#000' : '#666' },
                       ]}
-                      onPress={() => {
-                        setIsNegotiable(!isNegotiable);
-                        if (isNegotiable) {
-                          setMinAmount('');
-                          setMaxAmount('');
-                        } else {
-                          setAmount('');
-                        }
-                      }}
+                      onPress={() => setIsNegotiable(!isNegotiable)}
                       activeOpacity={0.8}
                     >
                       {isNegotiable ? (
@@ -1166,7 +1139,11 @@ export default function CreateJob({ navigation, route }) {
         <View style={styles.selectorContainer}>
           <View style={[styles.disclosureLabelRow, { marginBottom: 10 }]}>
             <Text style={styles.selectorLabel}>
-              Would you like to disclose the amount?
+              {jobData?.purpose === 'buy' ? 'Expected Budget (Optional)' :
+               jobData?.purpose === 'sell' ? 'Selling Price' :
+               jobData?.purpose === 'rent_in' ? 'Expected Rent Budget' :
+               jobData?.purpose === 'rent_out' ? 'Rent Price' :
+               'Amount (Optional)'}
             </Text>
           </View>
           <View style={{ display: 'flex', flexDirection: 'row', gap: 20 }}>
@@ -1181,8 +1158,8 @@ export default function CreateJob({ navigation, route }) {
                     if (!value) {
                       setAmount('');
                       setIsNegotiable(false);
-                      setMinAmount('');
-                      setMaxAmount('');
+                      setUnit('');
+                      setDeposit('');
                     }
                   }}
                 >
@@ -1220,7 +1197,7 @@ export default function CreateJob({ navigation, route }) {
         {discloseAmount && (
           <View style={styles.selectorContainer}>
             <View style={styles.amountNegotiableRow}>
-              <View style={[styles.amountInputContainer, { flex: 2 }]}>
+              <View style={[styles.amountInputContainer, { flex: ['sell', 'rent_in', 'rent_out'].includes(jobData?.purpose) ? 2 : 1 }]}>
                 <FloatingLabelInput
                   label="Amount (INR) ₹"
                   value={amount}
@@ -1230,96 +1207,105 @@ export default function CreateJob({ navigation, route }) {
                   onFocus={ref => scrollToInput(ref, scrollViewRef)}
                 />
               </View>
-              <View style={styles.unitDropdownWrapper}>
-                <TouchableOpacity
-                  style={[
-                    styles.unitButton,
-                    {
-                      backgroundColor: isUnitClicked ? '#fff' : '#f8f9fa',
-                      borderColor: isUnitClicked ? '#000' : '#e9ecef',
-                    },
-                  ]}
-                  onPress={() => setUnitClicked(prev => !prev)}
-                >
-                  <Text
-                    numberOfLines={1}
-                    style={[
-                      styles.unitButtonText,
-                      { color: isUnitClicked ? '#000' : '#666' },
-                    ]}
-                  >
-                    {unit || 'Unit'}
-                  </Text>
-                  <Feather
-                    name={isUnitClicked ? 'chevron-down' : 'chevron-right'}
-                    size={14}
-                    color={isUnitClicked ? '#000' : '#666'}
-                  />
-                </TouchableOpacity>
-
-                {isUnitClicked && (
-                  <View style={styles.unitSuggestionsContainer}>
-                    {[
-                      { value: 'per/hr', label: 'per/hr' },
-                      { value: 'per/day', label: 'per/day' },
-                      { value: 'per/week', label: 'per/week' },
-                      { value: 'per/month', label: 'per/month' },
-                    ].map((item, index) => (
-                      <View key={item.value}>
-                        <TouchableOpacity
-                          style={styles.unitSuggestionItem}
-                          onPress={() => {
-                            setUnit(item.value);
-                            setUnitClicked(false);
-                          }}
-                        >
-                          <Text style={styles.unitSuggestionText}>
-                            {item.label}
-                          </Text>
-                        </TouchableOpacity>
-                        {index < 3 && <View style={styles.unitSeparator} />}
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
-              <View style={styles.negotiableContainer}>
-                <View style={styles.negotiableCol}>
-                  <Text style={styles.negotiableLabel}>Negotiable</Text>
+              {['sell', 'rent_in', 'rent_out'].includes(jobData?.purpose) && (
+                <View style={styles.unitDropdownWrapper}>
                   <TouchableOpacity
                     style={[
-                      styles.negotiableToggleSmall,
-                      { backgroundColor: isNegotiable ? '#000' : '#666' },
+                      styles.unitButton,
+                      {
+                        backgroundColor: isUnitClicked ? '#fff' : '#f8f9fa',
+                        borderColor: isUnitClicked ? '#000' : '#e9ecef',
+                      },
                     ]}
-                    onPress={() => {
-                      setIsNegotiable(!isNegotiable);
-                      if (isNegotiable) {
-                        setMinAmount('');
-                        setMaxAmount('');
-                      } else {
-                        setAmount('');
-                      }
-                    }}
-                    activeOpacity={0.8}
+                    onPress={() => setUnitClicked(prev => !prev)}
                   >
-                    {isNegotiable ? (
-                      <>
-                        <Text style={styles.negotiableTextSmall}>Yes</Text>
-                        <Feather
-                          name="check"
-                          style={styles.negotiableIconSmall}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <Feather name="x" style={styles.negotiableIconSmall} />
-                        <Text style={styles.negotiableTextSmall}>No</Text>
-                      </>
-                    )}
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.unitButtonText,
+                        { color: isUnitClicked ? '#000' : '#666' },
+                      ]}
+                    >
+                      {unit || 'Unit'}
+                    </Text>
+                    <Feather
+                      name={isUnitClicked ? 'chevron-down' : 'chevron-right'}
+                      size={14}
+                      color={isUnitClicked ? '#000' : '#666'}
+                    />
                   </TouchableOpacity>
+
+                  {isUnitClicked && (
+                    <View style={styles.unitSuggestionsContainer}>
+                      {(jobData?.purpose === 'sell' ? [
+                        { value: 'per/piece', label: 'per/piece' },
+                      ] : [
+                        { value: 'per/hr', label: 'per/hr' },
+                        { value: 'per/day', label: 'per/day' },
+                        { value: 'per/month', label: 'per/month' },
+                      ]).map((item, index, arr) => (
+                        <View key={item.value}>
+                          <TouchableOpacity
+                            style={styles.unitSuggestionItem}
+                            onPress={() => {
+                              setUnit(item.value);
+                              setUnitClicked(false);
+                            }}
+                          >
+                            <Text style={styles.unitSuggestionText}>
+                              {item.label}
+                            </Text>
+                          </TouchableOpacity>
+                          {index < arr.length - 1 && <View style={styles.unitSeparator} />}
+                        </View>
+                      ))}
+                    </View>
+                  )}
                 </View>
-              </View>
+              )}
+              {['sell', 'rent_out', 'other'].includes(jobData?.purpose) && (
+                <View style={styles.negotiableContainer}>
+                  <View style={styles.negotiableCol}>
+                    <Text style={styles.negotiableLabel}>Negotiable</Text>
+                    <TouchableOpacity
+                      style={[
+                        styles.negotiableToggleSmall,
+                        { backgroundColor: isNegotiable ? '#000' : '#666' },
+                      ]}
+                      onPress={() => setIsNegotiable(!isNegotiable)}
+                      activeOpacity={0.8}
+                    >
+                      {isNegotiable ? (
+                        <>
+                          <Text style={styles.negotiableTextSmall}>Yes</Text>
+                          <Feather
+                            name="check"
+                            style={styles.negotiableIconSmall}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <Feather name="x" style={styles.negotiableIconSmall} />
+                          <Text style={styles.negotiableTextSmall}>No</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </View>
+            {jobData?.purpose === 'rent_out' && (
+              <View style={{ marginTop: 16 }}>
+                <FloatingLabelInput
+                  label="Security Deposit (Optional) ₹"
+                  value={deposit}
+                  onChangeText={setDeposit}
+                  keyboardType="numeric"
+                  placeholder="Enter deposit amount"
+                  onFocus={ref => scrollToInput(ref, scrollViewRef)}
+                />
+              </View>
+            )}
           </View>
         )}
       </>

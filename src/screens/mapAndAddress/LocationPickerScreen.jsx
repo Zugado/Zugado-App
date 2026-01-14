@@ -186,15 +186,44 @@ const LocationPickerScreen = ({ navigation, route }) => {
       const addresses = await getSavedAddresses(user?.id || user?._id);
       const addressToEdit = addresses.find(addr => addr.id === editAddressId);
       if (addressToEdit) {
-        setAddress(addressToEdit.address);
+        const { latitude, longitude } = addressToEdit.coordinates;
+        
+        // Set map region to saved address location
+        const newRegion = {
+          latitude,
+          longitude,
+          latitudeDelta: 0.03,
+          longitudeDelta: 0.03,
+        };
+        setRegion(newRegion);
+        setSelectedLocation(addressToEdit.coordinates);
+        
+        // Set address fields
+        setAddress(addressToEdit.houseNumber || addressToEdit.address || '');
         setLandmark(addressToEdit.landmark || '');
         setAddressType(addressToEdit.addressType);
-        setSelectedLocation(addressToEdit.coordinates);
-        setAddressComponents(addressToEdit.addressComponents);
+        setAddressComponents(addressToEdit.addressComponents || {});
+        setCity(addressToEdit.city || '');
+        setState(addressToEdit.state || '');
+        setCountry(addressToEdit.country || '');
+        setPostalCode(addressToEdit.postalCode || '');
+        
+        // Show bottom sheet
         setConfirmed(true);
-        bottomSheetRef.current?.expand();
+        Animated.spring(bottomSheetHeight, {
+          toValue: maxHeight,
+          useNativeDriver: false,
+          tension: 100,
+          friction: 8,
+        }).start();
+        
+        // Animate map to location
+        setTimeout(() => {
+          mapRef.current?.animateToRegion(newRegion, 1000);
+        }, 500);
       }
     } catch (error) {
+      console.log('Error loading address:', error);
       showSnackbar('Failed to load address', 'error');
     }
   };
@@ -608,7 +637,6 @@ const LocationPickerScreen = ({ navigation, route }) => {
             <TouchableOpacity
               style={styles.bottomBtn}
               onPress={() => {
-                setAddress(''); // Clear address field for user input
                 setConfirmed(true);
                 Animated.spring(bottomSheetHeight, {
                   toValue: maxHeight,
@@ -711,7 +739,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
                 <FloatingLabelInput
                   label="House/Flat/Building No."
                   required={true}
-                  value={address}
+                  // value={}
                   onChangeText={setAddress}
                   placeholder="Enter house, flat or building number"
                 />

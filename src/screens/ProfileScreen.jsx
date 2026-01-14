@@ -719,9 +719,9 @@ export default function ProfileScreen({ navigation }) {
               <Feather name="chevron-right" size={16} color="#666" />
             </TouchableOpacity>
             
-            {/* <View style={styles.settingsDivider} />
+            <View style={styles.settingsDivider} />
             
-            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("SavedAddressesScreen")}>
+            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("ManageSavedAddressesScreen")}>
               <View style={styles.settingsIconContainer}>
                 <Feather name="map-pin" size={20} color="#666" />
               </View>
@@ -730,7 +730,7 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.settingsItemSubtitle}>Manage your saved locations</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
 
           {/* Resources Group */}

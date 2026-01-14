@@ -1,5 +1,5 @@
 // components/JobCard.js
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,8 @@ import { selectWishlistIds } from '../../store/selector';
 import { handleWishlistToggle } from '../../utils/wishlistUtils';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { getRelativeTime } from '../../utils/timeUtils';
+import { formatDistance } from '../../utils/distanceUtils';
+import { getLocationFromCoordinates } from '../../utils/locationUtils';
 
 const JobCard = ({ job }) => {
   const dispatch = useDispatch();
@@ -28,6 +30,7 @@ const JobCard = ({ job }) => {
   const wishlistIds = useSelector(selectWishlistIds);
   const { showSnackbar } = useSnackbar();
   const [isScrolling, setIsScrolling] = useState(false);
+  const [cityName, setCityName] = useState('');
 
   const isWishlisted = wishlistIds.includes(job?._id);
   const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
@@ -37,11 +40,7 @@ const JobCard = ({ job }) => {
   const imageList =
     job?.attachments?.length > 0
       ? job.attachments.map(a => a.url)
-      : [
-          'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
-          'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
-          'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
-        ];
+      : [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const sliderRef = useRef(null);
 
@@ -58,6 +57,14 @@ const JobCard = ({ job }) => {
   const onWishlistToggle = () => {
     handleWishlistToggle(dispatch, job?._id, isWishlisted, showSnackbar);
   };
+
+  useEffect(() => {
+    if (job?.location?.coordinates) {
+      getLocationFromCoordinates(job.location.coordinates).then(({ city }) => {
+        setCityName(city);
+      });
+    }
+  }, [job?.location?.coordinates]);
 
   return (
     <View style={styles.cardContainer}>
@@ -111,7 +118,9 @@ const JobCard = ({ job }) => {
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.locationIcon} />
                 <Text style={styles.overlayText}>
-                  {job?.location?.address || 'Location 500 m'}
+                  {job?.distanceFromUser !== null && job?.distanceFromUser !== undefined && cityName
+                    ? `${cityName} - ${formatDistance(job.distanceFromUser)}`
+                    : 'Distance N/A'}
                 </Text>
               </View>
             </View>
@@ -153,17 +162,17 @@ const JobCard = ({ job }) => {
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={styles.row}>
-            <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
+            <Text  style={styles.title}>{job?.title || 'Job Title'}</Text>
 
             <Text style={styles.price}>
-              {job?.amount?.disclose && job?.amount?.value
-                ? `₹ ${job.amount.value}`
+              {job?.amount?.disclose && job?.amount?.max !== 0
+                ? `₹ ${job?.amount?.max}`
                 : 'Price on request'}
             </Text>
           </View>
 
           {/* Description */}
-          <Text style={styles.description}>
+          <Text style={styles.description} numberOfLines={2}>
             {job?.description || 'No description available'}
           </Text>
 
@@ -177,9 +186,9 @@ const JobCard = ({ job }) => {
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.noImageIcon} />
                 <Text style={styles.noImageText}>
-                    
-                
-                  {job?.location?.address || 'Location 500 m'}
+                  {job?.distanceFromUser !== null && job?.distanceFromUser !== undefined && cityName
+                    ? `${cityName} - ${formatDistance(job.distanceFromUser)}`
+                    : 'Distance N/A'}
                 </Text>
               </View>
             </View>
@@ -194,7 +203,7 @@ const JobCard = ({ job }) => {
 
             <View style={styles.ratingContainer}>
               <FontAwesome name="star" style={styles.starIcon} />
-              <Text style={styles.ratingText}>4.9 (2.2K)</Text>
+              <Text style={styles.ratingText}>{`${job?.createdBy?.ratings?.averageRating} (${job?.createdBy?.ratings?.totalRatings})`}</Text>
             </View>
           </View>
 
