@@ -41,7 +41,7 @@ const HomeScreen = ({ navigation }) => {
   const jobs = (isUrgentEnabled 
     ? allJobs.filter(job => job.jobType === 'quick' || job.jobType !== 'standard')
     : allJobs
-  ).map(job => ({
+  )?.map(job => ({
     ...job,
     distanceFromUser: job.location?.coordinates 
       ? calculateDistance(userCoordinates, job.location.coordinates)
