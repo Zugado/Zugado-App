@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CommonActions } from '@react-navigation/native';
 
 import HomeScreen from '../screens/Home/HomeScreen';
 import ManageJobScreen from '../screens/ManageJobScreen';
@@ -81,6 +83,31 @@ export default function TabNavigator() {
     setTimeout(() => setIsLoading(false), 1000);
   };
 
+  const handleCreateJobPress = async (navigation) => {
+    try {
+      const draft = await AsyncStorage.getItem('jobDraft');
+      if (draft) {
+        const draftData = JSON.parse(draft);
+        const hasMeaningfulData = Boolean(
+          draftData?.personTitle ||
+          draftData?.thingTitle ||
+          draftData?.personDescription ||
+          draftData?.thingDescription ||
+          draftData?.selectedSkills?.length > 0
+        );
+        
+        if (hasMeaningfulData) {
+          navigation.getParent().navigate('DraftChoiceScreen');
+          return;
+        }
+      }
+      navigation.getParent().navigate('CreateJobScreen');
+    } catch (error) {
+      console.log('Error checking draft:', error);
+      navigation.getParent().navigate('CreateJobScreen');
+    }
+  };
+
   const renderTabIcon = (routeName, focused) => {
     let icon;
     switch (routeName) {
@@ -117,8 +144,13 @@ export default function TabNavigator() {
         <Tab.Screen name={t('Manage Job')} component={ManageJobScreen} />
         <Tab.Screen
           name="Add"
-          // component={LocationPickerScreen}
           component={CreateJobScreen}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              handleCreateJobPress(navigation);
+            },
+          })}
           options={{
             tabBarStyle: { display: 'none' },
             tabBarButton: (props) => (

@@ -1,4 +1,3 @@
-// components/JobCard.js
 import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
@@ -23,14 +22,16 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 import { getRelativeTime } from '../../utils/timeUtils';
 import { formatDistance } from '../../utils/distanceUtils';
 import { getLocationFromCoordinates } from '../../utils/locationUtils';
+import DotLoader from '../../components/DotLoader';
 
-const JobCard = ({ job }) => {
+const JobCard = ({ job, showActions = true }) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const wishlistIds = useSelector(selectWishlistIds);
   const { showSnackbar } = useSnackbar();
   const [isScrolling, setIsScrolling] = useState(false);
   const [cityName, setCityName] = useState('');
+  const [isLoadingCity, setIsLoadingCity] = useState(true);
 
   const isWishlisted = wishlistIds.includes(job?._id);
   const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
@@ -60,8 +61,12 @@ const JobCard = ({ job }) => {
 
   useEffect(() => {
     if (job?.location?.coordinates) {
+      setIsLoadingCity(true);
       getLocationFromCoordinates(job.location.coordinates).then(({ city }) => {
         setCityName(city);
+        setIsLoadingCity(false);
+      }).catch(() => {
+        setIsLoadingCity(false);
       });
     }
   }, [job?.location?.coordinates]);
@@ -117,11 +122,15 @@ const JobCard = ({ job }) => {
               )}
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.locationIcon} />
-                <Text style={styles.overlayText}>
-                  {job?.distanceFromUser !== null && job?.distanceFromUser !== undefined && cityName
-                    ? `${cityName} - ${formatDistance(job.distanceFromUser)}`
-                    : 'Distance N/A'}
-                </Text>
+                {isLoadingCity ? (
+                  <DotLoader color="#fff" size={4} />
+                ) : (
+                  <Text style={styles.overlayText}>
+                    {job?.distanceFromUser !== null && job?.distanceFromUser !== undefined && cityName
+                      ? `${cityName} - ${formatDistance(job.distanceFromUser)}`
+                      : 'Distance N/A'}
+                  </Text>
+                )}
               </View>
             </View>
           </LinearGradient>
@@ -162,8 +171,9 @@ const JobCard = ({ job }) => {
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={styles.row}>
-            <Text  style={styles.title}>{job?.title || 'Job Title'}</Text>
-
+            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+              {job?.title || 'Job Title'}
+            </Text>
             <Text style={styles.price}>
               {job?.amount?.disclose && job?.amount?.max !== 0
                 ? `₹ ${job?.amount?.max}`
@@ -185,11 +195,15 @@ const JobCard = ({ job }) => {
               </View>
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.noImageIcon} />
-                <Text style={styles.noImageText}>
-                  {job?.distanceFromUser !== null && job?.distanceFromUser !== undefined && cityName
-                    ? `${cityName} - ${formatDistance(job.distanceFromUser)}`
-                    : 'Distance N/A'}
-                </Text>
+                {isLoadingCity ? (
+                  <DotLoader color="#000" size={4} />
+                ) : (
+                  <Text style={styles.noImageText}>
+                    {job?.distanceFromUser !== null && job?.distanceFromUser !== undefined && cityName
+                      ? `${cityName} - ${formatDistance(job.distanceFromUser)}`
+                      : 'Distance N/A'}
+                  </Text>
+                )}
               </View>
             </View>
           )}
@@ -208,22 +222,23 @@ const JobCard = ({ job }) => {
           </View>
 
           {/* Buttons */}
-        
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={styles.bidButton}
-              onPress={() => console.log('Bid clicked')}
-            >
-              <Text style={styles.bidButtonText}>Bid</Text>
-            </TouchableOpacity>
+          {showActions && (
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.bidButton}
+                onPress={() => console.log('Bid clicked')}
+              >
+                <Text style={styles.bidButtonText}>Bid</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.chatButton}
-              onPress={() => console.log('Chat clicked')}
-            >
-              <Text style={styles.chatButtonText}>Chat</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.chatButton}
+                onPress={() => console.log('Chat clicked')}
+              >
+                <Text style={styles.chatButtonText}>Chat</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     </View>
@@ -368,9 +383,11 @@ const styles = StyleSheet.create({
   },
 
   title: {
+    flex: 1,
     fontSize: 14,
     fontWeight: '700',
     color: '#1a1a1a',
+    marginRight: 8,
   },
 
   price: {

@@ -126,7 +126,7 @@ const AppliedTasksSection = ({ isLoading }) => {
        style={{ flex: 1 }}
         data={filteredJobs}
         keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => <JobCard job={item} />}
+        renderItem={({ item }) => <JobCard job={item} showActions={false} />}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -196,7 +196,7 @@ const CreatedTasksSection = ({ isLoading }) => {
       <FlatList
         data={filteredJobs}
         keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => <JobCard job={item} />}
+        renderItem={({ item }) => <JobCard job={item} showActions={false} />}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -219,7 +219,7 @@ const ManageJobScreen = ({ navigation }) => {
       <MyStatusBar />
       <CommonAppBar navigation={navigation} title="Manage Tasks" />
       <SwipableTabs
-        titles={['Applied Tasks', 'Created Tasks']}
+        titles={['As a Seeker', 'As a Creator']}
         components={[
           <AppliedTasksSection isLoading={isLoading} />,
           <CreatedTasksSection isLoading={isLoading} />,

@@ -3,8 +3,10 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import TabNavigator from './TabNavigator';
 // import NotificationScreen from '../screens/NotificationScreen';
+import CreateJobScreen from '../screens/Jobs/CreateJobScreen';
 import CreateJobScreen2 from '../screens/Jobs/CreateJobScreen2';
 import CreateJobScreen3 from '../screens/Jobs/CreateJobScreen3';
+import DraftChoiceScreen from '../screens/Jobs/DraftChoiceScreen';
 import JobDetailedScreen from '../screens/Jobs/JobDetailedScreen';
 import ApproximateLocationMap from '../screens/Jobs/ApproximateLocationMap';
 import LanguageSelectScreen from '../screens/LanguageSelectScreen';
@@ -28,6 +30,8 @@ export default function AppStackNavigator() {
       {/* <Stack.Screen name="LocationPermission" component={LocationPermissionScreen} /> */}
       {/* Main bottom tabs */}
       <Stack.Screen name="MainTabs" component={TabNavigator} />
+      <Stack.Screen name="DraftChoiceScreen" component={DraftChoiceScreen} />
+      <Stack.Screen name="CreateJobScreen" component={CreateJobScreen} />
       <Stack.Screen name="CreateJobScreen2" component={CreateJobScreen2} />
       <Stack.Screen name="CreateJobScreen3" component={CreateJobScreen3} />
       <Stack.Screen name="JobDetailedScreen" component={JobDetailedScreen} />

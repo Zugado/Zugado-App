@@ -85,6 +85,7 @@ export default function CreateJob({ navigation, route }) {
   const [coordinates, setCoordinates] = useState(null);
   const scrollViewRef = React.useRef(null);
   const [jobLocationType, setJobLocationType] = useState('');
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   //timing for person
   const [timingType, setTimingType] = useState('');
   const [date, setDate] = useState('');
@@ -117,75 +118,113 @@ export default function CreateJob({ navigation, route }) {
   const [isTimingClicked, setTimingClicked] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Debug: Log incoming job data and current form state
+  // Load draft data on mount
   useEffect(() => {
-    console.log('=== SCREEN 2 - COMPONENT MOUNTED ===');
-    console.log('Incoming Job Data:', JSON.stringify(jobData, null, 2));
-    console.log('Current Form State:', {
-      address,
-      coordinates,
-      jobLocationType,
-      timingType,
-      discloseAmount,
-      amount,
-      isNegotiable,
-      unit,
-    });
-    console.log('=== END SCREEN 2 MOUNT DEBUG ===\n');
-  }, []);
-
-  // Save draft data for Screen 2 fields
-  useEffect(() => {
-    const saveDraftScreen2 = async () => {
+    const loadDraft = async () => {
       try {
-        const existingDraft = await AsyncStorage.getItem('jobDraft');
-        if (existingDraft) {
-          const draftData = JSON.parse(existingDraft);
-
-          // Update draft with Screen 2 data
-          const updatedDraft = {
-            ...draftData,
-            // Location data
-            address,
-            coordinates,
-            jobLocationType,
-            // Timing data
-            timingType:
-              jobData?.jobFor === 'person' ? timingType : thingTimingType,
-            date,
-            startTime,
-            endTime,
-            startDate,
-            endDate,
-            dailyHours,
-            deadline,
-            estimatedHours,
-            thingDate,
-            thingDeadline,
-            thingStartTime,
-            thingEndTime,
-            thingStartDate,
-            thingEndDate,
-            thingDailyHours,
-            thingEstimatedHours,
-            // Amount data
-            discloseAmount,
-            amount,
-            isNegotiable,
-            unit,
-            deposit,
-          };
-
-          await AsyncStorage.setItem('jobDraft', JSON.stringify(updatedDraft));
-          console.log('Screen 2 draft updated successfully');
+        const draft = await AsyncStorage.getItem('jobDraft');
+        if (draft) {
+          const draftData = JSON.parse(draft);
+          console.log('Loading Screen 2 draft:', JSON.stringify(draftData,null,2));
+          
+          setIsLoadingDraft(true);
+          
+          // Load Screen 2 specific data
+          if (draftData.address) setAddress(draftData.address);
+          if (draftData.coordinates) setCoordinates(draftData.coordinates);
+          if (draftData.jobLocationType) setJobLocationType(draftData.jobLocationType);
+          
+          // Timing data for person
+          if (draftData.timingType) setTimingType(draftData.timingType);
+          if (draftData.date) setDate(draftData.date);
+          if (draftData.startTime) setStartTime(draftData.startTime);
+          if (draftData.endTime) setEndTime(draftData.endTime);
+          if (draftData.startDate) setStartDate(draftData.startDate);
+          if (draftData.endDate) setEndDate(draftData.endDate);
+          if (draftData.dailyHours) setDailyHours(draftData.dailyHours);
+          if (draftData.deadline) setDeadline(draftData.deadline);
+          if (draftData.estimatedHours) setEstimatedHours(draftData.estimatedHours);
+          
+          // Timing data for thing
+          if (draftData.thingTimingType) setThingTimingType(draftData.thingTimingType);
+          if (draftData.thingDate) setThingDate(draftData.thingDate);
+          if (draftData.thingDeadline) setThingDeadline(draftData.thingDeadline);
+          if (draftData.thingStartTime) setThingStartTime(draftData.thingStartTime);
+          if (draftData.thingEndTime) setThingEndTime(draftData.thingEndTime);
+          if (draftData.thingStartDate) setThingStartDate(draftData.thingStartDate);
+          if (draftData.thingEndDate) setThingEndDate(draftData.thingEndDate);
+          if (draftData.thingDailyHours) setThingDailyHours(draftData.thingDailyHours);
+          if (draftData.thingEstimatedHours) setThingEstimatedHours(draftData.thingEstimatedHours);
+          
+          // Amount data
+          if (draftData.discloseAmount !== undefined) setDiscloseAmount(draftData.discloseAmount);
+          if (draftData.amount) setAmount(draftData.amount);
+          if (draftData.isNegotiable !== undefined) setIsNegotiable(draftData.isNegotiable);
+          if (draftData.unit) setUnit(draftData.unit);
+          if (draftData.deposit) setDeposit(draftData.deposit);
+          
+          setTimeout(() => setIsLoadingDraft(false), 500);
         }
       } catch (error) {
-        console.log('Error updating Screen 2 draft:', error);
+        console.log('Error loading Screen 2 draft:', error);
+        setIsLoadingDraft(false);
+      }
+    };
+    
+    loadDraft();
+  }, []);
+
+  // Save draft data
+  useEffect(() => {
+    if (isLoadingDraft) return;
+    
+    const saveDraft = async () => {
+      try {
+        const existingDraft = await AsyncStorage.getItem('jobDraft');
+        const draftData = existingDraft ? JSON.parse(existingDraft) : {};
+
+        const updatedDraft = {
+          ...draftData,
+          address,
+          coordinates,
+          jobLocationType,
+          timingType,
+          thingTimingType,
+          date,
+          startTime,
+          endTime,
+          startDate,
+          endDate,
+          dailyHours,
+          deadline,
+          estimatedHours,
+          thingDate,
+          thingDeadline,
+          thingStartTime,
+          thingEndTime,
+          thingStartDate,
+          thingEndDate,
+          thingDailyHours,
+          thingEstimatedHours,
+          discloseAmount,
+          amount,
+          isNegotiable,
+          unit,
+          deposit,
+        };
+
+        await AsyncStorage.setItem('jobDraft', JSON.stringify(updatedDraft));
+
+        const draftDataCheck = await AsyncStorage.getItem('jobDraft');
+        console.log('Screen 2 draft saved:', JSON.stringify(JSON.parse(draftDataCheck),null,2));
+      } catch (error) {
+        console.log('Error saving Screen 2 draft:', error);
       }
     };
 
-    saveDraftScreen2();
+    saveDraft();
   }, [
+    isLoadingDraft,
     address,
     coordinates,
     jobLocationType,
