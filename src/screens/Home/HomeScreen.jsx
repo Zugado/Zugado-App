@@ -14,7 +14,7 @@ import Geolocation from '@react-native-community/geolocation';
 import MyStatusBar from '../../components/MyStatusbar';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Header from '../../components/Header';
-import JobCard from './JobCard';
+import JobCard from '../../components/JobCard';
 import JobCardSkeleton from '../../components/JobCardSkeleton';
 import LoaderCard from '../../components/LoaderCard';
 import { SafeAreaView } from 'react-native-safe-area-context';

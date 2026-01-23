@@ -4,9 +4,9 @@ import Feather from 'react-native-vector-icons/Feather';
 import { Colors, commonStyles } from '../styles/commonStyles';
 import NotificationIcon from './NotificationIcon';
 
-export const CommonAppBar = ({ title, onBackPress, navigation, showNotificationIcon = false }) => {
+export const CommonAppBar = ({ title, onBackPress, navigation, showNotificationIcon = false ,  borderBottomColor=Colors.extraLightGrayColor }) => {
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { borderBottomColor }]}>
       <TouchableOpacity onPress={onBackPress || (() => navigation?.goBack())}>
         <Feather name="arrow-left" size={24} color={Colors.blackColor} />
       </TouchableOpacity>
@@ -199,8 +199,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.extraLightGrayColor,
-  },
+     },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',

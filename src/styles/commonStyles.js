@@ -7,7 +7,7 @@ export const Colors = {
   darkBlue: '#101942',
   secondary: '#FF5722',
   secondaryLight: "#FF8C00",
-  bodyBackColor: "#F2F2F2",
+  bodyBackColor: "#fcfcfc",
   blackColor: "#000000",
   whiteColor: "#FFFFFF",
   grayColor: "#828282",

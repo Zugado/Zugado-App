@@ -16,11 +16,11 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-import { Colors } from '../../styles/commonStyles';
-import { selectWishlistIds } from '../../store/selector';
-import { handleWishlistToggle } from '../../utils/wishlistUtils';
-import { useSnackbar } from '../../contexts/SnackbarContext';
-import { getRelativeTime } from '../../utils/timeUtils';
+import { Colors } from '../styles/commonStyles';
+import { selectWishlistIds } from '../store/selector';
+import { handleWishlistToggle } from '../utils/wishlistUtils';
+import { useSnackbar } from '../contexts/SnackbarContext';
+import { getRelativeTime } from '../utils/timeUtils';
 
 const JobCard = ({ job }) => {
   const dispatch = useDispatch();
@@ -124,7 +124,7 @@ const JobCard = ({ job }) => {
       {isUrgent && (
         <View style={styles.urgentTag}>
           <Image
-            source={require('../../assets/Icons/urgentTag.png')}
+            source={require('../assets/Icons/urgentTag.png')}
             style={styles.urgentTagImage}
           />
           <Text style={styles.urgentText}>Urgent</Text>
@@ -136,8 +136,8 @@ const JobCard = ({ job }) => {
         <Image
           source={
             isWishlisted
-              ? require('../../assets/Icons/SavedGolden.png')
-              : require('../../assets/Icons/SavedBlack.png')
+              ? require('../assets/Icons/SavedGolden.png')
+              : require('../assets/Icons/SavedBlack.png')
           }
           style={styles.saveTagImage}
         />

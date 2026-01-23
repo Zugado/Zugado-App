@@ -8,14 +8,16 @@ import {
   ScrollView,
   RefreshControl,
   Dimensions,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import JobCard from '../screens/Home/JobCard';
+import MiniJobCard from '../components/MiniJobCard';
 import MyStatusBar from '../components/MyStatusbar';
 import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
 import SwipableTabs from '../components/SwipableTabs';
 import { Colors } from '../styles/commonStyles';
 import LoaderCard from '../components/LoaderCard';
+import SelectorToggleButton from '../components/SelectorToggleButton';
 // Dummy data for My Jobs (jobs I applied to)
 const myJobsData = [
   {
@@ -72,7 +74,14 @@ const EmptyList = ({ message }) => (
 const AppliedTasksSection = ({ isLoading }) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
-  const filters = ['All','Pending', 'Active', 'Completed', 'Cancelled', 'Rejected'];
+  const filters = [
+    'All',
+    'Pending',
+    'Active',
+    'Completed',
+    'Cancelled',
+    'Rejected',
+  ];
 
   const filteredJobs =
     selectedFilter === 'All'
@@ -101,7 +110,7 @@ const AppliedTasksSection = ({ isLoading }) => {
           style={styles.filterContainer}
           nestedScrollEnabled={true}
         >
-          {filters.map(filter => ( 
+          {filters.map(filter => (
             <TouchableOpacity
               key={filter}
               style={[
@@ -123,10 +132,10 @@ const AppliedTasksSection = ({ isLoading }) => {
         </ScrollView>
       )}
       <FlatList
-       style={{ flex: 1 }}
+        style={{ flex: 1 }}
         data={filteredJobs}
         keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => <JobCard job={item} />}
+        renderItem={({ item }) => <MiniJobCard job={item} />}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -213,26 +222,40 @@ const CreatedTasksSection = ({ isLoading }) => {
 
 const ManageJobScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
-
+  const [selectedTab, setSelectedTab] = useState('As a Seeker');
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.whiteColor }}>
-      <MyStatusBar />
-      <CommonAppBar navigation={navigation} title="Manage Tasks" />
-      <SwipableTabs
-        titles={['Applied Tasks', 'Created Tasks']}
-        components={[
-          <AppliedTasksSection isLoading={isLoading} />,
-          <CreatedTasksSection isLoading={isLoading} />,
-        ]}
+    <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.bodyBackColor} />
+      <CommonAppBar
+        borderBottomColor={Colors.whiteColor}
+        navigation={navigation}
+        title="Manage Jobs"
       />
+      <View style={{ paddingHorizontal: 10 }}>
+      <SelectorToggleButton
+        options={['As a Seeker', 'As a Creator']}
+        selectedValue={selectedTab}
+        onValueChange={setSelectedTab}
+        backgroundColor={Colors.extraLightGrayColor}
+        unselectedTextColor={Colors.blackColor}
+      />
+      </View>
+      <View style={{ flex: 1 }}>
+        {selectedTab === 'As a Seeker' ? (
+          <AppliedTasksSection isLoading={isLoading} />
+        ) : (
+          <CreatedTasksSection isLoading={isLoading} />
+        )}
+      </View>
+    
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   filterContainer: {
-    marginVertical: 10,
-    maxHeight: 40,
+    marginVertical: 8,
+     maxHeight: 30,
     paddingHorizontal: 10,
   },
   filterScrollContent: {
@@ -243,20 +266,21 @@ const styles = StyleSheet.create({
   filterButton: {
     marginHorizontal: 2,
     borderWidth: 1,
+    height:30,
     borderColor: '#ccc',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    minHeight: 30,
-    marginRight: 8,
+    backgroundColor: Colors.whiteColor,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+     marginRight: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   selectedFilterButton: {
     borderColor: Colors.primary,
-    backgroundColor: '#f0f8ff',
+    backgroundColor: Colors.extraLightGrayColor,
   },
   filterText: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#555',
     textAlign: 'center',
   },

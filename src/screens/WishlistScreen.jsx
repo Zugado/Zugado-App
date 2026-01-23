@@ -16,7 +16,7 @@ import { getWishlist, removeFromWishlist } from '../store/thunks/wishlistThunk';
 import { selectWishlist, selectWishlistLoading } from '../store/selector';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import MyStatusBar from '../components/MyStatusbar';
-import JobCard from './Home/JobCard';
+import JobCard from '../components/JobCard';
 import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
 import { Colors } from '../styles/commonStyles';
 import LoaderCard from '../components/LoaderCard';
