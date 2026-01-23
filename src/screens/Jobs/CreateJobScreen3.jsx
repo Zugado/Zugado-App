@@ -21,6 +21,7 @@ import { useDispatch } from 'react-redux';
 import { createJob, uploadJobAttachmentsById } from '../../store/thunks/jobThunk';
 import { FaddedIcon } from '../../components/CommonComponents';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Colors } from '../../styles/commonStyles';
 
 export default function CreateJobPageThree({ navigation, route }) {
   const { jobData } = route.params;
@@ -32,6 +33,7 @@ export default function CreateJobPageThree({ navigation, route }) {
   const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
   const [currentMediaType, setCurrentMediaType] = useState('image');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
   
   // Log job data on component render
   useEffect(() => {
@@ -226,10 +228,10 @@ export default function CreateJobPageThree({ navigation, route }) {
       const formattedJobData = {
         jobFor: jobData?.jobFor,
         purpose: jobData?.purpose || null,
-        title: jobData?.title,
-        description: jobData?.description,
-        tags: jobData?.category || [],
-        requirements: jobData?.requirements || '',
+        title: jobData?.title || null,
+        description: jobData?.description || null,
+        tags: jobData?.category || null,
+        requirements: jobData?.requirements || null,
         experienceLevel: jobData?.experienceLevel,
         locationType: jobData?.locationType || null,
         location: jobData?.location,
@@ -237,11 +239,11 @@ export default function CreateJobPageThree({ navigation, route }) {
         timingType: jobData?.timingType,
         timingDetails: formattedTimingDetails,
         amount: {
-          value: jobData?.amount?.value || 0,
+          value: jobData?.amount?.value || null,
           unit: jobData?.amount?.unit || null,
           disclose: jobData?.amount?.disclose || false,
-          negotiable: jobData?.amount?.negotiable || false,
-          range: jobData?.amount?.range || null
+          negotiable: jobData?.amount?.negotiable || false
+         
         }
       };
 
@@ -268,30 +270,20 @@ export default function CreateJobPageThree({ navigation, route }) {
       console.log('Amount Range:', formattedJobData.amount.range);
       console.log('=== END FIELD BREAKDOWN ===\n');
 
-      // For testing - just log and show success
-      showSnackbar('✅ Job data logged to console - check logs for complete details!', 'success');
-      
-      // Clear draft data only after successful submission
-      try {
-        await AsyncStorage.removeItem('jobDraft');
-        console.log('✅ Draft data cleared after successful submission');
-      } catch (error) {
-        console.log('Error clearing draft:', error);
-      }
-      
-      console.log('\n=== JOB SUBMISSION COMPLETE ===\n');
-      
-      
       const jobResponse = await dispatch(createJob(formattedJobData));
       
       if (createJob.fulfilled.match(jobResponse)) {
-        const jobId = jobResponse.payload?.data?.id || jobResponse.payload?.id;
+        const jobId = jobResponse.payload?.data?.id || jobResponse.payload?.data?._id || jobResponse.payload?.id;
+        console.log('\n=== JOB CREATED SUCCESSFULLY ===');
+        console.log('Job ID:', jobId);
+        console.log('Media Files to Upload:', mediaFiles.length);
+        console.log('Media Files = :', mediaFiles);
         
         if (mediaFiles.length > 0 && jobId) {
+          console.log('Uploading', mediaFiles.length, 'media files...');
           await uploadMediaFiles(jobId);
         }
         
-        // Clear draft only on successful API response
         try {
           await AsyncStorage.removeItem('jobDraft');
           console.log('Draft cleared after successful job posting');
@@ -299,7 +291,8 @@ export default function CreateJobPageThree({ navigation, route }) {
           console.log('Error clearing draft:', error);
         }
         
-        showSnackbar('Job posted successfully!', 'success');
+        console.log('\n=== JOB SUBMISSION COMPLETE ===\n');
+        showSnackbar('Task posted successfully!', 'success');
         navigation.reset({
           index: 0,
           routes: [{ name: 'MainTabs', params: { screen: 'Home' } }],
@@ -373,7 +366,6 @@ export default function CreateJobPageThree({ navigation, route }) {
 
   const MediaThumbnail = ({ file }) => (
     <View style={styles.thumbnailContainer}>
-      {/* Show Image or Video Thumbnail */}
       {file.type === 'image' ? (
         <Image
           source={{ uri: file.uri }}
@@ -392,8 +384,6 @@ export default function CreateJobPageThree({ navigation, route }) {
           </View>
         </View>
       )}
-
-      {/* Remove Button */}
       <TouchableOpacity
         style={styles.removeButton}
         onPress={() => handleRemoveMedia(file.id)}
@@ -402,6 +392,147 @@ export default function CreateJobPageThree({ navigation, route }) {
       </TouchableOpacity>
     </View>
   );
+
+  const PreviewSection = ({ icon, title, children }) => (
+    <View style={styles.previewSection}>
+      <View style={styles.previewHeader}>
+        <Feather name={icon} size={18} color="#000" />
+        <Text style={styles.previewTitle}>{title}</Text>
+      </View>
+      <View style={styles.previewContent}>{children}</View>
+    </View>
+  );
+
+  const PreviewRow = ({ label, value }) => (
+    value ? (
+      <View style={styles.previewRow}>
+        <Text style={styles.previewLabel}>{label}</Text>
+        <Text style={styles.previewValue}>{value}</Text>
+      </View>
+    ) : null
+  );
+
+  if (showPreview) {
+    return (
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: '#fff' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <SafeAreaView style={styles.safeAreaBlack}>
+          <MyStatusBar />
+          <View style={styles.container}>
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.header}>
+                <TouchableOpacity
+                  onPress={() => navigation.goBack()}
+                  style={styles.backButton}
+                >
+                  <Feather name="arrow-left" size={20} color="#000" />
+                </TouchableOpacity>
+                <View style={styles.progressContainer}>
+                  <View style={[styles.progressBar, { width: '100%' }]} />
+                </View>
+                <Text style={styles.progressText}>3/3</Text>
+              </View>
+
+              <Text style={styles.title}>Review Your Posting</Text>
+              <Text style={styles.subtitle}>Please review all details before submitting</Text>
+
+              {/* Basic Info */}
+              <PreviewSection icon="briefcase" title="Basic Information">
+                <PreviewRow label="Task For" value={jobData?.jobFor === 'person' ? 'Person' : 'Thing'} />
+                <PreviewRow label="Type" value={jobData?.jobType === 'quick' ? 'Urgent' : 'Standard'} />
+                <PreviewRow label="Title" value={jobData?.title} />
+                <PreviewRow label="Description" value={jobData?.description} />
+                {jobData?.purpose && <PreviewRow label="Purpose" value={jobData?.purpose} />}
+                {jobData?.requirements && <PreviewRow label="Requirements" value={jobData?.requirements} />}
+                {jobData?.experienceLevel && (
+                  <PreviewRow 
+                    label="Experience Level" 
+                    value={jobData?.experienceLevel.charAt(0).toUpperCase() + jobData?.experienceLevel.slice(1)} 
+                  />
+                )}
+                {jobData?.category?.length > 0 && (
+                  <View style={styles.previewRow}>
+                    <Text style={styles.previewLabel}>Categories</Text>
+                    <View style={styles.tagsContainer}>
+                      {jobData.category.map((tag, idx) => (
+                        <View key={idx} style={styles.tag}>
+                          <Text style={styles.tagText}>{tag}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </PreviewSection>
+
+              {/* Location */}
+              <PreviewSection icon="map-pin" title="Location">
+                {jobData?.locationType && (
+                  <PreviewRow 
+                    label="Type" 
+                    value={jobData.locationType.charAt(0).toUpperCase() + jobData.locationType.slice(1)} 
+                  />
+                )}
+                {jobData?.location?.address && (
+                  <PreviewRow label="Address" value={jobData.location.address} />
+                )}
+              </PreviewSection>
+
+              {/* Timing */}
+              <PreviewSection icon="clock" title="Timing">
+                <PreviewRow 
+                  label="Type" 
+                  value={jobData?.timingType?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} 
+                />
+                {jobData?.timingDetails?.date && <PreviewRow label="Date" value={jobData.timingDetails.date} />}
+                {jobData?.timingDetails?.startTime && <PreviewRow label="Start Time" value={jobData.timingDetails.startTime} />}
+                {jobData?.timingDetails?.endTime && <PreviewRow label="End Time" value={jobData.timingDetails.endTime} />}
+                {jobData?.timingDetails?.startDate && <PreviewRow label="Start Date" value={jobData.timingDetails.startDate} />}
+                {jobData?.timingDetails?.endDate && <PreviewRow label="End Date" value={jobData.timingDetails.endDate} />}
+                {jobData?.timingDetails?.dailyHours && <PreviewRow label="Daily Hours" value={jobData.timingDetails.dailyHours} />}
+                {jobData?.timingDetails?.deadline && <PreviewRow label="Deadline" value={jobData.timingDetails.deadline} />}
+                {jobData?.timingDetails?.estimatedHours && <PreviewRow label="Estimated Hours" value={jobData.timingDetails.estimatedHours} />}
+              </PreviewSection>
+
+              {/* Payment */}
+              {jobData?.amount?.disclose && (
+                <PreviewSection icon="dollar-sign" title="Payment">
+                  <PreviewRow label="Amount" value={`₹${jobData.amount.value}`} />
+                  {jobData?.amount?.unit && <PreviewRow label="Unit" value={jobData.amount.unit} />}
+                  <PreviewRow label="Negotiable" value={jobData?.amount?.negotiable ? 'Yes' : 'No'} />
+                  {jobData?.amount?.deposit && <PreviewRow label="Deposit" value={`₹${jobData.amount.deposit}`} />}
+                </PreviewSection>
+              )}
+
+              <FaddedIcon />
+            </ScrollView>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => navigation.goBack()}
+              >
+                <Feather name="edit-2" size={16} color="#000" />
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={() => setShowPreview(false)}
+              >
+                <Text style={styles.continueButtonText}>Continue</Text>
+                <Feather name="arrow-right" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -438,19 +569,6 @@ export default function CreateJobPageThree({ navigation, route }) {
 
           {/* --- Title --- */}
           <Text style={styles.title}>Add Media & Finalize Posting</Text>
-          
-          {/* Job Summary */}
-          <View style={styles.summaryContainer}>
-            <Text style={styles.summaryTitle}>Job Summary</Text>
-            <Text style={styles.summaryText}>Title: {jobData?.title}</Text>
-            <Text style={styles.summaryText}>Type: {jobData?.jobType} • {jobData?.jobFor}</Text>
-            <Text style={styles.summaryText}>Location: {jobData?.locationType}</Text>
-            {jobData?.amount?.disclose && (
-              <Text style={styles.summaryText}>
-                Amount: ₹{jobData?.amount?.value}
-              </Text>
-            )}
-          </View>
 
           {/* --- Upload Section --- */}
           <View style={styles.uploadSection}>
@@ -573,9 +691,76 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
-    marginBottom: 20,
+    marginBottom: 8,
     textAlign: 'center',
   },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  
+  // Preview Styles
+  previewSection: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    overflow: 'hidden',
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 16,
+    backgroundColor: '#f8f9fa',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e9ecef',
+  },
+  previewTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  previewContent: {
+    padding: 16,
+  },
+  previewRow: {
+    marginBottom: 12,
+  },
+  previewLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  previewValue: {
+    fontSize: 14,
+    color: '#000',
+    lineHeight: 20,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
+  tag: {
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  tagText: {
+    fontSize: 12,
+    color: '#000',
+    fontWeight: '500',
+  },
+  
   summaryContainer: {
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
@@ -691,8 +876,43 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  editButton: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 30,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  editButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  continueButton: {
+    flex: 1,
+    backgroundColor: '#000',
+    borderRadius: 30,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  continueButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   submitButton: {
+    flex: 1,
     backgroundColor: '#000',
     borderRadius: 30,
     paddingVertical: 12,

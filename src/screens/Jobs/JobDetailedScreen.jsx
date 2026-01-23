@@ -10,6 +10,7 @@ import { getWishlist } from '../../store/thunks/wishlistThunk';
 import { selectWishlistIds } from '../../store/selector';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { handleWishlistToggle } from '../../utils/wishlistUtils';
+import { getLocationFromCoordinates } from '../../utils/locationUtils';
 import Video from 'react-native-video';
 import { selectToken } from '../../store/selector';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -52,11 +53,7 @@ const Tag = ({ text }) => (
 // Helper functions
 const formatTime = (time) => {
   if (!time) return '';
-  const [hours, minutes] = time.split(':');
-  const hour = parseInt(hours);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const displayHour = hour % 12 || 12;
-  return `${displayHour}:${minutes} ${ampm}`;
+  return time;
 };
 
 const formatDate = (dateStr) => {
@@ -129,11 +126,13 @@ export default function JobDetailedScreen({ navigation, route }) {
   const [previewModal, setPreviewModal] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [locationText, setLocationText] = useState('Loading...');
   const flatListRef = useRef(null);
   const intervalRef = useRef(null);
   const jobId = route.params?.jobId;
   
   const isWishlisted = wishlistIds.includes(jobId);
+  
   useEffect(() => {
     if (jobId) {
       fetchJobDetails();
@@ -141,27 +140,13 @@ export default function JobDetailedScreen({ navigation, route }) {
     dispatch(getWishlist());
   }, [jobId, dispatch]);
 
-  console.log("Token = ", AsyncStorage.getItem('token'));
-  console.log("jobData = ", JSON.stringify(jobData, null, 2))
-
-  // Auto-scroll disabled
-  // useEffect(() => {
-  //   if (jobData?.attachments && jobData.attachments.length > 1) {
-  //     intervalRef.current = setInterval(() => {
-  //       setCurrentIndex(prevIndex => {
-  //         const nextIndex = (prevIndex + 1) % jobData.attachments.length;
-  //         flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-  //         return nextIndex;
-  //       });
-  //     }, 3000);
-  //     return () => {
-  //       if (intervalRef.current) {
-  //         clearInterval(intervalRef.current);
-  //       }
-  //     };
-  //   }
-  // }, [jobData?.attachments?.length]);
-
+  useEffect(() => {
+    if (jobData?.location?.coordinates) {
+      getLocationFromCoordinates(jobData.location.coordinates).then(({ locality, city, state }) => {
+        setLocationText(`${locality}, ${city}, ${state}`);
+      });
+    }
+  }, [jobData?.location?.coordinates]);
 
   const fetchJobDetails = async () => {
     try {
@@ -219,7 +204,7 @@ export default function JobDetailedScreen({ navigation, route }) {
         <MyStatusBar />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#000" />
-          <Text style={styles.loadingText}>Loading job details...</Text>
+          <Text style={styles.loadingText}>Loading task details...</Text>
         </View>
       </SafeAreaView>
     );
@@ -351,8 +336,6 @@ export default function JobDetailedScreen({ navigation, route }) {
             </Text>
           </View>
 
-
-
           {/* Requirements */}
           {jobData.requirements && (
             <View style={styles.section}>
@@ -369,7 +352,29 @@ export default function JobDetailedScreen({ navigation, route }) {
             <DetailRow icon="briefcase" label="Task For" value={jobData.jobFor ? jobData.jobFor.charAt(0).toUpperCase() + jobData.jobFor.slice(1) : 'NA'} />
             <DetailRow icon="zap" label="Task Type" value={jobData.jobType ? jobData.jobType.charAt(0).toUpperCase() + jobData.jobType.slice(1) : 'NA'} />
             <DetailRow icon="award" label="Experience" value={getExperienceText(jobData.experienceLevel)} />
-            <DetailRow icon={getLocationIcon(jobData.locationType)} label="Location Type" value={jobData.locationType ? jobData.locationType.charAt(0).toUpperCase() + jobData.locationType.slice(1) : 'NA'} />
+            {jobData.location ? (
+              <TouchableOpacity 
+                style={styles.detailRow}
+                onPress={() => navigation.navigate('ApproximateLocationMap', {
+                  coordinates: jobData.location.coordinates,
+                  address: locationText
+                })}
+                activeOpacity={0.7}
+              >
+                <View style={styles.detailLabel}>
+                  <Feather name="map-pin" size={16} color="#6B7280" style={{ marginRight: 8 }} />
+                  <Text style={styles.detailLabelText}>Location</Text>
+                </View>
+                <View style={styles.locationValueContainer}>
+                  <Text style={styles.detailValue}>
+                    {locationText}
+                  </Text>
+                  <Feather name="chevron-right" size={16} color="#6B7280" style={{ marginLeft: 4 }} />
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <DetailRow icon={getLocationIcon(jobData.locationType)} label="Location" value={jobData.locationType ? jobData.locationType.charAt(0).toUpperCase() + jobData.locationType.slice(1) : 'NA'} />
+            )}
             <DetailRow icon="clock" label="Timing" value={getTimingText(jobData.timingType, jobData.timingDetails)} />
           </View>
         </View>
@@ -381,7 +386,8 @@ export default function JobDetailedScreen({ navigation, route }) {
         <View>
           <Text style={styles.budgetLabel}>Budget</Text>
           <Text style={styles.budgetValue}>
-            <FontAwesome name="dollar" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min > 0 || jobData.amount?.max > 0) ? `${jobData.amount.min}-${jobData.amount.max}` : 'Not Disclosed'}
+            {/* <FontAwesome name="dollar" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min >= 0 || jobData.amount?.max >= 0) ? `${jobData.amount.min}-${jobData.amount.max}` : 'Not Disclosed'} */}
+            <FontAwesome name="rupee" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min >= 0 || jobData.amount?.max >= 0) ? `${jobData.amount.max}` : 'Not Disclosed'}
           </Text>
         </View>
 
@@ -541,6 +547,7 @@ const styles = StyleSheet.create({
   detailLabel: { flexDirection: 'row', alignItems: 'center' },
   detailLabelText: { fontSize: 14, fontWeight: '500', color: '#111827' },
   detailValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  locationValueContainer: { flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'flex-end' },
 
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderTopWidth: 1, borderTopColor: '#E5E7EB', backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: -2 }, shadowRadius: 4 },
   budgetLabel: { fontSize: 12, fontWeight: '500', color: '#6B7280' },

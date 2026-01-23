@@ -16,7 +16,7 @@ export const getAllJobAPI = (data) =>
   apiGetRequest({
     apiUrl: `/jobs/all`,
     content_type: "application/json",
-    data: data,
+    data: null,
 });
 
 //Get job by id api

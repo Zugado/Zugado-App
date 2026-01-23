@@ -54,14 +54,13 @@ const CheckboxButton = ({ label, selected, onPress }) => (
     <Text style={styles.optionText}>{label}</Text>
   </TouchableOpacity>
 );
-export default function CreateJob({ navigation }) {
+export default function CreateJob({ navigation, route }) {
   const dispatch = useDispatch();
   const availableTags = useSelector(selectTags);
   const tagsLoading = useSelector(selectTagsLoading);
   const { showSnackbar } = useSnackbar();
-  const [showDraftAlert, setShowDraftAlert] = useState(false);
-  const [hasDraft, setHasDraft] = useState(false);
   const scrollViewRef = useRef(null);
+  const { draftData, loadDraft } = route.params || {};
 
   // common
   const [jobFor, setJobFor] = useState('person');
@@ -98,48 +97,71 @@ export default function CreateJob({ navigation }) {
 
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
 
-  // Load tags and check for draft on component mount
+  // Load draft data from route params if available
+  useEffect(() => {
+    if (loadDraft && draftData) {
+      console.log('Loading draft from route params:', draftData);
+      setIsLoadingDraft(true);
+      
+      // Screen 1 data
+      setJobFor(draftData?.jobFor || 'person');
+      setPersonTitle(draftData?.personTitle || '');
+      setPersonDescription(draftData?.personDescription || '');
+      setExperienceLevel(draftData?.experienceLevel || '');
+      setSelectedSkills(draftData?.selectedSkills || []);
+      setSkill(draftData?.skill || '');
+      setRequiresExperience(draftData?.requiresExperience || 'no');
+      setJobType(draftData?.jobType || 'standard');
+      setThingTitle(draftData?.thingTitle || '');
+      setThingDescription(draftData?.thingDescription || '');
+      setPurpose(draftData?.purpose || '');
+      setOtherPurpose(draftData?.otherPurpose || '');
+      setSelectedThingCategory(draftData?.selectedThingCategory || '');
+      
+      setTimeout(() => setIsLoadingDraft(false), 500);
+      // showSnackbar('Draft loaded successfully', 'success');
+    }
+  }, []);
+
+  // Load tags on component mount
   useEffect(() => {
     dispatch(getAllTags());
-    checkForDraft();
   }, [dispatch]);
-
-  // Listen for screen focus to auto-load draft when opened from tab bar
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      console.log('=== SCREEN FOCUSED - AUTO LOADING DRAFT ===');
-      autoLoadDraftOnFocus();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
 
   // Save draft whenever form data changes (but not when loading draft)
   useEffect(() => {
-    if (isLoadingDraft) return; // Skip saving while loading draft
+    if (isLoadingDraft) return;
 
-    const draftData = {
-      jobFor,
-      personTitle,
-      personDescription,
-      experienceLevel,
-      selectedSkills,
-      skill,
-      requiresExperience,
-      jobType,
-      thingTitle,
-      thingDescription,
-      purpose,
-      otherPurpose,
-      selectedThingCategory,
+    const saveDraft = async () => {
+      try {
+        const existingDraft = await AsyncStorage.getItem('jobDraft');
+        const existing = existingDraft ? JSON.parse(existingDraft) : {};
+
+        const screen1Data = {
+          jobFor,
+          personTitle,
+          personDescription,
+          experienceLevel,
+          selectedSkills,
+          skill,
+          requiresExperience,
+          jobType,
+          thingTitle,
+          thingDescription,
+          purpose,
+          otherPurpose,
+          selectedThingCategory,
+        };
+
+        const mergedDraft = { ...existing, ...screen1Data };
+        await AsyncStorage.setItem('jobDraft', JSON.stringify(mergedDraft));
+        console.log('Screen 1 draft saved');
+      } catch (error) {
+        console.log('Error saving Screen 1 draft:', error);
+      }
     };
-    saveDraft(draftData);
 
-    // Debug: Log current form state
-    console.log('=== SCREEN 1 - FORM STATE DEBUG ===');
-    console.log('Current Draft Data:', JSON.stringify(draftData, null, 2));
-    console.log('Has Meaningful Data:', hasMeaningfulData(draftData));
-    console.log('=== END SCREEN 1 DEBUG ===\n');
+    saveDraft();
   }, [
     jobFor,
     personTitle,
@@ -157,202 +179,11 @@ export default function CreateJob({ navigation }) {
     isLoadingDraft,
   ]);
 
-  const hasMeaningfulData = data => {
-    return (
-      data?.personTitle ||
-      data?.thingTitle ||
-      data?.personDescription ||
-      data?.thingDescription ||
-      data?.selectedSkills?.length > 0
-    );
-  };
 
-  const autoLoadDraftOnFocus = async () => {
-    try {
-      const draft = await AsyncStorage.getItem('jobDraft');
-      if (draft) {
-        const draftData = JSON.parse(draft);
-        const hasData = hasMeaningfulData(draftData);
 
-        console.log('Auto-loading draft on screen focus');
-        console.log('Has meaningful data:', hasData);
 
-        if (hasData) {
-          // Auto-load draft without showing alert
-          await loadDraftSilently(draftData);
-          showSnackbar('Draft restored automatically', 'success');
-        }
-      }
-    } catch (error) {
-      console.log('Error auto-loading draft:', error);
-    }
-  };
 
-  const loadDraftSilently = async draftData => {
-    try {
-      console.log('=== SILENTLY LOADING DRAFT ===');
-      console.log('Draft Data to Load:', JSON.stringify(draftData, null, 2));
 
-      setIsLoadingDraft(true); // Prevent save effect during loading
-
-      // Use setTimeout to ensure state updates are processed
-      setTimeout(() => {
-        // Set all state values
-        setJobFor(draftData?.jobFor || 'person');
-        setPersonTitle(draftData?.personTitle || '');
-        setPersonDescription(draftData?.personDescription || '');
-        setExperienceLevel(draftData?.experienceLevel || '');
-        setSelectedSkills(draftData?.selectedSkills || []);
-        setSkill(draftData?.skill || '');
-        setRequiresExperience(draftData?.requiresExperience || 'no');
-        setJobType(draftData?.jobType || 'standard');
-        setThingTitle(draftData?.thingTitle || '');
-        setThingDescription(draftData?.thingDescription || '');
-        setPurpose(draftData?.purpose || '');
-        setOtherPurpose(draftData?.otherPurpose || '');
-        setSelectedThingCategory(draftData?.selectedThingCategory || '');
-
-        console.log('Draft silently loaded into state');
-
-        // Re-enable saving after state updates
-        setTimeout(() => setIsLoadingDraft(false), 200);
-      }, 50);
-
-      console.log('=== END SILENT DRAFT LOADING ===\n');
-    } catch (error) {
-      console.log('Error loading draft silently:', error);
-      setIsLoadingDraft(false);
-    }
-  };
-  const checkForDraft = async () => {
-    try {
-      const draft = await AsyncStorage.getItem('jobDraft');
-      console.log('=== CHECKING FOR DRAFT ===');
-      console.log('Raw Draft:', draft);
-
-      if (draft) {
-        const draftData = JSON.parse(draft);
-        console.log('Parsed Draft Data:', JSON.stringify(draftData, null, 2));
-
-        const hasData = hasMeaningfulData(draftData);
-        console.log('Has Meaningful Data:', hasData);
-
-        if (hasData) {
-          setHasDraft(true);
-          setShowDraftAlert(true);
-          console.log('Draft alert will be shown');
-        } else {
-          console.log('No meaningful data in draft');
-        }
-      } else {
-        console.log('No draft found');
-      }
-      console.log('=== END DRAFT CHECK ===\n');
-    } catch (error) {
-      console.log('Error checking draft:', error);
-    }
-  };
-
-  const saveDraft = async data => {
-    try {
-      const hasData = hasMeaningfulData(data);
-
-      if (hasData) {
-        await AsyncStorage.setItem('jobDraft', JSON.stringify(data));
-        console.log('Draft saved successfully');
-      } else {
-        // Clear draft if no meaningful data
-        await AsyncStorage.removeItem('jobDraft');
-        console.log('Draft cleared - no meaningful data');
-      }
-    } catch (error) {
-      console.log('Error saving draft:', error);
-    }
-  };
-
-  const loadDraft = async () => {
-    try {
-      const draft = await AsyncStorage.getItem('jobDraft');
-      console.log('=== LOADING DRAFT ===');
-      console.log('Raw Draft to Load:', draft);
-
-      if (draft) {
-        const draftData = JSON.parse(draft);
-        console.log(
-          'Parsed Draft Data to Load:',
-          JSON.stringify(draftData, null, 2),
-        );
-
-        setIsLoadingDraft(true); // Prevent save effect during loading
-
-        // Use setTimeout to ensure state updates are processed
-        setTimeout(() => {
-          // Set all state values
-          setJobFor(draftData?.jobFor || 'person');
-          setPersonTitle(draftData?.personTitle || '');
-          setPersonDescription(draftData?.personDescription || '');
-          setExperienceLevel(draftData?.experienceLevel || '');
-          setSelectedSkills(draftData?.selectedSkills || []);
-          setSkill(draftData?.skill || '');
-          setRequiresExperience(draftData?.requiresExperience || 'no');
-          setJobType(draftData?.jobType || 'standard');
-          setThingTitle(draftData?.thingTitle || '');
-          setThingDescription(draftData?.thingDescription || '');
-          setPurpose(draftData?.purpose || '');
-          setOtherPurpose(draftData?.otherPurpose || '');
-          setSelectedThingCategory(draftData?.selectedThingCategory || '');
-
-          console.log('Draft data loaded into state');
-          console.log('Loaded Values:', {
-            jobFor: draftData?.jobFor,
-            personTitle: draftData?.personTitle,
-            thingTitle: draftData?.thingTitle,
-            selectedSkills: draftData?.selectedSkills,
-          });
-
-          // Re-enable saving after state updates
-          setTimeout(() => setIsLoadingDraft(false), 200);
-        }, 50);
-      }
-      console.log('=== END DRAFT LOADING ===\n');
-    } catch (error) {
-      console.log('Error loading draft:', error);
-      setIsLoadingDraft(false);
-    }
-  };
-
-  const clearDraft = async () => {
-    try {
-      await AsyncStorage.removeItem('jobDraft');
-    } catch (error) {
-      console.log('Error clearing draft:', error);
-    }
-  };
-
-  const handleNewForm = () => {
-    setShowDraftAlert(false);
-    clearDraft();
-    // Reset all form fields
-    setJobFor('person');
-    setPersonTitle('');
-    setPersonDescription('');
-    setExperienceLevel('');
-    setSelectedSkills([]);
-    setSkill('');
-    setRequiresExperience('no');
-    setJobType('standard');
-    setThingTitle('');
-    setThingDescription('');
-    setPurpose('');
-    setOtherPurpose('');
-    setSelectedThingCategory('');
-  };
-
-  const handleResumeDraft = async () => {
-    setShowDraftAlert(false);
-    await loadDraft();
-    showSnackbar('Draft loaded successfully', 'success');
-  };
 
   // Clear fields when switching between person/thing
   const handleJobForChange = value => {
@@ -636,18 +467,6 @@ export default function CreateJob({ navigation }) {
               <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
           </View>
-
-          {showDraftAlert && hasDraft && (
-            <CustomAlert
-              message="Would you like to start a new form or resume from your draft?"
-              onYes={handleResumeDraft}
-              onClose={handleNewForm}
-              yesText="Resume Draft"
-              noText="New Form"
-              iconName="file-text"
-              iconColor="#0000007c"
-            />
-          )}
         </View>
       </SafeAreaView>
     </KeyboardAvoidingView>
@@ -773,52 +592,49 @@ export default function CreateJob({ navigation }) {
                     desc: '5+ years experience',
                   },
                 ].map(option => (
-                  <>
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      key={option.id}
-                      style={styles.experienceOption}
-                      onPress={() => setExperienceLevel(option.value)}
-                    >
-                      <View
-                        style={[
-                          {},
-                          styles.experienceCheckbox,
-
-                          experienceLevel === option.value &&
-                            styles.experienceCheckboxSelected,
-                        ]}
-                      >
-                        {experienceLevel === option.value && (
-                          <Feather name="check" size={14} color="#fff" />
-                        )}
-                      </View>
-                      <View>
-                      <Text
-                        style={[
-                          styles.experienceLabel,
-                          {
-                            color:
-                              experienceLevel === option.value
-                                ? Colors.blackColor
-                                : Colors.darkGrayColor,
-                          },
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                       <Text
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    key={option.id}
+                    style={styles.experienceOption}
+                    onPress={() => setExperienceLevel(option.value)}
+                  >
+                    <View
                       style={[
-                        styles.experienceInfoText,
-                        { color: Colors.grayColor },
+                        {},
+                        styles.experienceCheckbox,
+
+                        experienceLevel === option.value &&
+                          styles.experienceCheckboxSelected,
                       ]}
                     >
-                      {option.desc}
+                      {experienceLevel === option.value && (
+                        <Feather name="check" size={14} color="#fff" />
+                      )}
+                    </View>
+                    <View>
+                    <Text
+                      style={[
+                        styles.experienceLabel,
+                        {
+                          color:
+                            experienceLevel === option.value
+                              ? Colors.blackColor
+                              : Colors.darkGrayColor,
+                        },
+                      ]}
+                    >
+                      {option.label}
                     </Text>
-                      </View>
-                    </TouchableOpacity>
-                   
-                  </>
+                     <Text
+                    style={[
+                      styles.experienceInfoText,
+                      { color: Colors.grayColor },
+                    ]}
+                  >
+                    {option.desc}
+                  </Text>
+                    </View>
+                  </TouchableOpacity>
                 ))}
               </View>
               {/* {experienceLevel && (
@@ -951,11 +767,11 @@ export default function CreateJob({ navigation }) {
 
           {/* Task Skills/Category */}
           <FloatingLabelSkillsInput
-            label="Task Skills & Categories"
+            label="Categories"
             selectedSkills={selectedSkills}
             onSkillsChange={setSelectedSkills}
             availableTags={availableTags}
-            placeholder="E.g Software,Design..."
+            placeholder="E.g Electronics,Metal,Plastic..."
             maxSkills={8}
             required={true}
             onFocus={ref => scrollToInput(ref, scrollViewRef)}

@@ -411,7 +411,7 @@ export default function ProfileScreen({ navigation }) {
         dispatch(getUserProfile()),
         dispatch(getWishlist())
       ]);
-      showSnackbar('Profile refreshed successfully', 'success');
+      // showSnackbar('Profile refreshed successfully', 'success');
     } catch (error) {
       showSnackbar('Failed to refresh profile', 'error');
     } finally {
@@ -719,9 +719,9 @@ export default function ProfileScreen({ navigation }) {
               <Feather name="chevron-right" size={16} color="#666" />
             </TouchableOpacity>
             
-            {/* <View style={styles.settingsDivider} />
+            <View style={styles.settingsDivider} />
             
-            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("SavedAddressesScreen")}>
+            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("ManageSavedAddressesScreen")}>
               <View style={styles.settingsIconContainer}>
                 <Feather name="map-pin" size={20} color="#666" />
               </View>
@@ -730,7 +730,7 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.settingsItemSubtitle}>Manage your saved locations</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
 
           {/* Resources Group */}
@@ -763,7 +763,7 @@ export default function ProfileScreen({ navigation }) {
             
             <View style={styles.settingsDivider} />
             
-            <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
+            {/* <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
               <View style={styles.settingsIconContainer}>
                 <Feather name="briefcase" size={20} color="#666" />
               </View>
@@ -772,7 +772,7 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.settingsItemSubtitle}>Start offering services</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 

@@ -21,7 +21,7 @@ export const selectWishlistIds = createSelector(
 export const selectWishlistLoading = state => state.auth.wishlistLoading;
 
 // Job selectors
-export const selectJobs = state => state.job.jobs;
+export const selectJobs = state => state.job.jobs.jobs;
 export const selectJobsLoading = state => state.job.loading;
 export const selectJobsError = state => state.job.error;
 export const selectTags = state => state.job.tags;

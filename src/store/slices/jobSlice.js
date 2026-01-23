@@ -31,6 +31,7 @@ const jobSlice = createSlice({
       .addCase(getAllJobs.fulfilled, (state, action) => {
         state.loading = false;
         state.jobs = action.payload?.data || [];
+        console.log('Jobs fetched successfully in slice:', state.jobs.jobs);
       })
       .addCase(getAllJobs.rejected, (state, action) => {
         state.loading = false;

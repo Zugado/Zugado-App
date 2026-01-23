@@ -1,5 +1,5 @@
 // components/Header.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,9 +13,46 @@ import Feather from 'react-native-vector-icons/Feather';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { selectLocationAddress } from '../store/selector';
 import NotificationIcon from './NotificationIcon';
+import Geolocation from '@react-native-community/geolocation';
+import DotLoader from './DotLoader';
 
 const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabled, searchQuery, setSearchQuery }) => {
   const locationAddress = useSelector(selectLocationAddress);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+
+  useEffect(() => {
+    Geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            {
+              headers: {
+                'User-Agent': 'ZugadoApp/1.0'
+              }
+            }
+          );
+          const data = await response.json();
+          setCurrentLocation({
+            city: data.address?.city || data.address?.town || data.address?.village || data.address?.state,
+            postcode: data.address?.postcode || data.address?.pincode || data.address?.postal_code
+          });
+        } catch (error) {
+          console.log('Error fetching location:', error);
+        } finally {
+          setIsLoadingLocation(false);
+        }
+      },
+      (error) => {
+        console.log('Error getting position:', error);
+        setIsLoadingLocation(false);
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
+    );
+  }, []);
+  
   return (
     <View style={styles.headerContainer}>
       {/* Row 1: Location, Logo & Icons */}
@@ -26,12 +63,21 @@ const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabl
             style={styles.icon}
           />
           <View>
-            <Text style={styles.locationText}>
-              {locationAddress?.city || 'Noida'}
-            </Text>
-            <Text style={styles.pincodeText}>
-              {locationAddress?.postcode || '201301'}
-            </Text>
+            {isLoadingLocation ? (
+              <>
+                <DotLoader color="#fff" size={4} />
+                <DotLoader color="#888" size={3} />
+              </>
+            ) : (
+              <>
+                <Text style={styles.locationText}>
+                  {currentLocation?.city || locationAddress?.city || locationAddress?.town || locationAddress?.village || locationAddress?.state || 'Unknown Location'}
+                </Text>
+                <Text style={styles.pincodeText}>
+                  {currentLocation?.postcode || locationAddress?.postcode || locationAddress?.pincode || locationAddress?.postal_code || 'N/A'}
+                </Text>
+              </>
+            )}
           </View>
         </View>
 
