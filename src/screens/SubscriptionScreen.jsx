@@ -13,7 +13,7 @@ const SubscriptionScreen = () => {
 
   return (
     <View style={styles.container}>
-      <CommonAppBar title="" borderBottomColor={Colors.extraLightGrayColor} />
+      <CommonAppBar title="" borderBottomColor={Colors.bodyBackColor} />
 
       <Text style={styles.headerText}>You Don't have Bids Available</Text>
 

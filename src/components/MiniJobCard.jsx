@@ -64,9 +64,7 @@ const MiniJobCard = ({ job }) => {
 
   return (
     <View style={styles.cardContainer}>
-      {/* ---------- This is to make height ---------- */}
-      {/* <View style={styles.emptyImageHeight} /> */}
-      {/* ---------- URGENT TAG ---------- */}
+  
       {isUrgent && (
         <View style={styles.urgentTag}>
           <Image
@@ -81,7 +79,7 @@ const MiniJobCard = ({ job }) => {
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={() =>
-          navigation.navigate('JobDetailedScreen', { jobId: job?._id })
+          navigation.navigate('ManageJobDetailScreen', { jobId: job?._id })
         }
       >
         <View style={styles.contentContainer}>
