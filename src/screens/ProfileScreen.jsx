@@ -25,32 +25,36 @@ import { logout } from '../store/slices/authSlice';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { useImagePicker } from '../utils/useImagePicker';
 import { updateProfilePicAPI } from '../store/api/userApi';
-import { updateUserDetails, getUserProfile, updateProfilePic } from '../store/thunks/userThunk';
+import {
+  updateUserDetails,
+  getUserProfile,
+  updateProfilePic,
+} from '../store/thunks/userThunk';
 import { getWishlist } from '../store/thunks/wishlistThunk';
 import { selectWishlist } from '../store/selector';
 import Header from '../components/Header';
 import MyStatusBar from '../components/MyStatusbar';
 import ImagePreviewModal from '../components/ImagePreviewModal';
+import { Colors } from '../styles/commonStyles';
 
-const InfoBox = ({ 
-  iconName, 
-  title, 
-  value, 
-  field, 
-  isEditingProfile, 
+const InfoBox = ({
+  iconName,
+  title,
+  value,
+  field,
+  isEditingProfile,
   activeEditField,
   onEditFieldToggle,
-  onInputChange, 
-  editValue, 
-  isDropdown, 
-  options, 
-  onDropdownSelect, 
-  showDropdown, 
-  onDropdownToggle 
+  onInputChange,
+  editValue,
+  isDropdown,
+  options,
+  onDropdownSelect,
+  showDropdown,
+  onDropdownToggle,
 }) => {
-  
   const isFieldEditing = isEditingProfile && activeEditField === field;
-  
+
   const infoBoxStyles = {
     infoBox: {
       width: '48%',
@@ -66,11 +70,10 @@ const InfoBox = ({
       overflow: 'visible',
 
       // iOS shadow
-shadowColor: '#000',
-shadowOffset: { width: 0, height: 2 },
-shadowOpacity: 0.15,
-shadowRadius: 4,
-
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
     },
     infoIconContainer: {
       marginRight: 12,
@@ -147,13 +150,16 @@ shadowRadius: 4,
         {isFieldEditing ? (
           isDropdown ? (
             <View>
-              <TouchableOpacity style={infoBoxStyles.dropdownButton} onPress={onDropdownToggle}>
+              <TouchableOpacity
+                style={infoBoxStyles.dropdownButton}
+                onPress={onDropdownToggle}
+              >
                 <Text style={infoBoxStyles.infoValue}>{editValue}</Text>
                 <Feather name="chevron-down" size={16} color="#666" />
               </TouchableOpacity>
               {showDropdown && (
                 <View style={infoBoxStyles.dropdownMenu}>
-                  {options.map((option) => (
+                  {options.map(option => (
                     <TouchableOpacity
                       key={option}
                       style={infoBoxStyles.dropdownItem}
@@ -169,32 +175,43 @@ shadowRadius: 4,
             <TextInput
               style={infoBoxStyles.editInput}
               value={editValue}
-              onChangeText={(text) => onInputChange(field, text)}
-              keyboardType={field === 'mobile' || field === 'age' ? 'numeric' : 'default'}
-              autoFocus={true} 
+              onChangeText={text => onInputChange(field, text)}
+              keyboardType={
+                field === 'mobile' || field === 'age' ? 'numeric' : 'default'
+              }
+              autoFocus={true}
             />
           )
         ) : (
           <Text style={infoBoxStyles.infoValue}>{value}</Text>
         )}
       </View>
-      
+
       {/* Individual Edit Toggle Button */}
       {isEditingProfile && (
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
             infoBoxStyles.fieldEditButton,
-            isFieldEditing && infoBoxStyles.activeFieldEditButton
-          ]} 
+            isFieldEditing && infoBoxStyles.activeFieldEditButton,
+          ]}
           onPress={() => onEditFieldToggle(field)}
         >
-          <Feather 
-            name={isFieldEditing ? "check" : "edit-2"} 
-            size={14} 
-            color={isFieldEditing ? "#fff" : "#666"} 
+          <Feather
+            name={isFieldEditing ? 'check' : 'edit-2'}
+            size={14}
+            color={isFieldEditing ? '#fff' : '#666'}
           />
         </TouchableOpacity>
       )}
+    </View>
+  );
+};
+
+const ProBadge = ({ isPro = true }) => {
+  // if (!isPro) return null;
+  return (
+    <View style={styles.proBadgeContainer}>
+      <Image source={require('../assets/proBadge.png')} style={styles.proBadgeImage} />
     </View>
   );
 };
@@ -211,10 +228,9 @@ const GuestFeature = ({ icon, title, desc }) => (
   </View>
 );
 
-
 export default function ProfileScreen({ navigation }) {
   const dispatch = useDispatch();
-  const { user, isGuest } = useSelector((state) => state.auth);
+  const { user, isGuest } = useSelector(state => state.auth);
   const wishlist = useSelector(selectWishlist);
   const { showSnackbar } = useSnackbar();
   const { openCamera, openGallery } = useImagePicker();
@@ -222,30 +238,51 @@ export default function ProfileScreen({ navigation }) {
   // Mapping functions for backend API - MUST be before useState
   const mapToBackend = (field, value) => {
     const mappings = {
-      jobType: { 'Full-Time': 'fulltime', 'Part-Time': 'parttime', 'Casually': 'casually' },
-      workingModel: { 'Remote': 'remote', 'On-site': 'onsite', 'Hybrid': 'hybrid' },
-      level: { 'Beginner': 'beginner', 'Intermediate': 'intermediate', 'Advanced': 'advanced', 'Expert': 'pro' }
+      jobType: {
+        'Full-Time': 'fulltime',
+        'Part-Time': 'parttime',
+        Casually: 'casually',
+      },
+      workingModel: { Remote: 'remote', 'On-site': 'onsite', Hybrid: 'hybrid' },
+      level: {
+        Beginner: 'beginner',
+        Intermediate: 'intermediate',
+        Advanced: 'advanced',
+        Expert: 'pro',
+      },
     };
     return mappings[field]?.[value] || value;
   };
 
   const mapFromBackend = (field, value) => {
     const mappings = {
-      jobType: { 'fulltime': 'Full-Time', 'parttime': 'Part-Time', 'casually': 'Casually' },
-      workingModel: { 'remote': 'Remote', 'onsite': 'On-site', 'hybrid': 'Hybrid' },
-      level: { 'beginner': 'Beginner', 'intermediate': 'Intermediate', 'advanced': 'Advanced', 'pro': 'Expert' }
+      jobType: {
+        fulltime: 'Full-Time',
+        parttime: 'Part-Time',
+        casually: 'Casually',
+      },
+      workingModel: { remote: 'Remote', onsite: 'On-site', hybrid: 'Hybrid' },
+      level: {
+        beginner: 'Beginner',
+        intermediate: 'Intermediate',
+        advanced: 'Advanced',
+        pro: 'Expert',
+      },
     };
     return mappings[field]?.[value] || value;
   };
 
   // Edit handlers
-  const calculateAge = (birthDate) => {
+  const calculateAge = birthDate => {
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
     return age;
@@ -255,11 +292,12 @@ export default function ProfileScreen({ navigation }) {
   const [pickerSheetVisible, setPickerSheetVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [verificationModalVisible, setVerificationModalVisible] = useState(false);
+  const [verificationModalVisible, setVerificationModalVisible] =
+    useState(false);
   const [verificationData, setVerificationData] = useState({
     documentType: '',
     documentNumber: '',
-    documentImage: null
+    documentImage: null,
   });
   const [showDocumentDropdown, setShowDocumentDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -269,10 +307,11 @@ export default function ProfileScreen({ navigation }) {
     firstName: user?.firstName || '',
     middleName: user?.middleName || '',
     lastName: user?.lastName || '',
-    age: user?.dateOfBirth ? calculateAge(user.dateOfBirth) : (user?.age || ''),
+    age: user?.dateOfBirth ? calculateAge(user.dateOfBirth) : user?.age || '',
     mobile: user?.mobile || '',
     jobType: mapFromBackend('jobType', user?.jobType) || 'Full-Time',
-    workingModel: mapFromBackend('workingModel', user?.workingModel) || 'Remote',
+    workingModel:
+      mapFromBackend('workingModel', user?.workingModel) || 'Remote',
     level: mapFromBackend('level', user?.level) || 'Advanced',
     dateOfBirth: user?.dateOfBirth || null,
   });
@@ -286,20 +325,20 @@ export default function ProfileScreen({ navigation }) {
       if (!isGuest) {
         dispatch(getWishlist());
       }
-    }, [isGuest, dispatch])
+    }, [isGuest, dispatch]),
   );
 
   // Remove edit profile functionality - using separate EditProfileScreen
 
   // Field name formatting
-  const formatFieldName = (field) => {
+  const formatFieldName = field => {
     const fieldNames = {
       name: 'Name',
       age: 'Age',
       mobile: 'Contact',
       jobType: 'Job Type',
       workingModel: 'Working Model',
-      level: 'Level'
+      level: 'Level',
     };
     return fieldNames[field] || field;
   };
@@ -308,31 +347,33 @@ export default function ProfileScreen({ navigation }) {
   const jobTypeOptions = ['Full-Time', 'Part-Time', 'Casually'];
   const workingModelOptions = ['Remote', 'On-site', 'Hybrid'];
   const levelOptions = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
-  const documentTypeOptions = ['Aadhaar Card', 'PAN Card', 'Driving License', 'Passport', 'Voter ID'];
+  const documentTypeOptions = [
+    'Aadhaar Card',
+    'PAN Card',
+    'Driving License',
+    'Passport',
+    'Voter ID',
+  ];
 
-  console.log("USER:", user);
+  console.log('USER:', user);
   const guestAction = () => {
     if (user) {
       showSnackbar('This service is under development', 'warning');
       return;
     }
-    Alert.alert(
-      "Login Required",
-      "You need to login to access this feature",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Login", onPress: () => dispatch(logout()) },
-      ]
-    );
+    Alert.alert('Login Required', 'You need to login to access this feature', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Login', onPress: () => dispatch(logout()) },
+    ]);
   };
 
   const pickImage = async (source, isVerification = false) => {
     try {
       let result = null;
       if (source === 'camera') {
-        result = await openCamera(isVerification ? "freeform" : "1:1", 0.7);
+        result = await openCamera(isVerification ? 'freeform' : '1:1', 0.7);
       } else {
-        result = await openGallery(isVerification ? "freeform" : "1:1", 0.7);
+        result = await openGallery(isVerification ? 'freeform' : '1:1', 0.7);
       }
 
       if (result?.uri) {
@@ -350,11 +391,17 @@ export default function ProfileScreen({ navigation }) {
           'Camera permission is required to take photos. Please enable camera permission in your device settings.',
           [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Try Gallery', onPress: () => pickImage('gallery', isVerification) }
-          ]
+            {
+              text: 'Try Gallery',
+              onPress: () => pickImage('gallery', isVerification),
+            },
+          ],
         );
       } else {
-        showSnackbar(`Error: ${error.message || 'Failed to pick image'}`, 'error');
+        showSnackbar(
+          `Error: ${error.message || 'Failed to pick image'}`,
+          'error',
+        );
       }
     } finally {
       setPickerSheetVisible(false);
@@ -362,18 +409,26 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const handleVerificationSubmit = () => {
-    if (!verificationData.documentType || !verificationData.documentNumber || !verificationData.documentImage) {
+    if (
+      !verificationData.documentType ||
+      !verificationData.documentNumber ||
+      !verificationData.documentImage
+    ) {
       showSnackbar('Please fill all fields and select document image', 'error');
       return;
     }
-    
+
     // API call logic here
     showSnackbar('Verification submitted successfully', 'success');
     setVerificationModalVisible(false);
-    setVerificationData({ documentType: '', documentNumber: '', documentImage: null });
+    setVerificationData({
+      documentType: '',
+      documentNumber: '',
+      documentImage: null,
+    });
   };
 
-  const uploadProfilePicture = async (imageData) => {
+  const uploadProfilePicture = async imageData => {
     setLoading(true);
     try {
       const extension = imageData.fileName
@@ -383,17 +438,20 @@ export default function ProfileScreen({ navigation }) {
       const data = {
         uri: imageData.uri,
         type: imageData.type,
-        name: `avatar.${extension}`
+        name: `avatar.${extension}`,
       };
 
       const response = await dispatch(updateProfilePic(data));
-      
+
       if (updateProfilePic.fulfilled.match(response)) {
         showSnackbar('Profile picture updated successfully!', 'success');
         // Refresh profile to get updated image
         await dispatch(getUserProfile());
       } else {
-        showSnackbar(response?.payload?.message || 'Failed to update profile picture', 'error');
+        showSnackbar(
+          response?.payload?.message || 'Failed to update profile picture',
+          'error',
+        );
       }
     } catch (error) {
       showSnackbar('Error uploading image', 'error');
@@ -407,10 +465,7 @@ export default function ProfileScreen({ navigation }) {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([
-        dispatch(getUserProfile()),
-        dispatch(getWishlist())
-      ]);
+      await Promise.all([dispatch(getUserProfile()), dispatch(getWishlist())]);
       // showSnackbar('Profile refreshed successfully', 'success');
     } catch (error) {
       showSnackbar('Failed to refresh profile', 'error');
@@ -421,9 +476,7 @@ export default function ProfileScreen({ navigation }) {
 
   // Removed edit handlers - using separate EditProfileScreen
 
-  
-
-  const handleDateSelect = (date) => {
+  const handleDateSelect = date => {
     const age = calculateAge(date);
     setEditedUser(prev => ({ ...prev, age, dateOfBirth: date }));
     setShowDatePicker(false);
@@ -437,8 +490,8 @@ export default function ProfileScreen({ navigation }) {
     setEditedUser(prev => ({ ...prev, [field]: value }));
     setShowDropdown(null);
   };
-  
-  const handleDropdownToggle = (field) => {
+
+  const handleDropdownToggle = field => {
     if (activeEditField === field) {
       setShowDropdown(showDropdown === field ? null : field);
     }
@@ -454,7 +507,7 @@ export default function ProfileScreen({ navigation }) {
   if (isGuest) {
     return (
       <SafeAreaView style={styles.safeArea}>
-           <MyStatusBar/>
+        <MyStatusBar />
         <View style={styles.guestContainer}>
           <View style={styles.topNav}>
             <Text style={styles.screenTitle}>Profile</Text>
@@ -462,7 +515,9 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.guestHero}>
             <View style={styles.guestImageWrapper}>
               <Image
-                source={{ uri: "https://cdn-icons-png.flaticon.com/512/747/747376.png" }}
+                source={{
+                  uri: 'https://cdn-icons-png.flaticon.com/512/747/747376.png',
+                }}
                 style={styles.guestAvatar}
               />
               <View style={styles.lockBadge}>
@@ -508,7 +563,6 @@ export default function ProfileScreen({ navigation }) {
   // Logged-in user UI
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-
       {/* Header */}
       <View style={styles.header}>
         <Header showSearch={false} navigation={navigation} />
@@ -517,15 +571,20 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={() => setImagePreviewVisible(true)}>
             <Image
-              source={user?.avatar ? { uri: user.avatar } : require('../assets/profile.png')}
+              source={
+                user?.avatar
+                  ? { uri: user.avatar }
+                  : require('../assets/profile.png')
+              }
               style={styles.profileImage}
             />
           </TouchableOpacity>
+            <ProBadge isPro={user?.isPro} />
         </View>
       </View>
 
-      <ScrollView 
-        style={styles.container} 
+      <ScrollView
+        style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -539,22 +598,30 @@ export default function ProfileScreen({ navigation }) {
           />
         }
       >
-
-          {/* Removed global edit button - using separate EditProfileScreen */}
+        {/* Removed global edit button - using separate EditProfileScreen */}
 
         <View style={styles.profileHeader}>
           <View style={styles.nameContainer}>
-            <Text style={styles.profileName}>{`${user?.firstName || ''} ${user?.middleName || ''} ${user?.lastName || ''}` || "User Name"}</Text>
+            <Text style={styles.profileName}>
+              {`${user?.firstName || ''} ${user?.middleName || ''} ${user?.lastName || ''}` || 'User Name'}
+            </Text>
+          
           </View>
 
           <View style={styles.subHeader}>
             <View style={styles.ageContainer}>
-              <Text style={styles.ageText}>{user?.dateOfBirth ? `Age - ${calculateAge(user.dateOfBirth)} Yrs` : "Age 0"}</Text>
+              <Text style={styles.ageText}>
+                {user?.dateOfBirth
+                  ? `Age - ${calculateAge(user.dateOfBirth)} Yrs`
+                  : 'Age 0'}
+              </Text>
             </View>
 
             <View style={styles.ratingContainer}>
               <FontAwesome name="star" size={14} color="#FF9529" />
-              <Text style={styles.ratingText}>{user?.ratings?.averageRating || '0.0'}</Text>
+              <Text style={styles.ratingText}>
+                {user?.ratings?.averageRating || '0.0'}
+              </Text>
             </View>
 
             <View style={styles.balanceContainer}>
@@ -572,7 +639,9 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoTitle}>Contact</Text>
-              <Text style={styles.infoValue}>{user?.mobile || "98765 43210"}</Text>
+              <Text style={styles.infoValue}>
+                {user?.mobile || '98765 43210'}
+              </Text>
             </View>
           </View>
           <View style={styles.infoBox}>
@@ -581,7 +650,9 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoTitle}>Job Type</Text>
-              <Text style={styles.infoValue}>{mapFromBackend('jobType', user?.jobType) || 'Full-Time'}</Text>
+              <Text style={styles.infoValue}>
+                {mapFromBackend('jobType', user?.jobType) || 'Full-Time'}
+              </Text>
             </View>
           </View>
           <View style={styles.infoBox}>
@@ -590,7 +661,9 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoTitle}>Working Model</Text>
-              <Text style={styles.infoValue}>{mapFromBackend('workingModel', user?.workingModel) || 'Remote'}</Text>
+              <Text style={styles.infoValue}>
+                {mapFromBackend('workingModel', user?.workingModel) || 'Remote'}
+              </Text>
             </View>
           </View>
           <View style={styles.infoBox}>
@@ -599,7 +672,9 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoTitle}>Level</Text>
-              <Text style={styles.infoValue}>{mapFromBackend('level', user?.level) || 'Advanced'}</Text>
+              <Text style={styles.infoValue}>
+                {mapFromBackend('level', user?.level) || 'Advanced'}
+              </Text>
             </View>
           </View>
         </View>
@@ -615,9 +690,7 @@ export default function ProfileScreen({ navigation }) {
               size={30}
               style={styles.roleIcon}
             />
-            <Text style={styles.roleText}>
-              Job Provider
-            </Text>
+            <Text style={styles.roleText}>Job Provider</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -629,9 +702,7 @@ export default function ProfileScreen({ navigation }) {
               size={30}
               style={styles.roleIcon}
             />
-            <Text style={styles.roleText}>
-              Job Seeker
-            </Text>
+            <Text style={styles.roleText}>Job Seeker</Text>
           </TouchableOpacity>
         </View>
 
@@ -641,12 +712,16 @@ export default function ProfileScreen({ navigation }) {
             style={styles.verificationButton}
             onPress={() => setIsVerificationExpanded(!isVerificationExpanded)}
           >
-            <MaterialCommunityIcons name="shield-check-outline" size={24} color="#000" />
+            <MaterialCommunityIcons
+              name="shield-check-outline"
+              size={24}
+              color="#000"
+            />
             <Text style={styles.verificationTitle}>Verification</Text>
             <View style={styles.verificationRight}>
               <Text style={styles.verificationStatus}>Pending 1/2</Text>
               <Feather
-                name={isVerificationExpanded ? "chevron-up" : "chevron-down"}
+                name={isVerificationExpanded ? 'chevron-up' : 'chevron-down'}
                 size={16}
                 color="#666"
               />
@@ -662,7 +737,9 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.verificationItem}>
                 <Feather name="x-circle" size={20} color="red" />
                 <Text style={styles.verificationText}>ID Verification</Text>
-                <TouchableOpacity onPress={() => setVerificationModalVisible(true)}>
+                <TouchableOpacity
+                  onPress={() => setVerificationModalVisible(true)}
+                >
                   <Text style={styles.clickText}>Click to verify</Text>
                 </TouchableOpacity>
               </View>
@@ -670,21 +747,24 @@ export default function ProfileScreen({ navigation }) {
           )}
         </View>
 
-        
-
         {/* Settings Section */}
         <View style={styles.settingsContainer}>
           <Text style={styles.settingsTitle}>Settings</Text>
-          
+
           {/* Preferences Group */}
           <View style={styles.settingsGroup}>
-            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate('PreferencesScreen')}>
+            <TouchableOpacity
+              style={styles.settingsItem}
+              onPress={() => navigation.navigate('PreferencesScreen')}
+            >
               <View style={styles.settingsIconContainer}>
                 <Feather name="settings" size={20} color="#666" />
               </View>
               <View style={styles.settingsContent}>
                 <Text style={styles.settingsItemTitle}>Preferences</Text>
-                <Text style={styles.settingsItemSubtitle}>Notifications, Language, Appearance</Text>
+                <Text style={styles.settingsItemSubtitle}>
+                  Notifications, Language, Appearance
+                </Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
             </TouchableOpacity>
@@ -692,20 +772,28 @@ export default function ProfileScreen({ navigation }) {
 
           {/* Account Group */}
           <View style={styles.settingsGroup}>
-            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("EditProfileScreen")}>
+            <TouchableOpacity
+              style={styles.settingsItem}
+              onPress={() => navigation.navigate('EditProfileScreen')}
+            >
               <View style={styles.settingsIconContainer}>
                 <Feather name="user" size={20} color="#666" />
               </View>
               <View style={styles.settingsContent}>
                 <Text style={styles.settingsItemTitle}>Account</Text>
-                <Text style={styles.settingsItemSubtitle}>Profile, Security, Privacy</Text>
+                <Text style={styles.settingsItemSubtitle}>
+                  Profile, Security, Privacy
+                </Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
             </TouchableOpacity>
-            
+
             <View style={styles.settingsDivider} />
-            
-            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate('WishlistScreen')}>
+
+            <TouchableOpacity
+              style={styles.settingsItem}
+              onPress={() => navigation.navigate('WishlistScreen')}
+            >
               <View style={styles.settingsIconContainer}>
                 <Image
                   source={require('../assets/Icons/SavedGolden.png')}
@@ -714,20 +802,27 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <View style={styles.settingsContent}>
                 <Text style={styles.settingsItemTitle}>My Wishlist</Text>
-                <Text style={styles.settingsItemSubtitle}>{wishlist.length} saved tasks</Text>
+                <Text style={styles.settingsItemSubtitle}>
+                  {wishlist.length} saved tasks
+                </Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
             </TouchableOpacity>
-            
+
             <View style={styles.settingsDivider} />
-            
-            <TouchableOpacity style={styles.settingsItem} onPress={() => navigation.navigate("ManageSavedAddressesScreen")}>
+
+            <TouchableOpacity
+              style={styles.settingsItem}
+              onPress={() => navigation.navigate('ManageSavedAddressesScreen')}
+            >
               <View style={styles.settingsIconContainer}>
                 <Feather name="map-pin" size={20} color="#666" />
               </View>
               <View style={styles.settingsContent}>
                 <Text style={styles.settingsItemTitle}>Saved Addresses</Text>
-                <Text style={styles.settingsItemSubtitle}>Manage your saved locations</Text>
+                <Text style={styles.settingsItemSubtitle}>
+                  Manage your saved locations
+                </Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
             </TouchableOpacity>
@@ -735,7 +830,7 @@ export default function ProfileScreen({ navigation }) {
 
           {/* Resources Group */}
           <Text style={styles.settingsGroupTitle}>Resources</Text>
-          
+
           <View style={styles.settingsGroup}>
             <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
               <View style={styles.settingsIconContainer}>
@@ -743,36 +838,47 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <View style={styles.settingsContent}>
                 <Text style={styles.settingsItemTitle}>Support</Text>
-                <Text style={styles.settingsItemSubtitle}>Help Center, Contact Us</Text>
+                <Text style={styles.settingsItemSubtitle}>
+                  Help Center, Contact Us
+                </Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
             </TouchableOpacity>
-            
+
             <View style={styles.settingsDivider} />
-            
+
             <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
               <View style={styles.settingsIconContainer}>
                 <Feather name="info" size={20} color="#666" />
               </View>
               <View style={styles.settingsContent}>
-                <Text style={styles.settingsItemTitle}>Community and Legal</Text>
-                <Text style={styles.settingsItemSubtitle}>Terms, Privacy Policy</Text>
+                <Text style={styles.settingsItemTitle}>
+                  Community and Legal
+                </Text>
+                <Text style={styles.settingsItemSubtitle}>
+                  Terms, Privacy Policy
+                </Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
             </TouchableOpacity>
-            
+
             <View style={styles.settingsDivider} />
-            
-             <TouchableOpacity style={styles.settingsItem} onPress={()=>navigation.navigate("SubscriptionScreen")} >
+
+            <TouchableOpacity
+              style={styles.settingsItem}
+              onPress={() => navigation.navigate('SubscriptionScreen')}
+            >
               <View style={styles.settingsIconContainer}>
                 <Feather name="star" size={20} color="#666" />
               </View>
               <View style={styles.settingsContent}>
-                <Text style={styles.settingsItemTitle}>Become Prime Member</Text>
+                <Text style={styles.settingsItemTitle}>
+                  Become Prime Member
+                </Text>
                 <Text style={styles.settingsItemSubtitle}>Get extra jobs</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
-            </TouchableOpacity> 
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -783,7 +889,6 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-
 
       {/* Image Picker Modal (remains the same) */}
       <Modal
@@ -827,7 +932,9 @@ export default function ProfileScreen({ navigation }) {
         onCancel={() => setShowDatePicker(false)}
         // maximumDate={new Date()}
         maximumDate={new Date(2006, 11, 31)} // Users must be at least 18 years old
-        date={editedUser.dateOfBirth ? new Date(editedUser.dateOfBirth) : new Date()}
+        date={
+          editedUser.dateOfBirth ? new Date(editedUser.dateOfBirth) : new Date()
+        }
       />
 
       {/* Verification Modal */}
@@ -840,16 +947,25 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.verificationModalOverlay}>
           <View style={styles.verificationModalContent}>
             <View style={styles.verificationModalHeader}>
-              <MaterialCommunityIcons name="shield-check" size={32} color="#4CAF50" />
+              <MaterialCommunityIcons
+                name="shield-check"
+                size={32}
+                color="#4CAF50"
+              />
               <Text style={styles.verificationModalTitle}>ID Verification</Text>
-              <Text style={styles.verificationModalSubtitle}>Please provide your document details</Text>
+              <Text style={styles.verificationModalSubtitle}>
+                Please provide your document details
+              </Text>
             </View>
 
-            <ScrollView style={styles.verificationForm} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.verificationForm}
+              showsVerticalScrollIndicator={false}
+            >
               {/* Document Type Dropdown */}
               <View style={styles.verificationField}>
                 <Text style={styles.verificationLabel}>Document Type</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.verificationDropdown}
                   onPress={() => setShowDocumentDropdown(!showDocumentDropdown)}
                 >
@@ -858,19 +974,24 @@ export default function ProfileScreen({ navigation }) {
                   </Text>
                   <Feather name="chevron-down" size={20} color="#666" />
                 </TouchableOpacity>
-                
+
                 {showDocumentDropdown && (
                   <View style={styles.verificationDropdownMenu}>
-                    {documentTypeOptions.map((type) => (
+                    {documentTypeOptions.map(type => (
                       <TouchableOpacity
                         key={type}
                         style={styles.verificationDropdownItem}
                         onPress={() => {
-                          setVerificationData(prev => ({ ...prev, documentType: type }));
+                          setVerificationData(prev => ({
+                            ...prev,
+                            documentType: type,
+                          }));
                           setShowDocumentDropdown(false);
                         }}
                       >
-                        <Text style={styles.verificationDropdownItemText}>{type}</Text>
+                        <Text style={styles.verificationDropdownItemText}>
+                          {type}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -883,7 +1004,12 @@ export default function ProfileScreen({ navigation }) {
                 <TextInput
                   style={styles.verificationInput}
                   value={verificationData.documentNumber}
-                  onChangeText={(text) => setVerificationData(prev => ({ ...prev, documentNumber: text }))}
+                  onChangeText={text =>
+                    setVerificationData(prev => ({
+                      ...prev,
+                      documentNumber: text,
+                    }))
+                  }
                   placeholder="Enter document number"
                   placeholderTextColor="#999"
                 />
@@ -894,11 +1020,11 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.verificationLabel}>Document Image</Text>
                 {verificationData.documentImage ? (
                   <View style={styles.selectedImageContainer}>
-                    <Image 
-                      source={{ uri: verificationData.documentImage.uri }} 
+                    <Image
+                      source={{ uri: verificationData.documentImage.uri }}
                       style={styles.selectedImage}
                     />
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.changeImageButton}
                       onPress={() => setPickerSheetVisible(true)}
                     >
@@ -906,30 +1032,36 @@ export default function ProfileScreen({ navigation }) {
                     </TouchableOpacity>
                   </View>
                 ) : (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.selectImageButton}
                     onPress={() => setPickerSheetVisible(true)}
                   >
                     <Feather name="camera" size={24} color="#666" />
-                    <Text style={styles.selectImageText}>Select Document Image</Text>
+                    <Text style={styles.selectImageText}>
+                      Select Document Image
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
             </ScrollView>
 
             <View style={styles.verificationModalActions}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.verificationCancelButton}
                 onPress={() => {
                   setVerificationModalVisible(false);
-                  setVerificationData({ documentType: '', documentNumber: '', documentImage: null });
+                  setVerificationData({
+                    documentType: '',
+                    documentNumber: '',
+                    documentImage: null,
+                  });
                   setShowDocumentDropdown(false);
                 }}
               >
                 <Text style={styles.verificationCancelText}>Cancel</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.verificationSubmitButton}
                 onPress={handleVerificationSubmit}
               >
@@ -954,18 +1086,20 @@ export default function ProfileScreen({ navigation }) {
                 <Feather name="log-out" size={24} color="#ff6b6b" />
               </View>
               <Text style={styles.logoutModalTitle}>Logout</Text>
-              <Text style={styles.logoutModalMessage}>Are you sure you want to logout from your account?</Text>
+              <Text style={styles.logoutModalMessage}>
+                Are you sure you want to logout from your account?
+              </Text>
             </View>
-            
+
             <View style={styles.logoutModalActions}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.logoutCancelButton}
                 onPress={() => setShowLogoutModal(false)}
               >
                 <Text style={styles.logoutCancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.logoutConfirmButton}
                 onPress={() => {
                   setShowLogoutModal(false);
@@ -1000,6 +1134,26 @@ export default function ProfileScreen({ navigation }) {
 
 // ------------------ Styles ------------------
 const styles = StyleSheet.create({
+  proBadgeContainer: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    padding: 4,
+    backgroundColor: Colors.primary,
+    borderRadius:20,
+    borderWidth: 1,
+    borderColor: '#eac11c',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  proBadgeImage: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
+  },
   // ... (All existing styles remain, with the exception of 'editButton' and 'ageEditButton' being kept for the pencil icon)
   safeArea: {
     flex: 1,
@@ -1135,7 +1289,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     padding: 20,
     paddingTop: 80,
-    marginBottom: 50
+    marginBottom: 50,
   },
   scrollContent: {
     paddingBottom: 120,

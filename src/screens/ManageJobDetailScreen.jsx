@@ -175,7 +175,7 @@ const ManageJobDetailScreen = ({ job }) => {
 
       {/* Bid Details Card */}
       <JobInfoSection>
-        <Text style={styles.title}>₹ 1200</Text>
+        <Text style={[styles.title, { fontSize: 24 }]}>₹ 1200</Text>
         <InfoRow icon="circle" text="Negotiable: Yes" />
         <BidStatusBanner />
 

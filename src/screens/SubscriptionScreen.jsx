@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     color: Colors.grayColor,
   },
   priceText: {  
-    fontSize: 24,
+    fontSize: 40,
     fontWeight: '700',
     color: Colors.textColor,  
     textAlign: 'center',
