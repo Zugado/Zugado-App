@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import { CommonAppBar } from '../components/CommonComponents';
 import { Colors } from '../styles/commonStyles';
@@ -20,7 +20,8 @@ const SubscriptionScreen = () => {
       <View style={styles.subscriptionCard}>
         <View style={styles.contentRow}>
           <View style={styles.iconContainer}>
-            <Feather name="star" size={20} color="#eac11c" />
+          <Image source={require('../assets/proBadge.png')} style={styles.iconImage} />
+
           </View>
 
           <View style={styles.textContainer}>
@@ -107,6 +108,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     height: 50,
     width: 50,
+  },
+  iconImage: {
+    height: 38,
+    width: 38,
   },
   textContainer: {
     marginLeft: 10,
