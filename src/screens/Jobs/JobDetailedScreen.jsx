@@ -398,7 +398,7 @@ export default function JobDetailedScreen({ navigation, route }) {
           </TouchableOpacity>
           <TouchableOpacity style={styles.applyButton}>
             <Text style={styles.applyText}>Apply</Text>
-            <Text style={styles.applyArrow}>⌄</Text>
+            <Feather name="chevron-down" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
