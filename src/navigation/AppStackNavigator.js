@@ -18,6 +18,7 @@ import SavedAddressesScreen from '../screens/SavedAddressesScreen';
 import ManageSavedAddressesScreen from '../screens/ManageSavedAddressesScreen';
 import LocationPermissionScreen from '../screens/LocationPermissionScreen';
 import WishlistScreen from '../screens/WishlistScreen';
+import SubscriptionScreen from '../screens/SubscriptionScreen';
 const Stack = createStackNavigator();
 
 export default function AppStackNavigator() {
@@ -43,6 +44,7 @@ export default function AppStackNavigator() {
         <Stack.Screen name="SavedAddressesScreen" component={SavedAddressesScreen} />
         <Stack.Screen name="ManageSavedAddressesScreen" component={ManageSavedAddressesScreen} />
         <Stack.Screen name="WishlistScreen" component={WishlistScreen} />
+         <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen} />
     </Stack.Navigator>
   );
 }

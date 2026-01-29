@@ -36,6 +36,9 @@ const MiniJobCard = ({ job }) => {
     'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
     'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
     'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
+    'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
+    'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
+    'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
   ];
 
   const displayImages = imageList.map((image, index) => ({
@@ -97,7 +100,7 @@ const MiniJobCard = ({ job }) => {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <MaterialIcons
                 name="watch-later"
-                style={[styles.locationIcon, { fontSize: 18, marginLeft: 2 }]}
+                style={[styles.locationIcon, { fontSize: 16, marginLeft: 2 }]}
               />
               <Text style={styles.overlayText}>
                 {job?.createdAt

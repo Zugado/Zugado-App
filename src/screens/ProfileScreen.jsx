@@ -763,16 +763,16 @@ export default function ProfileScreen({ navigation }) {
             
             <View style={styles.settingsDivider} />
             
-            {/* <TouchableOpacity style={styles.settingsItem} onPress={guestAction}>
+             <TouchableOpacity style={styles.settingsItem} onPress={()=>navigation.navigate("SubscriptionScreen")} >
               <View style={styles.settingsIconContainer}>
-                <Feather name="briefcase" size={20} color="#666" />
+                <Feather name="star" size={20} color="#666" />
               </View>
               <View style={styles.settingsContent}>
-                <Text style={styles.settingsItemTitle}>Become a Seller</Text>
-                <Text style={styles.settingsItemSubtitle}>Start offering services</Text>
+                <Text style={styles.settingsItemTitle}>Become Prime Member</Text>
+                <Text style={styles.settingsItemSubtitle}>Get extra jobs</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#666" />
-            </TouchableOpacity> */}
+            </TouchableOpacity> 
           </View>
         </View>
 
