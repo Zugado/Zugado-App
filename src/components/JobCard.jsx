@@ -22,7 +22,7 @@ import { handleWishlistToggle } from '../utils/wishlistUtils';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { getRelativeTime } from '../utils/timeUtils';
 
-const JobCard = ({ job }) => {
+const JobCard = ({ job, showButttons = true }) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const wishlistIds = useSelector(selectWishlistIds);
@@ -75,10 +75,12 @@ const JobCard = ({ job }) => {
             viewabilityConfig={viewabilityConfig}
             renderItem={({ item }) => (
               <TouchableOpacity
-                activeOpacity={1}
-                onPress={() => {
-                  navigation.navigate('JobDetailedScreen', { jobId: job?._id  });
-                }}
+                activeOpacity={showButttons ? 1 : 0.7}
+                disabled={!showButttons}
+                onPress={() =>
+                  showButttons &&
+                  navigation.navigate('JobDetailedScreen', { jobId: job?._id })
+                }
               >
                 <Image
                   source={{ uri: item }}
@@ -96,14 +98,21 @@ const JobCard = ({ job }) => {
             <View style={styles.overlayContent}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.locationIcon} />
-                <Text style={styles.overlayText}>{job?.createdAt ? getRelativeTime(job.createdAt) : "23 hrs left"}</Text>
+                <Text style={styles.overlayText}>
+                  {job?.createdAt
+                    ? getRelativeTime(job.createdAt)
+                    : '23 hrs left'}
+                </Text>
               </View>
               {imageList.length > 1 && (
                 <View style={styles.dotsWrapper}>
                   {imageList.map((_, index) => (
                     <View
                       key={index}
-                      style={[styles.dot, index === currentIndex && styles.activeDot]}
+                      style={[
+                        styles.dot,
+                        index === currentIndex && styles.activeDot,
+                      ]}
                     />
                   ))}
                 </View>
@@ -146,7 +155,9 @@ const JobCard = ({ job }) => {
       {/* ---------- CONTENT ---------- */}
       <TouchableOpacity
         activeOpacity={0.85}
+        disabled={!showButttons}
         onPress={() =>
+          showButttons &&
           navigation.navigate('JobDetailedScreen', { jobId: job?._id })
         }
       >
@@ -172,13 +183,15 @@ const JobCard = ({ job }) => {
             <View style={styles.noImageInfoContainer}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.noImageIcon} />
-                <Text style={styles.noImageText}>{job?.createdAt ? getRelativeTime(job.createdAt) : "23 hrs left"}</Text>
+                <Text style={styles.noImageText}>
+                  {job?.createdAt
+                    ? getRelativeTime(job.createdAt)
+                    : '23 hrs left'}
+                </Text>
               </View>
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.noImageIcon} />
                 <Text style={styles.noImageText}>
-                    
-                
                   {job?.location?.address || 'Location 500 m'}
                 </Text>
               </View>
@@ -199,22 +212,25 @@ const JobCard = ({ job }) => {
           </View>
 
           {/* Buttons */}
-        
-          <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={styles.bidButton}
-              onPress={() => console.log('Bid clicked')}
-            >
-              <Text style={styles.bidButtonText}>Bid</Text>
-            </TouchableOpacity>
+          {!showButttons && <View style={{ marginVertical: 4 }} />}
 
-            <TouchableOpacity
-              style={styles.chatButton}
-              onPress={() => console.log('Chat clicked')}
-            >
-              <Text style={styles.chatButtonText}>Chat</Text>
-            </TouchableOpacity>
-          </View>
+          {showButttons && (
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.bidButton}
+                onPress={() => navigation.navigate('BidPlacementScreen', job)}
+              >
+                <Text style={styles.bidButtonText}>Bid</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.chatButton}
+                onPress={() => console.log('Chat clicked')}
+              >
+                <Text style={styles.chatButtonText}>Chat</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     </View>

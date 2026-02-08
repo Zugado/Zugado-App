@@ -396,12 +396,12 @@ export default function JobDetailedScreen({ navigation, route }) {
           <TouchableOpacity style={styles.iconAction}>
             <Feather name="message-square" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.applyButton}>
+          <TouchableOpacity    onPress={() => navigation.navigate('BidPlacementScreen', jobData)} style={styles.applyButton}>
             <Text style={styles.applyText}>Apply</Text>
             <Feather name="chevron-down" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
-      </View>
+       </View>
 
       {/* Preview Modal */}
       <Modal

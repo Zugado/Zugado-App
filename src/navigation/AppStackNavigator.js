@@ -18,13 +18,14 @@ import SavedAddressesScreen from '../screens/SavedAddressesScreen';
 import ManageSavedAddressesScreen from '../screens/ManageSavedAddressesScreen';
 import LocationPermissionScreen from '../screens/LocationPermissionScreen';
 import WishlistScreen from '../screens/WishlistScreen';
+import BidPlacementScreen from '../screens/BidPlacementScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import ManageJobDetailScreen from '../screens/ManageJobDetailScreen';
 const Stack = createStackNavigator();
 
 export default function AppStackNavigator() {
   return (
-    <Stack.Navigator 
+    <Stack.Navigator
       screenOptions={{ headerShown: false }}
       // initialRouteName="LocationPermission"
     >
@@ -37,16 +38,35 @@ export default function AppStackNavigator() {
       <Stack.Screen name="CreateJobScreen2" component={CreateJobScreen2} />
       <Stack.Screen name="CreateJobScreen3" component={CreateJobScreen3} />
       <Stack.Screen name="JobDetailedScreen" component={JobDetailedScreen} />
-      <Stack.Screen name="ApproximateLocationMap" component={ApproximateLocationMap} />
-      <Stack.Screen name="LanguageSelectScreen" component={LanguageSelectScreen} />
-       <Stack.Screen name="LocationPickerScreen" component={LocationPickerScreen} />
-        <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
-        <Stack.Screen name="PreferencesScreen" component={PreferencesScreen} />
-        <Stack.Screen name="SavedAddressesScreen" component={SavedAddressesScreen} />
-        <Stack.Screen name="ManageSavedAddressesScreen" component={ManageSavedAddressesScreen} />
-        <Stack.Screen name="WishlistScreen" component={WishlistScreen} />
-         <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen} />
-          <Stack.Screen name="ManageJobDetailScreen" component={ManageJobDetailScreen} />
+      <Stack.Screen
+        name="ApproximateLocationMap"
+        component={ApproximateLocationMap}
+      />
+      <Stack.Screen
+        name="LanguageSelectScreen"
+        component={LanguageSelectScreen}
+      />
+      <Stack.Screen
+        name="LocationPickerScreen"
+        component={LocationPickerScreen}
+      />
+      <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
+      <Stack.Screen name="PreferencesScreen" component={PreferencesScreen} />
+      <Stack.Screen
+        name="SavedAddressesScreen"
+        component={SavedAddressesScreen}
+      />
+      <Stack.Screen
+        name="ManageSavedAddressesScreen"
+        component={ManageSavedAddressesScreen}
+      />
+      <Stack.Screen name="WishlistScreen" component={WishlistScreen} />
+      <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen} />
+      <Stack.Screen
+        name="ManageJobDetailScreen"
+        component={ManageJobDetailScreen}
+      />
+      <Stack.Screen name="BidPlacementScreen" component={BidPlacementScreen} />
     </Stack.Navigator>
   );
 }
