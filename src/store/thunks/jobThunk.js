@@ -10,7 +10,8 @@ import {
   uploadJobAttachmentsByIdAPI, 
   updateJobAttachmentsByIdAPI, 
   getAllTagsAPI, 
-  reportJobByIdAPI 
+  reportJobByIdAPI, 
+  getAllCreatedJobsAPI
 } from '../api/jobApi';
 import { handleAxiosError } from '../../utils/handleAxiosError';
 
@@ -150,6 +151,19 @@ export const reportJobById = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       const response = await reportJobByIdAPI(data);
+      return response?.data;
+    } catch (error) {
+      return handleAxiosError(error, thunkAPI);
+    }
+  }
+);
+
+// Get all created jobs thunk
+export const getAllCreatedJobs = createAsyncThunk(
+  "job/getAllCreatedJobs",
+  async (data, thunkAPI) => {
+    try {
+      const response = await getAllCreatedJobsAPI(data);
       return response?.data;
     } catch (error) {
       return handleAxiosError(error, thunkAPI);
