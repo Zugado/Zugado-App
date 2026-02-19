@@ -94,3 +94,11 @@ export const reportJobByIdAPI = (data) =>
     content_type: "application/json",
     data: data,
 });
+
+//Get all created jobs api
+export const getAllCreatedJobsAPI = (data) =>
+  apiGetRequest({
+    apiUrl: `/jobs/my-jobs?page=${data.pageNo}&limit=${data.limit}`,
+    content_type: "application/json",
+    data: null,
+});

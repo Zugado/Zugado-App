@@ -8,7 +8,7 @@ export const apiPostRequest = async ({ apiUrl, content_type, data }) => {
 
     console.log(`POST Request: ${apiUrl}`);
 
-    console.log('Body:', data);
+    console.log('Body:', JSON.stringify(data, null, 2));
 
     const response = await axiosInstance.post(apiUrl, data, { headers });
     console.log('raw api response = ', response?.data);

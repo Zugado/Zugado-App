@@ -1,7 +1,6 @@
 import { apiPostRequest } from "../https/post";
 import { apiGetRequest } from "../https/get";
 import { apiPutRequest } from "../https/put";
-import { apiPostRequest } from "../https/post";
 
 //Create Bid on job by id api
 export const postBidByJobIdAPI = (data) =>
@@ -10,6 +9,15 @@ export const postBidByJobIdAPI = (data) =>
     content_type: "application/json",
     data: data,
 });
+
+//Update Bid on job by id api
+export const updateBidByJobIdAPI = (data) =>
+  apiPutRequest({
+    apiUrl: `/bids/bid/${data}`,
+    content_type: "application/json",
+    data: data,
+});
+
 
 //Get all bids of job by id api
 export const getAllBidsByJobIdAPI = (data) =>
