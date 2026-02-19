@@ -15,6 +15,12 @@ export const getLocationFromCoordinates = async (coordinates) => {
       }
     );
     
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.log('Non-JSON response from geocoding API');
+      return { locality: 'Unknown', city: 'Unknown', state: 'Unknown' };
+    }
+    
     const data = await response.json();
     const address = data.address || {};
     

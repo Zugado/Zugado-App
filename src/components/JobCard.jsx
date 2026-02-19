@@ -1,5 +1,4 @@
-// components/JobCard.js
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,6 +20,9 @@ import { selectWishlistIds } from '../store/selector';
 import { handleWishlistToggle } from '../utils/wishlistUtils';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { getRelativeTime } from '../utils/timeUtils';
+import { formatDistance } from '../utils/distanceUtils';
+import { getLocationFromCoordinates } from '../utils/locationUtils';
+import DotLoader from './DotLoader';
 
 const JobCard = ({ job, showButttons = true }) => {
   const dispatch = useDispatch();
@@ -28,6 +30,8 @@ const JobCard = ({ job, showButttons = true }) => {
   const wishlistIds = useSelector(selectWishlistIds);
   const { showSnackbar } = useSnackbar();
   const [isScrolling, setIsScrolling] = useState(false);
+  const [cityName, setCityName] = useState('');
+  const [isLoadingCity, setIsLoadingCity] = useState(true);
 
   const isWishlisted = wishlistIds.includes(job?._id);
   const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
@@ -57,6 +61,38 @@ const JobCard = ({ job, showButttons = true }) => {
 
   const onWishlistToggle = () => {
     handleWishlistToggle(dispatch, job?._id, isWishlisted, showSnackbar);
+  };
+
+  useEffect(() => {
+    if (job?.location?.coordinates) {
+      setIsLoadingCity(true);
+      
+      const timer = setTimeout(() => {
+        getLocationFromCoordinates(job.location.coordinates)
+          .then(({ city }) => {
+            setCityName(city);
+            setIsLoadingCity(false);
+          })
+          .catch(() => {
+            setIsLoadingCity(false);
+          });
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [job?.location?.coordinates]);
+
+  const getLocationDisplay = () => {
+    if (job?.locationType === 'remote') {
+      return 'Remote';
+    }
+    if (isLoadingCity) {
+      return null;
+    }
+    if (cityName && job?.distanceFromUser !== null && job?.distanceFromUser !== undefined) {
+      return `${cityName} - ${formatDistance(job.distanceFromUser)}`;
+    }
+    return 'Distance N/A';
   };
 
   return (
@@ -119,9 +155,11 @@ const JobCard = ({ job, showButttons = true }) => {
               )}
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.locationIcon} />
-                <Text style={styles.overlayText}>
-                  {job?.location?.address || 'Location 500 m'}
-                </Text>
+                {isLoadingCity ? (
+                  <DotLoader color="#fff" size={4} />
+                ) : (
+                  <Text style={styles.overlayText}>{getLocationDisplay()}</Text>
+                )}
               </View>
             </View>
           </LinearGradient>
@@ -164,12 +202,13 @@ const JobCard = ({ job, showButttons = true }) => {
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={styles.row}>
-            <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
-
+            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+              {job?.title || 'Job Title'}
+            </Text>
             <Text style={styles.price}>
-              {job?.amount?.disclose && job?.amount?.value
-                ? `₹ ${job.amount.value}`
-                : 'Price on request'}
+              {job?.amount?.disclose && job?.amount?.max
+                ? `₹ ${job.amount.max}`
+                : 'Not disclosed'}
             </Text>
           </View>
 
@@ -191,9 +230,11 @@ const JobCard = ({ job, showButttons = true }) => {
               </View>
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.noImageIcon} />
-                <Text style={styles.noImageText}>
-                  {job?.location?.address || 'Location 500 m'}
-                </Text>
+                {isLoadingCity ? (
+                  <DotLoader color="#000" size={4} />
+                ) : (
+                  <Text style={styles.noImageText}>{getLocationDisplay()}</Text>
+                )}
               </View>
             </View>
           )}
@@ -207,7 +248,11 @@ const JobCard = ({ job, showButttons = true }) => {
 
             <View style={styles.ratingContainer}>
               <FontAwesome name="star" style={styles.starIcon} />
-              <Text style={styles.ratingText}>4.9 (2.2K)</Text>
+              <Text style={styles.ratingText}>
+                {job?.creatorRating !== undefined && job?.creatorRating !== null 
+                  ? job.creatorRating 
+                  : 'N/A'}
+              </Text>
             </View>
           </View>
 
@@ -218,7 +263,7 @@ const JobCard = ({ job, showButttons = true }) => {
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.bidButton}
-                onPress={() => navigation.navigate('BidPlacementScreen', job)}
+                onPress={() => navigation.navigate('BidPlacementScreen', { job })}
               >
                 <Text style={styles.bidButtonText}>Bid</Text>
               </TouchableOpacity>
@@ -375,9 +420,11 @@ const styles = StyleSheet.create({
   },
 
   title: {
+    flex: 1,
     fontSize: 14,
     fontWeight: '700',
     color: '#1a1a1a',
+    marginRight: 8,
   },
 
   price: {

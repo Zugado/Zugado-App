@@ -39,7 +39,7 @@ const HomeScreen = ({ navigation }) => {
   
   // First layer: Filter urgent jobs and add distance
   const jobs = (isUrgentEnabled 
-    ? allJobs.filter(job => job.jobType === 'quick' || job.jobType !== 'standard')
+    ? allJobs.filter(job => job.jobType === 'quick' || job.jobType !== 'standard' || job.jobType === 'urgent')
     : allJobs
   )?.map(job => ({
     ...job,

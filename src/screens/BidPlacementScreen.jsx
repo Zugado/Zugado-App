@@ -15,7 +15,8 @@ import { Colors } from '../styles/commonStyles';
 import JobCard from '../components/JobCard';
 import { TextInput } from 'react-native-gesture-handler';
 
-const BidPlacementScreen = ({ navigation, job }) => {
+const BidPlacementScreen = ({ navigation, route }) => {
+  const { job } = route.params || {};
   const [isLoading, setIsLoading] = useState(false);
   const [isNegotiable, setIsNegotiable] = useState('yes');
   const scrollViewRef = useRef(null);
