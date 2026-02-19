@@ -38,14 +38,7 @@ const JobCard = ({ job, showButttons = true }) => {
   const { width } = Dimensions.get('window');
   const cardWidth = width - 30; // Account for margins
 
-  const imageList =
-    job?.attachments?.length > 0
-      ? job.attachments.map(a => a.url)
-      : [
-          'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
-          'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
-          'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
-        ];
+  const imageList =job.attachments.map(a => a.url);
   const [currentIndex, setCurrentIndex] = useState(0);
   const sliderRef = useRef(null);
 
