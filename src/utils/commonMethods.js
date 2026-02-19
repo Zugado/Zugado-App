@@ -15,3 +15,14 @@ export const scrollToInput = (inputRef, scrollViewRef) => {
     }, 200);
   }
 };
+
+export function trimText(text, maxChars) {
+  if (typeof text !== "string") return "";
+
+  if (text.length <= maxChars) return text;
+
+  let trimmed = text.substring(0, maxChars);
+  trimmed = trimmed.substring(0, trimmed.lastIndexOf(" "));
+
+  return trimmed + "...";
+}

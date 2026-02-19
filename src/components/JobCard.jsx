@@ -23,6 +23,7 @@ import { getRelativeTime } from '../utils/timeUtils';
 import { formatDistance } from '../utils/distanceUtils';
 import { getLocationFromCoordinates } from '../utils/locationUtils';
 import DotLoader from './DotLoader';
+import { trimText } from '../utils/commonMethods';
 
 const JobCard = ({ job, showButttons = true }) => {
   const dispatch = useDispatch();
@@ -199,8 +200,8 @@ const JobCard = ({ job, showButttons = true }) => {
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={styles.row}>
-            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
-              {job?.title || 'Job Title'}
+            <Text style={styles.title}>
+              {trimText(job?.title, 40)  || 'Job Title'}
             </Text>
             <Text style={styles.price}>
               {job?.amount?.disclose && job?.amount?.max

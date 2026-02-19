@@ -19,6 +19,7 @@ import { selectWishlistIds } from '../store/selector';
 import { handleWishlistToggle } from '../utils/wishlistUtils';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { getRelativeTime } from '../utils/timeUtils';
+import { trimText } from '../utils/commonMethods';
 
 const MiniJobCard = ({ job }) => {
   const dispatch = useDispatch();
@@ -85,7 +86,7 @@ const MiniJobCard = ({ job }) => {
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
+            <Text ellipsizeMode="tail"  numberOfLines={1}  style={styles.title}>{trimText(job?.title, 40) || 'Job Title'}</Text>
           </View>
 
           <View style={{ flexDirection: 'column', marginTop: 4, gap: 4 }}>
