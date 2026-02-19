@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,9 @@ import SwipableTabs from '../components/SwipableTabs';
 import { Colors } from '../styles/commonStyles';
 import LoaderCard from '../components/LoaderCard';
 import SelectorToggleButton from '../components/SelectorToggleButton';
+import JobCard from '../components/JobCard';
+import { getAllAppliedJobs, getAllCreatedJobs } from '../store/thunks/jobThunk';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 // Dummy data for My Jobs (jobs I applied to)
 const myJobsData = [
   {
@@ -61,8 +64,7 @@ const myJobsData = [
   },
 ];
 
-// Dummy data for Posted Jobs (jobs I created)
-const postedJobsData = [];
+const EMPTY_ARRAY = [];
 
 const EmptyList = ({ message }) => (
   <View style={styles.emptyContainer}>
@@ -71,9 +73,14 @@ const EmptyList = ({ message }) => (
   </View>
 );
 
-const AppliedTasksSection = ({ isLoading }) => {
+const AppliedTasksSection = ({
+  isLoading,
+  appliedJobs,
+  refreshing,
+  onRefresh,
+}) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
-  const [refreshing, setRefreshing] = useState(false);
+
   const filters = [
     'All',
     'Pending',
@@ -83,15 +90,28 @@ const AppliedTasksSection = ({ isLoading }) => {
     'Rejected',
   ];
 
+  // Transform API data to match component expectations
+  const transformedJobs = appliedJobs.map(item => {
+    const job = item.job;
+    return {
+      id: job._id,
+      title: job.title,
+      price: item.bidAmount,
+      description: job.description,
+      distance: 'N/A', // Calculate distance if needed
+      vendorName: `${job.createdBy.firstName} ${job.createdBy.lastName}`,
+      rating: 0, // Not in API
+      reviews: '0',
+      saved: false, // Not in API
+      urgent: false, // Not in API
+      status: item.bidStatus.charAt(0).toUpperCase() + item.bidStatus.slice(1),
+    };
+  });
+
   const filteredJobs =
     selectedFilter === 'All'
-      ? myJobsData
-      : myJobsData.filter(job => job.status === selectedFilter);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  };
+      ? transformedJobs
+      : transformedJobs.filter(job => job.status === selectedFilter);
 
   if (isLoading) {
     return (
@@ -110,7 +130,7 @@ const AppliedTasksSection = ({ isLoading }) => {
           style={styles.filterContainer}
           nestedScrollEnabled={true}
         >
-          {filters.map(filter => (
+          {filters?.map(filter => (
             <TouchableOpacity
               key={filter}
               style={[
@@ -148,19 +168,37 @@ const AppliedTasksSection = ({ isLoading }) => {
   );
 };
 
-const CreatedTasksSection = ({ isLoading }) => {
+const CreatedTasksSection = ({ isLoading, jobs, refreshing, onRefresh }) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
-  const [refreshing, setRefreshing] = useState(false);
-  const filters = ['filter1', 'filter2', 'filter3'];
+
+  const filters = [
+    'All',
+    'Pending',
+    'Active',
+    'Completed',
+    'Cancelled',
+    'Rejected',
+  ];
+
+  // Transform API data to match component expectations
+  const transformedJobs = jobs.map(job => ({
+    id: job._id,
+    title: job.title,
+    price: job.amount.max || job.amount.min || 0,
+    description: job.description,
+    distance: 'N/A', // Calculate distance if needed
+    vendorName: `${job.createdBy.firstName} ${job.createdBy.lastName}`,
+    rating: job.createdBy.ratings.averageRating,
+    reviews: job.createdBy.ratings.totalRatings.toString(),
+    saved: false, // Not in API
+    urgent: false, // Not in API
+    status: job.isPublished ? 'Active' : 'Pending',
+  }));
+
   const filteredJobs =
     selectedFilter === 'All'
-      ? postedJobsData
-      : postedJobsData.filter(job => job.status === selectedFilter);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  };
+      ? transformedJobs
+      : transformedJobs.filter(job => job.status === selectedFilter);
 
   if (isLoading) {
     return (
@@ -172,14 +210,14 @@ const CreatedTasksSection = ({ isLoading }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      {postedJobsData.length > 0 && (
+      {transformedJobs.length > 0 && (
         <View style={styles.filterContainer}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             style={{ paddingHorizontal: 10 }}
           >
-            {filters.map(filter => (
+            {filters?.map(filter => (
               <TouchableOpacity
                 key={filter}
                 style={[
@@ -205,7 +243,7 @@ const CreatedTasksSection = ({ isLoading }) => {
       <FlatList
         data={filteredJobs}
         keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => <JobCard job={item} />}
+        renderItem={({ item }) => <MiniJobCard job={item} />}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -223,31 +261,71 @@ const CreatedTasksSection = ({ isLoading }) => {
 const ManageJobScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState('As a Seeker');
+  const [refreshing, setRefreshing] = useState(false);
+  const dispatch = useDispatch();
+  const createdJobs = useSelector(
+    state => state.job?.createdJobs || [],
+    shallowEqual,
+  );
+  const appliedJobs = useSelector(
+    state => state.job?.appliedJobs || [],
+    shallowEqual,
+  );
+
+  console.log('Created Jobs:', createdJobs); //state.job.jobs.jobs;
+  console.log('Applied Jobs:', appliedJobs); //state.job.jobs.jobs;
+
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
+    setIsLoading(true);
+    await dispatch(getAllCreatedJobs({ pageNo: 1, limit: 20 }));
+    await dispatch(getAllAppliedJobs({ pageNo: 1, limit: 20 }));
+    setIsLoading(false);
+  };
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadInitialData().then(() => setRefreshing(false));
+  };
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.bodyBackColor} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={Colors.bodyBackColor}
+      />
       <CommonAppBar
         borderBottomColor={Colors.whiteColor}
         navigation={navigation}
         title="Manage Jobs"
       />
       <View style={{ paddingHorizontal: 10 }}>
-      <SelectorToggleButton
-        options={['As a Seeker', 'As a Creator']}
-        selectedValue={selectedTab}
-        onValueChange={setSelectedTab}
-        backgroundColor={Colors.extraLightGrayColor}
-        unselectedTextColor={Colors.blackColor}
-      />
+        <SelectorToggleButton
+          options={['As a Seeker', 'As a Creator']}
+          selectedValue={selectedTab}
+          onValueChange={setSelectedTab}
+          backgroundColor={Colors.extraLightGrayColor}
+          unselectedTextColor={Colors.blackColor}
+        />
       </View>
       <View style={{ flex: 1 }}>
         {selectedTab === 'As a Seeker' ? (
-          <AppliedTasksSection isLoading={isLoading} />
+          <AppliedTasksSection
+            isLoading={isLoading}
+            appliedJobs={appliedJobs}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
         ) : (
-          <CreatedTasksSection isLoading={isLoading} />
+          <CreatedTasksSection
+            isLoading={isLoading}
+            jobs={createdJobs}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
         )}
       </View>
-    
     </View>
   );
 };
@@ -255,7 +333,7 @@ const ManageJobScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   filterContainer: {
     marginVertical: 8,
-     maxHeight: 30,
+    maxHeight: 30,
     paddingHorizontal: 10,
   },
   filterScrollContent: {
@@ -266,12 +344,12 @@ const styles = StyleSheet.create({
   filterButton: {
     marginHorizontal: 2,
     borderWidth: 1,
-    height:30,
+    height: 30,
     borderColor: '#ccc',
     backgroundColor: Colors.whiteColor,
     borderRadius: 10,
     paddingHorizontal: 14,
-     marginRight: 8,
+    marginRight: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },

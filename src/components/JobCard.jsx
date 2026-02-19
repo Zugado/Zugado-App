@@ -38,12 +38,12 @@ const JobCard = ({ job, showButttons = true }) => {
   const { width } = Dimensions.get('window');
   const cardWidth = width - 30; // Account for margins
 
-  const imageList =job.attachments.map(a => a.url);
+  const imageList = job.attachments?.map(a => a.url);
   const [currentIndex, setCurrentIndex] = useState(0);
   const sliderRef = useRef(null);
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    if (viewableItems.length > 0) {
+    if (viewableItems?.length > 0) {
       setCurrentIndex(viewableItems[0].index);
     }
   }).current;
@@ -59,7 +59,7 @@ const JobCard = ({ job, showButttons = true }) => {
   useEffect(() => {
     if (job?.location?.coordinates) {
       setIsLoadingCity(true);
-      
+
       const timer = setTimeout(() => {
         getLocationFromCoordinates(job.location.coordinates)
           .then(({ city }) => {
@@ -70,7 +70,7 @@ const JobCard = ({ job, showButttons = true }) => {
             setIsLoadingCity(false);
           });
       }, 300);
-      
+
       return () => clearTimeout(timer);
     }
   }, [job?.location?.coordinates]);
@@ -82,7 +82,11 @@ const JobCard = ({ job, showButttons = true }) => {
     if (isLoadingCity) {
       return null;
     }
-    if (cityName && job?.distanceFromUser !== null && job?.distanceFromUser !== undefined) {
+    if (
+      cityName &&
+      job?.distanceFromUser !== null &&
+      job?.distanceFromUser !== undefined
+    ) {
       return `${cityName} - ${formatDistance(job.distanceFromUser)}`;
     }
     return 'Distance N/A';
@@ -91,7 +95,7 @@ const JobCard = ({ job, showButttons = true }) => {
   return (
     <View style={styles.cardContainer}>
       {/* ---------- IMAGE SLIDER ---------- */}
-      {imageList.length > 0 && (
+      {imageList?.length > 0 && (
         <View>
           <FlatList
             ref={sliderRef}
@@ -133,9 +137,9 @@ const JobCard = ({ job, showButttons = true }) => {
                     : '23 hrs left'}
                 </Text>
               </View>
-              {imageList.length > 1 && (
+              {imageList?.length > 1 && (
                 <View style={styles.dotsWrapper}>
-                  {imageList.map((_, index) => (
+                  {imageList?.map((_, index) => (
                     <View
                       key={index}
                       style={[
@@ -159,7 +163,7 @@ const JobCard = ({ job, showButttons = true }) => {
         </View>
       )}
       {/* ---------- This is to make height ---------- */}
-      {imageList.length === 0 && <View style={styles.emptyImageHeight} />}
+      {imageList?.length === 0 && <View style={styles.emptyImageHeight} />}
       {/* ---------- URGENT TAG ---------- */}
       {isUrgent && (
         <View style={styles.urgentTag}>
@@ -211,7 +215,7 @@ const JobCard = ({ job, showButttons = true }) => {
           </Text>
 
           {/* this is the place to put location for without image card */}
-          {imageList.length === 0 && (
+          {imageList?.length === 0 && (
             <View style={styles.noImageInfoContainer}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.noImageIcon} />
@@ -242,8 +246,8 @@ const JobCard = ({ job, showButttons = true }) => {
             <View style={styles.ratingContainer}>
               <FontAwesome name="star" style={styles.starIcon} />
               <Text style={styles.ratingText}>
-                {job?.creatorRating !== undefined && job?.creatorRating !== null 
-                  ? job.creatorRating 
+                {job?.creatorRating !== undefined && job?.creatorRating !== null
+                  ? job.creatorRating
                   : 'N/A'}
               </Text>
             </View>
@@ -256,7 +260,9 @@ const JobCard = ({ job, showButttons = true }) => {
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.bidButton}
-                onPress={() => navigation.navigate('BidPlacementScreen', { job })}
+                onPress={() =>
+                  navigation.navigate('BidPlacementScreen', { job })
+                }
               >
                 <Text style={styles.bidButtonText}>Bid</Text>
               </TouchableOpacity>

@@ -11,7 +11,8 @@ import {
   updateJobAttachmentsByIdAPI, 
   getAllTagsAPI, 
   reportJobByIdAPI, 
-  getAllCreatedJobsAPI
+  getAllCreatedJobsAPI,
+  getAllAppliedJobsAPI
 } from '../api/jobApi';
 import { handleAxiosError } from '../../utils/handleAxiosError';
 
@@ -164,6 +165,18 @@ export const getAllCreatedJobs = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       const response = await getAllCreatedJobsAPI(data);
+      return response?.data;
+    } catch (error) {
+      return handleAxiosError(error, thunkAPI);
+    }
+  }
+);
+// Get all Applied jobs thunk
+export const getAllAppliedJobs = createAsyncThunk(
+  "job/getAllAppliedJobs",
+  async (data, thunkAPI) => {
+    try {
+      const response = await getAllAppliedJobsAPI(data);
       return response?.data;
     } catch (error) {
       return handleAxiosError(error, thunkAPI);

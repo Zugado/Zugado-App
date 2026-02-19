@@ -114,7 +114,7 @@ const HomeScreen = ({ navigation }) => {
      updateLocation();
      await dispatch(getAllTags());
      await dispatch(getWishlist());
-    await dispatch(getAllJobs({ pageNo: 1, limit: 20 }));
+     await dispatch(getAllJobs({ pageNo: 1, limit: 20 }));
   };
 
   const updateLocation = () => {

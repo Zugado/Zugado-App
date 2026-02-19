@@ -102,3 +102,11 @@ export const getAllCreatedJobsAPI = (data) =>
     content_type: "application/json",
     data: null,
 });
+//Get all Applied jobs api
+export const getAllAppliedJobsAPI = (data) =>
+  apiGetRequest({
+    apiUrl: `/jobs/applied?page=${data.pageNo}&limit=${data.limit}`,
+    content_type: "application/json",
+    data: null,
+});
+

@@ -1,8 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getAllJobs, getAllTags } from '../thunks/jobThunk';
+import {
+  getAllAppliedJobs,
+  getAllCreatedJobs,
+  getAllJobs,
+  getAllTags,
+} from '../thunks/jobThunk';
+import { create } from 'react-test-renderer';
 
 const initialState = {
   jobs: [],
+  createdJobs: [],
+  appliedJobs: [],
   loading: false,
   error: null,
 };
@@ -15,16 +23,20 @@ const jobSlice = createSlice({
     tagsLoading: false,
   },
   reducers: {
-    clearJobs: (state) => {
+    clearJobs: state => {
       state.jobs = [];
+      state.createdJobs = [];
+      state.appliedJobs = [];
+      state.error = null;
+      state.tags = [];
     },
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
     },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
-      .addCase(getAllJobs.pending, (state) => {
+      .addCase(getAllJobs.pending, state => {
         state.loading = true;
         state.error = null;
       })
@@ -37,7 +49,39 @@ const jobSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.message || 'Failed to fetch jobs';
       })
-      .addCase(getAllTags.pending, (state) => {
+      .addCase(getAllCreatedJobs.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAllCreatedJobs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.createdJobs = action.payload?.data?.jobs || [];
+        console.log(
+          'Created Jobs fetched successfully in slice:',
+          action.payload?.data?.jobs,
+        );
+      })
+      .addCase(getAllCreatedJobs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || 'Failed to fetch created jobs';
+      })
+      .addCase(getAllAppliedJobs.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getAllAppliedJobs.fulfilled, (state, action) => {
+        state.loading = false;
+        state.appliedJobs = action.payload?.data?.appliedJobs || [];
+        console.log(
+          'Applied Jobs fetched successfully in slice:',
+          action.payload?.data?.appliedJobs,
+        );
+      })
+      .addCase(getAllAppliedJobs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || 'Failed to fetch applied jobs';
+      })
+      .addCase(getAllTags.pending, state => {
         state.tagsLoading = true;
       })
       .addCase(getAllTags.fulfilled, (state, action) => {
