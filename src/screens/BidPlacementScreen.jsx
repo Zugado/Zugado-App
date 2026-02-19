@@ -8,17 +8,24 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
 import { Colors } from '../styles/commonStyles';
 import JobCard from '../components/JobCard';
 import { TextInput } from 'react-native-gesture-handler';
+import { useSnackbar } from '../contexts/SnackbarContext';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BidPlacementScreen = ({ navigation, route }) => {
   const { job } = route.params || {};
+  const { showSnackbar } = useSnackbar();
   const [isLoading, setIsLoading] = useState(false);
-  const [isNegotiable, setIsNegotiable] = useState('yes');
+  const [bidAmount, setBidAmount] = useState('');
+  const [message, setMessage] = useState('');
+  const [isNegotiable, setIsNegotiable] = useState(false);
   const scrollViewRef = useRef(null);
 
   const scrollToInput = (inputRef, scrollRef) => {
@@ -33,13 +40,55 @@ const BidPlacementScreen = ({ navigation, route }) => {
     }
   };
 
+  const handleSubmitBid = async () => {
+    if (!bidAmount || bidAmount.trim() === '') {
+      showSnackbar('Please enter bid amount', 'error');
+      return;
+    }
+
+    if (isNaN(bidAmount) || Number(bidAmount) <= 0) {
+      showSnackbar('Please enter a valid amount', 'error');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.post(
+        `https://apiuat.zugado.com/api/bids/bid/${job?._id}`,
+        {
+          bidAmount: Number(bidAmount),
+          message: message || '',
+          isNegotiable: isNegotiable,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      showSnackbar('Bid submitted successfully!', 'success');
+      navigation.goBack();
+    } catch (error) {
+      console.error('Bid submission error:', error);
+      showSnackbar(
+        error.response?.data?.message || 'Failed to submit bid',
+        'error'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
+      <View style={styles.wrapper}>
         <StatusBar
           barStyle="dark-content"
           backgroundColor={Colors.bodyBackColor}
@@ -47,47 +96,18 @@ const BidPlacementScreen = ({ navigation, route }) => {
         <CommonAppBar navigation={navigation} title="Place Your Bid" />
         <ScrollView ref={scrollViewRef} keyboardShouldPersistTaps="handled">
           <JobCard job={job} showButttons={false} />
-          <View style={{ paddingVertical: 12, paddingHorizontal: 14 }}>
-            <Text
-              style={{
-                fontWeight: '500',
-                fontSize: 16,
-                color: Colors.blackColor,
-              }}
-            >
-              Your Expected Amount
-            </Text>
-            <View
-              style={{
-                backgroundColor: Colors.extraLightGrayColor,
-                borderRadius: 8,
-                display: 'flex',
-                overflow: 'hidden',
-                flexDirection: 'row',
-                borderWidth: 1,
-                borderColor: Colors.grayColor,
-                alignItems: 'center',
-                marginVertical: 10,
-              }}
-            >
-              <View
-                style={{
-                  padding: 10,
-                  borderRightColor: Colors.grayColor,
-                  borderRightWidth: 1,
-                  backgroundColor: Colors.extraLightGrayColor,
-                }}
-              >
+          <View style={styles.formContainer}>
+            <Text style={styles.label}>Your Expected Amount</Text>
+            <View style={styles.amountInputContainer}>
+              <View style={styles.currencySymbol}>
                 <Text>₹</Text>
               </View>
               <TextInput
                 placeholder="Enter Amount Here"
-                style={{
-                  flex: 1,
-                  fontSize: 12,
-                  paddingHorizontal: 10,
-                  backgroundColor: Colors.whiteColor,
-                }}
+                style={styles.amountInput}
+                keyboardType="numeric"
+                value={bidAmount}
+                onChangeText={setBidAmount}
               />
             </View>
             <View style={styles.negotiableContainer}>
@@ -102,16 +122,12 @@ const BidPlacementScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 style={[
                   styles.negotiableToggle,
-                  {
-                    backgroundColor: isNegotiable === 'yes' ? '#000' : '#666',
-                  },
+                  isNegotiable ? styles.negotiableActive : styles.negotiableInactive,
                 ]}
-                onPress={() =>
-                  setIsNegotiable(isNegotiable === 'yes' ? 'no' : 'yes')
-                }
+                onPress={() => setIsNegotiable(!isNegotiable)}
                 activeOpacity={0.8}
               >
-                {isNegotiable === 'yes' ? (
+                {isNegotiable ? (
                   <>
                     <Text style={styles.negotiableText}>Yes</Text>
                     <Feather name="check" style={styles.negotiableIcon} />
@@ -124,30 +140,13 @@ const BidPlacementScreen = ({ navigation, route }) => {
                 )}
               </TouchableOpacity>
             </View>
-            <Text
-              style={{
-                fontWeight: '500',
-                fontSize: 16,
-                color: Colors.blackColor,
-              }}
-            >
-              Why Should The client Choose You?
-            </Text>
+            <Text style={styles.label}>Why Should The client Choose You?</Text>
             <TextInput
               placeholder="Briefly Describe your Experience or Approach here... "
-              style={{
-                flex: 1,
-                fontSize: 12,
-                paddingVertical: 10,
-                paddingHorizontal: 10,
-                borderWidth: 1,
-                borderColor: Colors.grayColor,
-                backgroundColor: Colors.whiteColor,
-                minHeight: 100,
-                borderRadius: 8,
-                marginVertical: 10,
-                textAlignVertical: 'top',
-              }}
+              style={styles.messageInput}
+              multiline
+              value={message}
+              onChangeText={setMessage}
               onFocus={ref => scrollToInput(ref, scrollViewRef)}
             />
           </View>
@@ -156,8 +155,16 @@ const BidPlacementScreen = ({ navigation, route }) => {
         </ScrollView>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>Submit Bid</Text>
+          <TouchableOpacity
+            style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+            onPress={handleSubmitBid}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitButtonText}>Submit Bid</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -166,53 +173,55 @@ const BidPlacementScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  filterContainer: {
-    marginVertical: 8,
-    maxHeight: 30,
-    paddingHorizontal: 10,
+  container: {
+    flex: 1,
   },
-  filterScrollContent: {
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    flexGrow: 1,
+  wrapper: {
+    flex: 1,
+    backgroundColor: Colors.bodyBackColor,
   },
-  filterButton: {
-    marginHorizontal: 2,
-    borderWidth: 1,
-    height: 30,
-    borderColor: '#ccc',
-    backgroundColor: Colors.whiteColor,
-    borderRadius: 10,
+  formContainer: {
+    paddingVertical: 12,
     paddingHorizontal: 14,
-    marginRight: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  selectedFilterButton: {
-    borderColor: Colors.primary,
+  label: {
+    fontWeight: '500',
+    fontSize: 16,
+    color: Colors.blackColor,
+  },
+  amountInputContainer: {
+    backgroundColor: Colors.extraLightGrayColor,
+    borderRadius: 8,
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: Colors.grayColor,
+    alignItems: 'center',
+    marginVertical: 10,
+    overflow: 'hidden',
+  },
+  currencySymbol: {
+    padding: 10,
+    borderRightColor: Colors.grayColor,
+    borderRightWidth: 1,
     backgroundColor: Colors.extraLightGrayColor,
   },
-  filterText: {
-    fontSize: 10,
-    color: '#555',
-    textAlign: 'center',
-  },
-  selectedFilterText: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  emptyContainer: {
+  amountInput: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 50,
+    fontSize: 12,
+    paddingHorizontal: 10,
+    backgroundColor: Colors.whiteColor,
   },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.extraLightGrayColor,
-    textAlign: 'center',
-    marginTop: 0,
+  messageInput: {
+    fontSize: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: Colors.grayColor,
+    backgroundColor: Colors.whiteColor,
+    minHeight: 100,
+    borderRadius: 8,
+    marginVertical: 10,
+    textAlignVertical: 'top',
   },
   negotiableContainer: {
     flexDirection: 'row',
@@ -237,6 +246,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     gap: 6,
+  },
+  negotiableActive: {
+    backgroundColor: '#000',
+  },
+  negotiableInactive: {
+    backgroundColor: '#666',
   },
   negotiableText: {
     color: '#fff',
@@ -266,6 +281,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
   },
   submitButtonText: {
     color: '#fff',
