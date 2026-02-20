@@ -35,9 +35,9 @@ export const getAllBidsByJobId = createAsyncThunk(
 // Get all my bids thunk
 export const getAllMyBids = createAsyncThunk(
   "bid/getAllMyBids",
-  async (data, thunkAPI) => {
+  async (_, thunkAPI) => {
     try {
-      const response = await getAllMyBidsAPI(data);
+      const response = await getAllMyBidsAPI();
       return response?.data;
     } catch (error) {
       return handleAxiosError(error, thunkAPI);

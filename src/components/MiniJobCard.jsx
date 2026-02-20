@@ -21,15 +21,17 @@ import { useSnackbar } from '../contexts/SnackbarContext';
 import { getRelativeTime } from '../utils/timeUtils';
 import { trimText } from '../utils/commonMethods';
 
-const MiniJobCard = ({ job }) => {
+const MiniJobCard = ({ jobData }) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  // console.log('Received jobData in MiniJobCard:', JSON.stringify(jobData, null, 2));
   const wishlistIds = useSelector(selectWishlistIds);
   const { showSnackbar } = useSnackbar();
   const [isScrolling, setIsScrolling] = useState(false);
 
+  const job = jobData?.job;
   const isWishlisted = wishlistIds.includes(job?._id);
-  const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
+  const isUrgent = job?.jobType === 'quick';
   const { width } = Dimensions.get('window');
   const cardWidth = width - 30; // Account for margins
 
@@ -77,12 +79,7 @@ const MiniJobCard = ({ job }) => {
       )}
 
       {/* ---------- CONTENT ---------- */}
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() =>
-          navigation.navigate('ManageJobDetailScreen', { jobId: job?._id })
-        }
-      >
+      <View>
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -129,15 +126,15 @@ const MiniJobCard = ({ job }) => {
               ))}
             </View>
 
-            <TouchableOpacity
+            <View
               style={styles.detailButton}
-              onPress={() => console.log('Chat clicked')}
+             
             >
               <Text style={styles.detailButtonText}>View Detail</Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
     </View>
   );
 };

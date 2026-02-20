@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MiniJobCard from '../components/MiniJobCard';
 import MyStatusBar from '../components/MyStatusbar';
+import { useNavigation } from '@react-navigation/native';
 import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
 import SwipableTabs from '../components/SwipableTabs';
 import { Colors } from '../styles/commonStyles';
@@ -20,6 +21,7 @@ import LoaderCard from '../components/LoaderCard';
 import SelectorToggleButton from '../components/SelectorToggleButton';
 import JobCard from '../components/JobCard';
 import { getAllAppliedJobs, getAllCreatedJobs } from '../store/thunks/jobThunk';
+import { getAllMyBids } from '../store/thunks/bidThunk';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 // Dummy data for My Jobs (jobs I applied to)
 const myJobsData = [
@@ -78,6 +80,7 @@ const AppliedTasksSection = ({
   appliedJobs,
   refreshing,
   onRefresh,
+  navigation,
 }) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
 
@@ -90,28 +93,15 @@ const AppliedTasksSection = ({
     'Rejected',
   ];
 
-  // Transform API data to match component expectations
-  const transformedJobs = appliedJobs.map(item => {
-    const job = item.job;
-    return {
-      id: job._id,
-      title: job.title,
-      price: item.bidAmount,
-      description: job.description,
-      distance: 'N/A', // Calculate distance if needed
-      vendorName: `${job.createdBy.firstName} ${job.createdBy.lastName}`,
-      rating: 0, // Not in API
-      reviews: '0',
-      saved: false, // Not in API
-      urgent: false, // Not in API
-      status: item.bidStatus.charAt(0).toUpperCase() + item.bidStatus.slice(1),
-    };
-  });
+  const getStatusFromBid = item => {
+    const bidStatus = item.bids?.[0]?.status || 'pending';
+    return bidStatus.charAt(0).toUpperCase() + bidStatus.slice(1);
+  };
 
   const filteredJobs =
     selectedFilter === 'All'
-      ? transformedJobs
-      : transformedJobs.filter(job => job.status === selectedFilter);
+      ? appliedJobs
+      : appliedJobs.filter(item => getStatusFromBid(item) === selectedFilter);
 
   if (isLoading) {
     return (
@@ -123,7 +113,7 @@ const AppliedTasksSection = ({
 
   return (
     <View style={{ flex: 1 }}>
-      {myJobsData.length > 0 && (
+      {appliedJobs.length > 0 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -154,8 +144,17 @@ const AppliedTasksSection = ({
       <FlatList
         style={{ flex: 1 }}
         data={filteredJobs}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => <MiniJobCard job={item} />}
+        keyExtractor={item => item.job._id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() =>
+              navigation.navigate('ManageJobDetailScreen', { jobData: item })
+            }
+          >
+            <MiniJobCard jobData={item} />
+          </TouchableOpacity>
+        )}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -168,7 +167,13 @@ const AppliedTasksSection = ({
   );
 };
 
-const CreatedTasksSection = ({ isLoading, jobs, refreshing, onRefresh }) => {
+const CreatedTasksSection = ({
+  isLoading,
+  jobs,
+  refreshing,
+  onRefresh,
+  navigation,
+}) => {
   const [selectedFilter, setSelectedFilter] = useState('All');
 
   const filters = [
@@ -180,25 +185,12 @@ const CreatedTasksSection = ({ isLoading, jobs, refreshing, onRefresh }) => {
     'Rejected',
   ];
 
-  // Transform API data to match component expectations
-  const transformedJobs = jobs.map(job => ({
-    id: job._id,
-    title: job.title,
-    price: job.amount.max || job.amount.min || 0,
-    description: job.description,
-    distance: 'N/A', // Calculate distance if needed
-    vendorName: `${job.createdBy.firstName} ${job.createdBy.lastName}`,
-    rating: job.createdBy.ratings.averageRating,
-    reviews: job.createdBy.ratings.totalRatings.toString(),
-    saved: false, // Not in API
-    urgent: false, // Not in API
-    status: job.isPublished ? 'Active' : 'Pending',
-  }));
+  const getStatus = job => (job.isPublished ? 'Active' : 'Pending');
 
   const filteredJobs =
     selectedFilter === 'All'
-      ? transformedJobs
-      : transformedJobs.filter(job => job.status === selectedFilter);
+      ? jobs
+      : jobs.filter(job => getStatus(job) === selectedFilter);
 
   if (isLoading) {
     return (
@@ -210,7 +202,7 @@ const CreatedTasksSection = ({ isLoading, jobs, refreshing, onRefresh }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      {transformedJobs.length > 0 && (
+      {jobs.length > 0 && (
         <View style={styles.filterContainer}>
           <ScrollView
             horizontal
@@ -242,8 +234,19 @@ const CreatedTasksSection = ({ isLoading, jobs, refreshing, onRefresh }) => {
 
       <FlatList
         data={filteredJobs}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => <MiniJobCard job={item} />}
+        keyExtractor={item => item._id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() =>
+              navigation.navigate('ManageJobDetailScreen', {
+                jobData: { job: item },
+              })
+            }
+          >
+            <MiniJobCard jobData={{ job: item }} />
+          </TouchableOpacity>
+        )}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -258,8 +261,9 @@ const CreatedTasksSection = ({ isLoading, jobs, refreshing, onRefresh }) => {
   );
 };
 
-const ManageJobScreen = ({ navigation }) => {
+const ManageJobScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState('As a Seeker');
   const [refreshing, setRefreshing] = useState(false);
   const dispatch = useDispatch();
@@ -268,12 +272,12 @@ const ManageJobScreen = ({ navigation }) => {
     shallowEqual,
   );
   const appliedJobs = useSelector(
-    state => state.job?.appliedJobs || [],
+    state => state.job?.myAllBids || [],
     shallowEqual,
   );
 
-  console.log('Created Jobs:', createdJobs); //state.job.jobs.jobs;
-  console.log('Applied Jobs:', appliedJobs); //state.job.jobs.jobs;
+  // console.log('Created Jobs:', createdJobs); //state.job.jobs.jobs;
+  console.log('Applied Jobs:', JSON.stringify(appliedJobs, null, 2)); //state.job.jobs.jobs;
 
   useEffect(() => {
     loadInitialData();
@@ -282,7 +286,7 @@ const ManageJobScreen = ({ navigation }) => {
   const loadInitialData = async () => {
     setIsLoading(true);
     await dispatch(getAllCreatedJobs({ pageNo: 1, limit: 20 }));
-    await dispatch(getAllAppliedJobs({ pageNo: 1, limit: 20 }));
+    await dispatch(getAllMyBids());
     setIsLoading(false);
   };
   const onRefresh = () => {
@@ -316,6 +320,7 @@ const ManageJobScreen = ({ navigation }) => {
             appliedJobs={appliedJobs}
             refreshing={refreshing}
             onRefresh={onRefresh}
+            navigation={navigation}
           />
         ) : (
           <CreatedTasksSection
@@ -323,6 +328,7 @@ const ManageJobScreen = ({ navigation }) => {
             jobs={createdJobs}
             refreshing={refreshing}
             onRefresh={onRefresh}
+            navigation={navigation}
           />
         )}
       </View>

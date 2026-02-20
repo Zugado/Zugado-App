@@ -28,9 +28,8 @@ export const getAllBidsByJobIdAPI = (data) =>
 });
 
 //Get all bids on jobs api
-export const getAllMyBidsAPI = (data) =>
+export const getAllMyBidsAPI = () =>
   apiGetRequest({
     apiUrl: `/bids/my-bids`,
     content_type: "application/json",
-    data: data,
-});
+  });

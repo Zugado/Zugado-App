@@ -5,19 +5,28 @@ import {
   Image,
   TouchableOpacity,
   StatusBar,
+  ScrollView,
 } from 'react-native';
 import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Colors } from '../styles/commonStyles';
 import { getRelativeTime } from '../utils/timeUtils';
 import { CommonAppBar } from '../components/CommonComponents';
 import Feather from 'react-native-vector-icons/Feather';
 
-const ManageJobDetailScreen = ({ job }) => {
+const ManageJobDetailScreen = () => {
   const navigation = useNavigation();
-  const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
-  const [bidStatus, setBidStatus] = useState('rejected');
+  const route = useRoute();
+  const { jobData } = route.params || {};
+  console.log('Received jobData: ManageJobDetailScreen==>', jobData);
+
+  const job = jobData?.job;
+  const bid = jobData?.bids?.[0];
+  console.log('Extracted job:', job);
+  console.log('Extracted bid:', bid);
+  const bidStatus = bid?.status || 'pending';
+  const isUrgent = job?.jobType === 'quick';
 
   const displayImages = [
     'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
@@ -26,17 +35,37 @@ const ManageJobDetailScreen = ({ job }) => {
   ].map((url, index) => ({ id: index, url }));
 
   const getBidStatusConfig = () => {
-    const isAccepted = bidStatus === 'accepted';
-    return {
-      statusText: isAccepted ? 'Accepted' : 'Rejected',
-      congratsText: isAccepted ? 'Congratulations!' : 'Oops !!',
-      backgroundColor: isAccepted
-        ? Colors.lightGreenColor
-        : Colors.lightOrangeColor,
-      textColor: isAccepted ? Colors.greenColor : Colors.secondary,
-      buttonText: isAccepted ? 'Mark this Job as Completed' : 'Cancel Bid',
-      buttonColor: isAccepted ? Colors.greenColor : Colors.secondary,
-    };
+    if (bidStatus === 'accepted') {
+      return {
+        statusText: 'Accepted',
+        congratsText: 'Congratulations!',
+        backgroundColor: Colors.lightGreenColor,
+        textColor: Colors.greenColor,
+        buttonText: 'Mark this Job as Completed',
+        buttonColor: Colors.greenColor,
+        buttonDisabled: false,
+      };
+    } else if (bidStatus === 'rejected') {
+      return {
+        statusText: 'Rejected',
+        congratsText: 'Oops !!',
+        backgroundColor: Colors.lightOrangeColor,
+        textColor: Colors.secondary,
+        buttonText: 'Cancel Bid',
+        buttonColor: Colors.secondary,
+        buttonDisabled: false,
+      };
+    } else {
+      return {
+        statusText: 'Pending',
+        congratsText: 'Under Review',
+        backgroundColor: '#fef8e0',
+        textColor: '#F59E0B',
+        buttonText: 'Waiting for Response',
+        buttonColor: '#c2c3c4',
+        buttonDisabled: true,
+      };
+    }
   };
 
   const statusConfig = getBidStatusConfig();
@@ -77,13 +106,18 @@ const ManageJobDetailScreen = ({ job }) => {
   const VendorInfo = () => (
     <View style={styles.vendorContainer}>
       <Text style={styles.vendorName}>Vendor Name</Text>
-      <Text style={styles.vendorService}>Service 👍🏼</Text>
+      <Text style={styles.vendorService}>Service name</Text>
     </View>
   );
 
   const ActionButtons = ({ showChat = true }) => (
     <View style={styles.actionButtonsRow}>
-      <TouchableOpacity style={styles.detailButton}>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate('JobDetailedScreen', { jobId: job?._id })
+        }
+        style={styles.detailButton}
+      >
         <Text style={styles.detailButtonText}>View Detail</Text>
       </TouchableOpacity>
       {showChat && (
@@ -113,7 +147,7 @@ const ManageJobDetailScreen = ({ job }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <StatusBar
         barStyle="dark-content"
         backgroundColor={Colors.bodyBackColor}
@@ -141,13 +175,11 @@ const ManageJobDetailScreen = ({ job }) => {
         <View style={styles.infoContainer}>
           <InfoRow
             icon="location-on"
-            text={job?.location?.address || 'Location 500 m'}
+            text={job?.location?.address || 'Location not available'}
           />
           <InfoRow
             icon="watch-later"
-            text={
-              job?.createdAt ? getRelativeTime(job?.createdAt) : '23 hrs left'
-            }
+            text={job?.createdAt ? getRelativeTime(job?.createdAt) : 'N/A'}
             iconStyle={{ fontSize: 16, marginLeft: 2 }}
           />
         </View>
@@ -158,10 +190,7 @@ const ManageJobDetailScreen = ({ job }) => {
         </View>
 
         <Text style={styles.description}>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem eos dolor
-          quaerat cumque atque at quis autem harum nostrum fugiat. Lorem ipsum
-          dolor sit amet consectetur adipisicing elit. Rem eos dolor quaerat
-          cumque atque at quis autem harum nostrum fugiat.
+          {job?.description || 'No description available'}
         </Text>
 
         <ActionButtons />
@@ -175,16 +204,21 @@ const ManageJobDetailScreen = ({ job }) => {
 
       {/* Bid Details Card */}
       <JobInfoSection>
-        <Text style={[styles.title, { fontSize: 24 }]}>₹ 1200</Text>
-        <InfoRow icon="circle" text="Negotiable: Yes" />
+        <Text style={[styles.title, { fontSize: 24 }]}>
+          ₹ {bid?.amount || 0}
+        </Text>
+        <Text style={{ fontSize: 10, color: Colors.grayColor ,position: 'absolute', right: 12, top: 12}}>
+          Updated {bid?.updatedAt ? getRelativeTime(bid.updatedAt) : 'N/A'}
+        </Text>
+        <InfoRow
+          icon="circle"
+          text={`Negotiable: ${bid?.isNegotiable ? 'Yes' : 'No'}`}
+        />
         <BidStatusBanner />
 
         <Text style={styles.proposalTitle}>Your Proposal</Text>
         <Text style={styles.description}>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem eos dolor
-          quaerat cumque atque at quis autem harum nostrum fugiat. Lorem ipsum
-          dolor sit amet consectetur adipisicing elit. Rem eos dolor quaerat
-          cumque atque at quis autem harum nostrum fugiat.
+          {bid?.message || 'No proposal message'}
         </Text>
 
         {bidStatus === 'rejected' && (
@@ -202,8 +236,10 @@ const ManageJobDetailScreen = ({ job }) => {
           {
             backgroundColor: statusConfig.buttonColor,
             borderColor: statusConfig.buttonColor,
+            opacity: statusConfig.buttonDisabled ? 0.7 : 1,
           },
         ]}
+        disabled={statusConfig.buttonDisabled}
       >
         <Text style={styles.mainActionButtonText}>
           {statusConfig.buttonText}
@@ -211,10 +247,10 @@ const ManageJobDetailScreen = ({ job }) => {
       </TouchableOpacity>
 
       <Text style={styles.refundText}>
-        Your Bid Will be Refunded If{' '}
+        Your Bid Will be Refunded If you{' '}
         <Text style={styles.refundBold}>Cancel Now</Text>
       </Text>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -416,7 +452,7 @@ const styles = StyleSheet.create({
     color: Colors.grayColor,
   },
   refundBold: {
-     color: Colors.secondary,
+    color: Colors.secondary,
     fontWeight: '700',
   },
 });
