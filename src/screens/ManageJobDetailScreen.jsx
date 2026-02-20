@@ -207,7 +207,15 @@ const ManageJobDetailScreen = () => {
         <Text style={[styles.title, { fontSize: 24 }]}>
           ₹ {bid?.amount || 0}
         </Text>
-        <Text style={{ fontSize: 10, color: Colors.grayColor ,position: 'absolute', right: 12, top: 12}}>
+        <Text
+          style={{
+            fontSize: 10,
+            color: Colors.grayColor,
+            position: 'absolute',
+            right: 12,
+            top: 12,
+          }}
+        >
           Updated {bid?.updatedAt ? getRelativeTime(bid.updatedAt) : 'N/A'}
         </Text>
         <InfoRow
@@ -221,10 +229,23 @@ const ManageJobDetailScreen = () => {
           {bid?.message || 'No proposal message'}
         </Text>
 
-        {bidStatus === 'rejected' && (
+        {(bidStatus === 'rejected' || bidStatus === 'pending') && (
           <TouchableOpacity style={styles.editBidButton}>
-            <Feather name="edit-2" size={20} color={Colors.blackColor} />
-            <Text style={styles.editBidText}>Edit Bid</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#9dd1c12a',
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: '#a1a1a1',
+              }}
+            >
+              <Feather name="edit-2" size={12} color={Colors.blackColor} />
+              <Text style={styles.editBidText}>Edit Bid</Text>
+            </View>
           </TouchableOpacity>
         )}
       </JobInfoSection>
@@ -418,16 +439,18 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   editBidButton: {
+    borderTopWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
+    justifyContent: 'flex-end',
+    // backgroundColor:"#c17676",
     borderTopColor: Colors.extraLightGrayColor,
     paddingTop: 10,
     marginTop: 10,
   },
   editBidText: {
     marginLeft: 8,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     color: Colors.blackColor,
   },
