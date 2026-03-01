@@ -15,80 +15,8 @@ import Header from '../components/Header';
 import { Colors } from '../styles/commonStyles';
 import Feather from 'react-native-vector-icons/Feather';
 
-const dummyChats = [
-  {
-    id: '1',
-    name: 'John Doe',
-    message: 'Hey, how are you?',
-    time: '2 min ago',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-    unread: 2,
-    isRead: false,
-  },
-  {
-    id: '2',
-    name: 'Jane Smith',
-    message: 'Thanks for the help!',
-    time: '1 hour ago',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
-    unread: 0,
-    isRead: true,
-  },
-  {
-    id: '3',
-    name: 'Mike Johnson',
-    message: 'See you tomorrow',
-    time: '1 day ago',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
-    unread: 1,
-    isRead: false,
-  },
-  {
-    id: '4',
-    name: 'Sarah Wilson',
-    message: 'Perfect, let me know',
-    time: '2 days ago',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100',
-    unread: 0,
-    isRead: true,
-  },
-   {
-    id: '5',
-    name: 'Mike Johnson',
-    message: 'See you tomorrow',
-    time: '1 day ago',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
-    unread: 1,
-    isRead: false,
-  },
-  {
-    id: '6',
-    name: 'Sarah Wilson',
-    message: 'Perfect, let me know',
-    time: '2 days ago',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100',
-    unread: 0,
-    isRead: true,
-  },
-   {
-    id: '7',
-    name: 'Mike Johnson',
-    message: 'See you tomorrow',
-    time: '1 day ago',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
-    unread: 1,
-    isRead: false,
-  },
-  {
-    id: '8',
-    name: 'Sarah Wilson',
-    message: 'Perfect, let me know',
-    time: '2 days ago',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100',
-    unread: 0,
-    isRead: true,
-  },
-];
+import { dummyChats } from '../utils/dummyData';
+import { FaddedIcon } from '../components/CommonComponents';
 
 export default function AllChatScreen() {
   const navigation = useNavigation();
@@ -98,13 +26,21 @@ export default function AllChatScreen() {
   const filters = ['All', 'Read', 'Unread'];
 
   const filteredChats = dummyChats.filter(chat => {
-    if (selectedFilter === 'Read') return chat.isRead;
-    if (selectedFilter === 'Unread') return !chat.isRead;
-    return true;
+    const matchesSearch =
+      chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      chat.message.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (selectedFilter === 'Read') return chat.isRead && matchesSearch;
+    if (selectedFilter === 'Unread') return !chat.isRead && matchesSearch;
+    return matchesSearch;
   });
 
   const renderChatItem = ({ item }) => (
-    <TouchableOpacity activeOpacity={0.9} style={styles.chatItem}>
+    <TouchableOpacity
+      onPress={() => navigation.navigate('ChatingScreen', { chatData: item })}
+      activeOpacity={0.9}
+      style={styles.chatItem}
+    >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
       <View style={styles.chatContent}>
         <View style={styles.chatHeader}>
@@ -112,9 +48,14 @@ export default function AllChatScreen() {
           <Text style={styles.chatTime}>{item.time}</Text>
         </View>
         <View style={styles.messageRow}>
-          <Text style={styles.chatMessage} numberOfLines={1}>
-            {item.message}
-          </Text>
+          <View>
+            <Text style={styles.chatJob} numberOfLines={1}>
+              this is JOB name
+            </Text>
+            <Text style={styles.chatMessage} numberOfLines={1}>
+              {item.message}
+            </Text>
+          </View>
           {item.unread > 0 && (
             <View style={styles.unreadBadge}>
               <Text style={styles.unreadText}>{item.unread}</Text>
@@ -141,6 +82,11 @@ export default function AllChatScreen() {
             onChangeText={setSearchQuery}
             style={styles.searchInput}
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Feather name="x" size={18} color={Colors.grayColor} />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.filterContainer}>
@@ -171,6 +117,8 @@ export default function AllChatScreen() {
           renderItem={renderChatItem}
           contentContainerStyle={styles.chatList}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<View></View>}
+          ListFooterComponent={<FaddedIcon />}
         />
       </View>
     </SafeAreaView>
@@ -249,13 +197,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.whiteColor,
     borderRadius: 12,
     marginBottom: 1,
-    borderBottomColor:"#dcdcdc",
+    borderBottomColor: '#dcdcdc',
     borderBottomWidth: 0.5,
   },
   avatar: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: 4,
   },
   chatContent: {
     flex: 1,
@@ -281,9 +229,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   chatMessage: {
-    fontSize: 12,
+    fontSize: 10,
     color: Colors.grayColor,
     flex: 1,
+  },
+  chatJob: {
+    fontSize: 10,
+    color: Colors.blackColor,
+    flex: 1,
+    fontWeight: '500',
   },
   unreadBadge: {
     backgroundColor: Colors.primary,

@@ -132,7 +132,8 @@ export default function TabNavigator() {
   return (
     <View style={{ flex: 1 }}>
       <Tab.Navigator
-        screenOptions={({ route }) => ({
+          
+          screenOptions={({ route }) => ({
           headerShown: false,
           tabBarStyle: { position: 'absolute', height: 60, backgroundColor: '#fff', ...styles.shadow },
           tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 4 },
