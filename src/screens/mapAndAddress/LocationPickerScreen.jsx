@@ -16,6 +16,7 @@ import {
   Animated,
   PanResponder,
   Dimensions,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../../components/MyStatusbar';
@@ -50,9 +51,10 @@ const LocationPickerScreen = ({ navigation, route }) => {
   // Bottom sheet animation
   const bottomSheetHeight = useRef(new Animated.Value(0)).current;
   const minHeight = screenHeight * 0.4;
-  const maxHeight = screenHeight * 0.8;
+  const maxHeight = screenHeight * 0.9;
+  const scrollViewRef = useRef(null);
   
-  console.log('[debug] API key loaded:', mapkey ? 'YES' : 'NO');
+  // console.log('[debug] API key loaded:', mapkey ? 'YES' : 'NO');
 
   const mapRef = useRef(null);
   const [region, setRegion] = useState({
@@ -128,6 +130,20 @@ const LocationPickerScreen = ({ navigation, route }) => {
   });
 
   const addressTypes = ['Home', 'Office', 'Work', 'Other'];
+
+  const scrollToInput = (inputRef, scrollRef) => {
+    setTimeout(() => {
+      if (inputRef && scrollRef?.current) {
+        inputRef.measureLayout(
+          scrollRef.current.getInnerViewNode(),
+          (x, y) => {
+            scrollRef.current.scrollTo({ y: y - 50, animated: true });
+          },
+          () => {},
+        );
+      }
+    }, 100);
+  };
 
   const getReadableArea = (components) => {
     const parts = [];
@@ -556,11 +572,16 @@ const LocationPickerScreen = ({ navigation, route }) => {
   );
 
   return (
-    <SafeAreaView style={styles.safeAreaBlack}>
-      <CommonAppBar title={"Select Location"} navigation={navigation}/>
-     
-      <MyStatusBar />
-       <View style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
+      <SafeAreaView style={styles.safeAreaBlack}>
+        <CommonAppBar title={"Select Location"} navigation={navigation}/>
+       
+        <MyStatusBar />
+         <View style={{ flex: 1 }}>
         
         <View style={styles.searchContainer}>
           <Ionicons name="search-outline" size={20} color={Colors.grayColor} />
@@ -690,6 +711,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
             </View>
 
             <ScrollView
+              ref={scrollViewRef}
               style={styles.sheetContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
@@ -733,15 +755,17 @@ const LocationPickerScreen = ({ navigation, route }) => {
                     onChangeText={setCustomAddressName}
                     placeholder="Enter custom name for this address"
                     required={true}
+                    onFocus={ref => scrollToInput(ref, scrollViewRef)}
                   />
                 )}
 
                 <FloatingLabelInput
                   label="House/Flat/Building No."
                   required={true}
-                  // value={}
+                  value={address}
                   onChangeText={setAddress}
                   placeholder="Enter house, flat or building number"
+                  onFocus={ref => scrollToInput(ref, scrollViewRef)}
                 />
 
                 <FloatingLabelInput
@@ -758,6 +782,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
                   value={landmark}
                   onChangeText={setLandmark}
                   placeholder="Enter nearby landmark"
+                  onFocus={ref => scrollToInput(ref, scrollViewRef)}
                 />
 
 
@@ -828,6 +853,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
         )}
       </View>
     </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 
 };

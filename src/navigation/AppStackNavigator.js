@@ -20,7 +20,9 @@ import LocationPermissionScreen from '../screens/LocationPermissionScreen';
 import WishlistScreen from '../screens/WishlistScreen';
 import BidPlacementScreen from '../screens/BidPlacementScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
-import ManageJobDetailScreen from '../screens/ManageJobDetailScreen';
+import CreatedByMeJobDetailScreen from '../screens/CreatedByMeJobDetailScreen';
+import MyBidStatusDetailScreen from '../screens/MyBidStatusDetailScreen';
+import ChatingScreen from '../screens/ChatingScreen';
 const Stack = createStackNavigator();
 
 export default function AppStackNavigator() {
@@ -63,10 +65,15 @@ export default function AppStackNavigator() {
       <Stack.Screen name="WishlistScreen" component={WishlistScreen} />
       <Stack.Screen name="SubscriptionScreen" component={SubscriptionScreen} />
       <Stack.Screen
-        name="ManageJobDetailScreen"
-        component={ManageJobDetailScreen}
+        name="MyBidStatusDetailScreen"
+        component={MyBidStatusDetailScreen}
+      />
+      <Stack.Screen
+        name="CreatedByMeJobDetailScreen"
+        component={CreatedByMeJobDetailScreen}
       />
       <Stack.Screen name="BidPlacementScreen" component={BidPlacementScreen} />
+       <Stack.Screen name="ChatingScreen" component={ChatingScreen} />
     </Stack.Navigator>
   );
 }

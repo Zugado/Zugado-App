@@ -15,11 +15,11 @@ import { getRelativeTime } from '../utils/timeUtils';
 import { CommonAppBar } from '../components/CommonComponents';
 import Feather from 'react-native-vector-icons/Feather';
 
-const ManageJobDetailScreen = () => {
+const MyBidStatusDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { jobData } = route.params || {};
-  console.log('Received jobData: ManageJobDetailScreen==>', jobData);
+  console.log('Received jobData: MyBidStatusDetailScreen==>', jobData);
 
   const job = jobData?.job;
   const bid = jobData?.bids?.[0];
@@ -275,7 +275,7 @@ const ManageJobDetailScreen = () => {
   );
 };
 
-export default ManageJobDetailScreen;
+export default MyBidStatusDetailScreen;
 
 const styles = StyleSheet.create({
   container: {

@@ -9,7 +9,7 @@ import HomeScreen from '../screens/Home/HomeScreen';
 import ManageJobScreen from '../screens/ManageJobScreen';
 import CreateJobScreen from '../screens/Jobs/CreateJobScreen';
 import CreateJobScreen2 from '../screens/Jobs/CreateJobScreen2';
-import MessageScreen from '../screens/MessageScreen';
+import AllChatScreen from '../screens/AllChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TabLoadingOverlay from '../components/TabLoadingOverlay';
 import LocationPickerScreen from '../screens/mapAndAddress/LocationPickerScreen';
@@ -160,7 +160,7 @@ export default function TabNavigator() {
             ),
           }}
         />
-        <Tab.Screen name={t('Message')} component={MessageScreen} />
+        <Tab.Screen name={t('Message')} component={AllChatScreen} />
         <Tab.Screen name={t('Profile')} component={ProfileScreen} />
       </Tab.Navigator>
       <TabLoadingOverlay visible={isLoading} />

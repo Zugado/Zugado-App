@@ -149,7 +149,7 @@ const AppliedTasksSection = ({
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={() =>
-              navigation.navigate('ManageJobDetailScreen', { jobData: item })
+              navigation.navigate('MyBidStatusDetailScreen', { jobData: item })
             }
           >
             <MiniJobCard jobData={item} />
@@ -239,7 +239,7 @@ const CreatedTasksSection = ({
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={() =>
-              navigation.navigate('ManageJobDetailScreen', {
+              navigation.navigate('CreatedByMeJobDetailScreen', {
                 jobData: { job: item },
               })
             }
