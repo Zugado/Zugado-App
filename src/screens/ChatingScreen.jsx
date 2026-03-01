@@ -21,7 +21,6 @@ export default function ChatingScreen() {
   const navigation = useNavigation();
   const { chatData } = route.params || {};
 
-  console.log('Chat Data:', chatData);
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
       <MyStatusBar />
@@ -43,11 +42,7 @@ export default function ChatingScreen() {
                 {chatData?.name || 'User Name'}
               </Text>
               <TouchableOpacity style={styles.dotOption}>
-                <Feather
-                  name="more-vertical"
-                  size={16}
-                  color={Colors.blackColor}
-                />
+                <Feather name="more-vertical" size={16} color={Colors.blackColor} />
               </TouchableOpacity>
             </View>
             <Text style={styles.jobName}>This is Job Name</Text>
@@ -56,7 +51,8 @@ export default function ChatingScreen() {
             </Text>
           </View>
         </View>
-        <View style={{ padding: 10 }}>
+
+        <View style={styles.warningContainer}>
           <View style={styles.warningBox}>
             <MaterialIcons name="work" size={16} color={Colors.grayColor} />
             <Text style={styles.warningText}>
@@ -70,234 +66,55 @@ export default function ChatingScreen() {
             </Text>
           </View>
         </View>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: Colors.whiteColor,
-            padding: 10,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <Text style={{ fontSize: 20, fontWeight: '500' }}>Quick chat</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: Colors.grayColor,
-                  marginRight: 4,
-                }}
-              >
-                View
-              </Text>
-              <Feather
-                name="chevron-right"
-                size={16}
-                color={Colors.grayColor}
-              />
+
+        <View style={styles.chatContainer}>
+          <View style={styles.quickChatHeader}>
+            <Text style={styles.quickChatTitle}>Quick chat</Text>
+            <View style={styles.viewButton}>
+              <Text style={styles.viewText}>View</Text>
+              <Feather name="chevron-right" size={16} color={Colors.grayColor} />
             </View>
           </View>
 
-          <ScrollView style={{ padding: 10, flex: 1 }}>
+          <ScrollView style={styles.scrollView}>
             <View style={styles.userBubble}>
-              <View
-                style={{
-                  backgroundColor: Colors.whiteColor,
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  hello
-                </Text>
+              <View style={styles.bubbleHeader}>
+                <Text>💬 Quick Chat</Text>
+                <Feather name="chevron-right" size={16} color={Colors.grayColor} />
               </View>
-              <View
-                style={{
-                  backgroundColor: Colors.whiteColor,
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  How Are u?
+              <View style={styles.quickChatItem}>
+                <Text style={styles.quickChatText}>
+                  Tell Me more About this Job?
                 </Text>
+                <Feather name="send" size={16} color="#418def" />
               </View>
-              <View
-                style={{
-                  backgroundColor: Colors.whiteColor,
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  Let me Know About this Job
+              <View style={styles.quickChatItem}>
+                <Text style={styles.quickChatText}>
+                  Can we have a Quick Call ?
                 </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: Colors.whiteColor,
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  Please Reply me
-                </Text>
+                <Feather name="send" size={16} color="#418def" />
               </View>
             </View>
+
             <View style={styles.AiBubble}>
-              <View
-                style={{
-                  backgroundColor: '#ffffffd5',
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  hello
-                </Text>
+              <View style={styles.bubbleHeader}>
+                <Text>💬 Ai Reply</Text>
+                <Feather name="chevron-right" size={16} color={Colors.grayColor} />
               </View>
-              <View
-                style={{
-                  backgroundColor: '#ffffffd5',
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  How Are u?
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: '#ffffffd5',
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  Let me Know About this Job
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: '#ffffffd5',
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  Please Reply me
-                </Text>
+              <View style={styles.aiReplyItem}>
+                <Text style={styles.aiReplyText}>I'm Good !!</Text>
               </View>
             </View>
-            <View style={styles.AiBubble}>
-              <View
-                style={{
-                  backgroundColor: '#ffffffd5',
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  hello
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: '#ffffffd5',
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  How Are u?
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: '#ffffffd5',
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  Let me Know About this Job
-                </Text>
-              </View>
-              <View
-                style={{
-                  backgroundColor: '#ffffffd5',
-                  padding: 10,
-                  borderRadius: 10,
-                  marginBottom: 4,
-                }}
-              >
-                <Text styel={{ color: Colors.blackColor, textAlign: 'Center' }}>
-                  Please Reply me
-                </Text>
-              </View>
-            </View>
+
             <FaddedIcon />
           </ScrollView>
-          <View style={styles.BottomButtons}>
-            <View
-              style={{
-                backgroundColor: Colors.extraLightGrayColor,
-                borderWidth: 0.3,
-                borderColor: Colors.grayColor,
-                elevation: 2,
-                shadowColor: Colors.primary,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.23,
-                shadowRadius: 2.62,
-                elevation: 2,
-                padding: 10,
-                borderRadius: 20,
-                marginBottom: 10,
-                width: '100%',
-                alignItems: 'center',
-              }}
-            >
-              <Text>Chat will Unlock After Bidding</Text>
+
+          <View style={styles.bottomButtons}>
+            <View style={styles.unlockButton}>
+              <Text style={styles.unlockButtonText}>Chat will Unlock After Bidding</Text>
             </View>
-            <View
-              style={{
-                backgroundColor: '#e86b18',
-                borderWidth: 0.3,
-                borderColor: Colors.grayColor,
-                elevation: 2,
-                shadowColor: Colors.primary,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.23,
-                shadowRadius: 2.62,
-                elevation: 2,
-                padding: 10,
-                borderRadius: 20,
-                marginBottom: 10,
-                width: '100%',
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ color: Colors.whiteColor, fontWeight: '500' }}>
-                Place a Bid
-              </Text>
+            <View style={styles.bidButton}>
+              <Text style={styles.bidButtonText}>Place a Bid</Text>
             </View>
           </View>
         </View>
@@ -359,25 +176,8 @@ const styles = StyleSheet.create({
     color: Colors.blackColor,
     fontWeight: '500',
   },
-  userBubble: {
-    alignSelf: 'flex-end',
-    maxWidth: '75%',
-    backgroundColor: Colors.primary,
-    borderBottomLeftRadius: 16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+  warningContainer: {
     padding: 10,
-    marginVertical: 4,
-  },
-  AiBubble: {
-    alignSelf: 'flex-start',
-    maxWidth: '75%',
-    backgroundColor: Colors.extraLightGrayColor,
-    borderBottomRightRadius: 16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 10,
-    marginVertical: 4,
   },
   warningBox: {
     flexDirection: 'row',
@@ -394,11 +194,122 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.blackColor,
   },
-  BottomButtons: {
+  chatContainer: {
+    flex: 1,
+    backgroundColor: Colors.whiteColor,
     padding: 10,
-    flexDirection: 'column',
+  },
+  quickChatHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    borderColor: '#d9d9d9',
-    borderTopWidth: 0.3,
+  },
+  quickChatTitle: {
+    fontSize: 20,
+    fontWeight: '500',
+  },
+  viewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  viewText: {
+    fontSize: 14,
+    color: Colors.grayColor,
+    marginRight: 4,
+  },
+  scrollView: {
+    padding: 10,
+    flex: 1,
+  },
+  userBubble: {
+    alignSelf: 'flex-end',
+    maxWidth: '75%',
+    backgroundColor: Colors.extraLightGrayColor,
+    borderBottomLeftRadius: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 10,
+    marginVertical: 4,
+  },
+  AiBubble: {
+    alignSelf: 'flex-start',
+    maxWidth: '75%',
+    backgroundColor: Colors.extraLightGrayColor,
+    borderBottomRightRadius: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 10,
+    marginVertical: 4,
+  },
+  bubbleHeader: {
+    flexDirection: 'row',
+    padding: 6,
+    gap: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  quickChatItem: {
+    flexDirection: 'row',
+    padding: 10,
+    justifyContent: 'space-between',
+    gap: 20,
+    alignItems: 'center',
+    marginBottom: 4,
+    backgroundColor: Colors.whiteColor,
+    borderRadius: 8,
+  },
+  quickChatText: {
+    color: Colors.blackColor,
+    flex: 1,
+  },
+  aiReplyItem: {
+    padding: 10,
+    marginBottom: 4,
+    backgroundColor: Colors.whiteColor,
+    borderRadius: 8,
+  },
+  aiReplyText: {
+    color: Colors.blackColor,
+  },
+  bottomButtons: {
+    paddingTop: 10,
+  },
+  unlockButton: {
+    backgroundColor: Colors.extraLightGrayColor,
+    borderWidth: 0.3,
+    borderColor: Colors.grayColor,
+    elevation: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    padding: 10,
+    borderRadius: 20,
+    marginBottom: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  unlockButtonText: {
+    color: Colors.blackColor,
+  },
+  bidButton: {
+    backgroundColor: '#e86b18',
+    borderWidth: 0.3,
+    borderColor: Colors.grayColor,
+    elevation: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    padding: 10,
+    borderRadius: 20,
+    marginBottom: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  bidButtonText: {
+    color: Colors.whiteColor,
+    fontWeight: '500',
   },
 });
