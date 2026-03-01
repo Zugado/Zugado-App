@@ -42,7 +42,11 @@ export default function ChatingScreen() {
                 {chatData?.name || 'User Name'}
               </Text>
               <TouchableOpacity style={styles.dotOption}>
-                <Feather name="more-vertical" size={16} color={Colors.blackColor} />
+                <Feather
+                  name="more-vertical"
+                  size={16}
+                  color={Colors.blackColor}
+                />
               </TouchableOpacity>
             </View>
             <Text style={styles.jobName}>This is Job Name</Text>
@@ -72,7 +76,11 @@ export default function ChatingScreen() {
             <Text style={styles.quickChatTitle}>Quick chat</Text>
             <View style={styles.viewButton}>
               <Text style={styles.viewText}>View</Text>
-              <Feather name="chevron-right" size={16} color={Colors.grayColor} />
+              <Feather
+                name="chevron-right"
+                size={16}
+                color={Colors.grayColor}
+              />
             </View>
           </View>
 
@@ -80,7 +88,11 @@ export default function ChatingScreen() {
             <View style={styles.userBubble}>
               <View style={styles.bubbleHeader}>
                 <Text>💬 Quick Chat</Text>
-                <Feather name="chevron-right" size={16} color={Colors.grayColor} />
+                <Feather
+                  name="chevron-right"
+                  size={16}
+                  color={Colors.grayColor}
+                />
               </View>
               <View style={styles.quickChatItem}>
                 <Text style={styles.quickChatText}>
@@ -99,7 +111,11 @@ export default function ChatingScreen() {
             <View style={styles.AiBubble}>
               <View style={styles.bubbleHeader}>
                 <Text>💬 Ai Reply</Text>
-                <Feather name="chevron-right" size={16} color={Colors.grayColor} />
+                <Feather
+                  name="chevron-right"
+                  size={16}
+                  color={Colors.grayColor}
+                />
               </View>
               <View style={styles.aiReplyItem}>
                 <Text style={styles.aiReplyText}>I'm Good !!</Text>
@@ -111,7 +127,9 @@ export default function ChatingScreen() {
 
           <View style={styles.bottomButtons}>
             <View style={styles.unlockButton}>
-              <Text style={styles.unlockButtonText}>Chat will Unlock After Bidding</Text>
+              <Text style={styles.unlockButtonText}>
+                Chat will Unlock After Bidding
+              </Text>
             </View>
             <View style={styles.bidButton}>
               <Text style={styles.bidButtonText}>Place a Bid</Text>
@@ -230,6 +248,16 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     padding: 10,
     marginVertical: 4,
+    borderColor: Colors.blackColor,
+    borderWidth: 0.2,
+     elevation:5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.20,
+    shadowRadius: 1.41,
   },
   AiBubble: {
     alignSelf: 'flex-start',
@@ -240,6 +268,16 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     padding: 10,
     marginVertical: 4,
+    borderColor: Colors.blackColor,
+    borderWidth: 0.2,
+    elevation:5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.20,
+    shadowRadius: 1.41,
   },
   bubbleHeader: {
     flexDirection: 'row',
@@ -256,6 +294,8 @@ const styles = StyleSheet.create({
     gap: 20,
     alignItems: 'center',
     marginBottom: 4,
+    borderColor: Colors.blackColor,
+    borderWidth: 0.2,
     backgroundColor: Colors.whiteColor,
     borderRadius: 8,
   },
@@ -267,6 +307,8 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 4,
     backgroundColor: Colors.whiteColor,
+    borderColor: Colors.blackColor,
+    borderWidth: 0.2,
     borderRadius: 8,
   },
   aiReplyText: {
