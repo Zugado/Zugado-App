@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Image, TextInput, ActivityIndicator } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Colors, commonStyles } from '../styles/commonStyles';
 import NotificationIcon from './NotificationIcon';

@@ -77,7 +77,7 @@ export default function WishlistScreen({ navigation }) {
       <MyStatusBar />
 
       {/* Header */}
-      <CommonAppBar title="My Wishlist" />
+      <CommonAppBar title="My Wishlist" navigation={navigation} />
 
       <FlatList
         data={wishlist}
