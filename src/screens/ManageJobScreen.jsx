@@ -302,7 +302,7 @@ const ManageJobScreen = () => {
       <CommonAppBar
         borderBottomColor={Colors.whiteColor}
         navigation={navigation}
-        title="Manage Jobs"
+        title="Manage Tasks"
       />
       <View style={{ paddingHorizontal: 10 }}>
         <SelectorToggleButton

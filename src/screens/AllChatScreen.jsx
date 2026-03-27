@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../components/MyStatusbar';
@@ -14,57 +16,101 @@ import { useNavigation } from '@react-navigation/native';
 import Header from '../components/Header';
 import { Colors } from '../styles/commonStyles';
 import Feather from 'react-native-vector-icons/Feather';
-
-import { dummyChats } from '../utils/dummyData';
+import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import { getAllChats } from '../store/thunks/chatThunk';
 import { FaddedIcon } from '../components/CommonComponents';
 
 export default function AllChatScreen() {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('All');
+  const [selectedRole, setSelectedRole] = useState('All');
+  const [refreshing, setRefreshing] = useState(false);
 
   const filters = ['All', 'Read', 'Unread'];
+  const roleFilters = ['All', 'Seeker', 'Creator'];
 
-  const filteredChats = dummyChats.filter(chat => {
+  const { conversations, loading } = useSelector(state => state.chat, shallowEqual);
+  const currentUserId = useSelector(state => state.auth.user?._id);
+
+  useEffect(() => {
+    dispatch(getAllChats({ page: 1, limit: 20 }));
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    dispatch(getAllChats({ page: 1, limit: 20 })).finally(() => setRefreshing(false));
+  }, []);
+
+  const filteredChats = conversations.filter(conv => {
+    const other = conv.otherParticipant;
+    const name = `${other?.firstName} ${other?.lastName}`;
     const matchesSearch =
-      chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chat.message.toLowerCase().includes(searchQuery.toLowerCase());
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.jobId?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (selectedFilter === 'Read') return chat.isRead && matchesSearch;
-    if (selectedFilter === 'Unread') return !chat.isRead && matchesSearch;
+    const myParticipant = conv.participants?.find(p => p.userId?._id === currentUserId);
+    const myRole = myParticipant?.role; // 'bidder' = seeker, 'creator' = creator
+
+    if (selectedFilter === 'Read') {
+      if (conv.unreadCount > 0) return false;
+    } else if (selectedFilter === 'Unread') {
+      if (conv.unreadCount === 0) return false;
+    }
+
+    if (selectedRole === 'Seeker' && myRole !== 'bidder') return false;
+    if (selectedRole === 'Creator' && myRole !== 'creator') return false;
+
     return matchesSearch;
   });
+  const renderChatItem = ({ item }) => {
+    const other = item.otherParticipant;
+    const name = `${other?.firstName} ${other?.lastName}`;
+    const hasAvatar = !!other?.avatar;
 
-  const renderChatItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('ChatingScreen', { chatData: item })}
-      activeOpacity={0.9}
-      style={styles.chatItem}
-    >
-      <Image source={{ uri: item.avatar }} style={styles.avatar} />
-      <View style={styles.chatContent}>
-        <View style={styles.chatHeader}>
-          <Text style={styles.chatName}>{item.name}</Text>
-          <Text style={styles.chatTime}>{item.time}</Text>
-        </View>
-        <View style={styles.messageRow}>
-          <View>
-            <Text style={styles.chatJob} numberOfLines={1}>
-              this is JOB name
-            </Text>
-            <Text style={styles.chatMessage} numberOfLines={1}>
-              {item.message}
+    return (
+      <TouchableOpacity
+        onPress={() => navigation.navigate('ChatingScreen', { chatData: item })}
+        activeOpacity={0.9}
+        style={styles.chatItem}
+      >
+        {hasAvatar ? (
+          <Image source={{ uri: other.avatar }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.avatarPlaceholder]}>
+            <Text style={styles.avatarInitial}>{other?.firstName?.[0]?.toUpperCase()}</Text>
+          </View>
+        )}
+        <View style={styles.chatContent}>
+          <View style={styles.chatHeader}>
+            <Text style={styles.chatName}>{name}</Text>
+            <Text style={styles.chatTime}>
+              {item.lastMessageTime
+                ? new Date(item.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : ''}
             </Text>
           </View>
-          {item.unread > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{item.unread}</Text>
+          <View style={styles.messageRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.chatJob} numberOfLines={1}>
+                {item.jobId?.title}
+              </Text>
+              <Text style={styles.chatMessage} numberOfLines={1}>
+                {item.lastMessage || 'No messages yet'}
+              </Text>
             </View>
-          )}
+            {item.unreadCount > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadText}>{item.unreadCount}</Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
@@ -111,13 +157,38 @@ export default function AllChatScreen() {
           ))}
         </View>
 
+        <View style={styles.roleFilterContainer}>
+          {roleFilters.map((role, index) => (
+            <TouchableOpacity
+              key={role}
+              style={styles.roleFilterButton}
+              onPress={() => setSelectedRole(role)}
+            >
+              <Text
+                style={[
+                  styles.roleFilterText,
+                  selectedRole === role && styles.roleFilterTextActive,
+                ]}
+              >
+                {role}
+              </Text>
+              {selectedRole === role && <View style={styles.roleFilterUnderline} />}
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <FlatList
           data={filteredChats}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item._id}
           renderItem={renderChatItem}
           contentContainerStyle={styles.chatList}
           showsVerticalScrollIndicator={false}
-          ListEmptyComponent={<View></View>}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={
+            loading
+              ? <ActivityIndicator style={{ marginTop: 40 }} size="large" color={Colors.primary} />
+              : <View />
+          }
           ListFooterComponent={<FaddedIcon />}
         />
       </View>
@@ -136,7 +207,7 @@ const styles = StyleSheet.create({
     marginTop: -20,
     paddingTop: 20,
     paddingHorizontal: 16,
-    backgroundColor: Colors.bodyBackColor,
+    // backgroundColor: Colors.bodyBackColor,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
   },
@@ -188,8 +259,40 @@ const styles = StyleSheet.create({
   filterTextActive: {
     color: Colors.whiteColor,
   },
-  chatList: {
-    paddingTop: 16,
+  roleFilterContainer: {
+    flexDirection: 'row',
+    marginTop: 12,
+    backgroundColor: Colors.whiteColor,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: Colors.extraLightGrayColor,
+    overflow: 'hidden',
+  },
+  roleFilterButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    position: 'relative',
+  },
+  roleFilterText: {
+    fontSize: 13,
+    color: Colors.grayColor,
+    fontWeight: '500',
+  },
+  roleFilterTextActive: {
+    color: Colors.blackColor,
+    fontWeight: '700',
+  },
+  roleFilterUnderline: {
+    position: 'absolute',
+    bottom: 0,
+    left: '20%',
+    right: '20%',
+    height: 2,
+    backgroundColor: Colors.blackColor,
+    // borderRadius: 2,
+  
+    // paddingTop: 16,
   },
   chatItem: {
     flexDirection: 'row',
@@ -204,6 +307,16 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 4,
+  },
+  avatarPlaceholder: {
+    backgroundColor: Colors.extraLightGrayColor,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarInitial: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.grayColor,
   },
   chatContent: {
     flex: 1,

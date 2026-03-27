@@ -37,11 +37,11 @@ const CustomTabBarButton = ({ children, onPress }) => (
         borderColor: '#fff',
         borderWidth: 1,
         shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.5,
+        // shadowOpacity: 0.25,
+        // shadowRadius: 3.5,
         // LIGHTER 360° SHADOW
         shadowColor: '#000000ff', // Lighter, pinkish shadow color
-        shadowOffset: { width: 0, height: 0 },
+        // shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.35, // Lighter shadow
         shadowRadius: 8,
 
@@ -114,7 +114,7 @@ export default function TabNavigator() {
       case t('Home'):
         icon = focused ? icons.home.active : icons.home.inactive;
         break;
-      case t('Manage Job'):
+      case t('Manage Tasks'):
         icon = focused ? icons.manageJob.active : icons.manageJob.inactive;
         break;
       case t('Message'):
@@ -142,7 +142,7 @@ export default function TabNavigator() {
         screenListeners={{ tabPress: handleTabPress }}
       >
         <Tab.Screen name={t('Home')} component={HomeScreen} />
-        <Tab.Screen name={t('Manage Job')} component={ManageJobScreen} />
+        <Tab.Screen name={t('Manage Tasks')} component={ManageJobScreen} />
         <Tab.Screen
           name="Add"
           component={CreateJobScreen}
