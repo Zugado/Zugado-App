@@ -24,6 +24,8 @@ import { formatDistance } from '../utils/distanceUtils';
 import { getLocationFromCoordinates } from '../utils/locationUtils';
 import DotLoader from './DotLoader';
 import { trimText } from '../utils/commonMethods';
+// Chat thunk — used to initiate or retrieve an existing conversation before navigating
+import { startNewChat } from '../store/thunks/chatThunk';
 
 const JobCard = ({ job, showButttons = true }) => {
   const dispatch = useDispatch();
@@ -33,6 +35,8 @@ const JobCard = ({ job, showButttons = true }) => {
   const [isScrolling, setIsScrolling] = useState(false);
   const [cityName, setCityName] = useState('');
   const [isLoadingCity, setIsLoadingCity] = useState(true);
+  // Track chat initiation loading to prevent double-taps
+  const [chatLoading, setChatLoading] = useState(false);
 
   const isWishlisted = wishlistIds.includes(job?._id);
   const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
@@ -55,6 +59,29 @@ const JobCard = ({ job, showButttons = true }) => {
 
   const onWishlistToggle = () => {
     handleWishlistToggle(dispatch, job?._id, isWishlisted, showSnackbar);
+  };
+
+  /**
+   * Initiate or retrieve an existing chat for this job.
+   * POST /api/chat/initiate  { jobId, participantId: job.createdBy._id }
+   * On success the server returns the conversation object which we pass
+   * directly to ChatingScreen as chatData.
+   */
+  const handleChatPress = async () => {
+    if (chatLoading || !job?.createdBy?._id) return;
+    setChatLoading(true);
+    try {
+      const result = await dispatch(
+        startNewChat({ jobId: job._id, participantId: job.createdBy._id }),
+      ).unwrap();
+      if (result?.data) {
+        navigation.navigate('ChatingScreen', { chatData: result.data });
+      }
+    } catch (err) {
+      showSnackbar('Could not open chat. Try again.', 'error');
+    } finally {
+      setChatLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -270,9 +297,12 @@ const JobCard = ({ job, showButttons = true }) => {
 
               <TouchableOpacity
                 style={styles.chatButton}
-                onPress={() => console.log('Chat clicked')}
+                onPress={handleChatPress}
+                disabled={chatLoading}
               >
-                <Text style={styles.chatButtonText}>Chat</Text>
+                <Text style={styles.chatButtonText}>
+                  {chatLoading ? '...' : 'Chat'}
+                </Text>
               </TouchableOpacity>
             </View>
           )}

@@ -155,7 +155,7 @@ const MyBidStatusDetailScreen = () => {
       <CommonAppBar
         borderBottomColor={Colors.whiteColor}
         navigation={navigation}
-        title="View Job Detail"
+        title="View Bid Details"
       />
 
       {/* Job Details Card */}
@@ -184,10 +184,10 @@ const MyBidStatusDetailScreen = () => {
           />
         </View>
 
-        <View style={styles.buttonRow}>
+        {/* <View style={styles.buttonRow}>
           <ImageGallery />
           <VendorInfo />
-        </View>
+        </View> */}
 
         <Text style={styles.description}>
           {job?.description || 'No description available'}

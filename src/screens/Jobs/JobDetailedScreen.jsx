@@ -15,6 +15,8 @@ import Video from 'react-native-video';
 import { selectToken } from '../../store/selector';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CommonAppBar } from '../../components/CommonComponents';
+// Chat thunk — initiates or retrieves existing conversation before navigating
+import { startNewChat } from '../../store/thunks/chatThunk';
 
 // Mock data for Task Details section
 const jobDetailsData = [
@@ -127,6 +129,8 @@ export default function JobDetailedScreen({ navigation, route }) {
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [locationText, setLocationText] = useState('Loading...');
+  // Track chat button loading state to prevent double-taps
+  const [chatLoading, setChatLoading] = useState(false);
   const flatListRef = useRef(null);
   const intervalRef = useRef(null);
   const jobId = route.params?.jobId;
@@ -159,6 +163,28 @@ export default function JobDetailedScreen({ navigation, route }) {
       console.log('Error fetching job details:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  /**
+   * Initiate or retrieve an existing chat for this job.
+   * POST /api/chat/initiate  { jobId, participantId: jobData.createdBy._id }
+   * Navigates to ChatingScreen with the returned conversation object.
+   */
+  const handleChatPress = async () => {
+    if (chatLoading || !jobData?.createdBy?._id) return;
+    setChatLoading(true);
+    try {
+      const result = await dispatch(
+        startNewChat({ jobId: jobData._id, participantId: jobData.createdBy._id }),
+      ).unwrap();
+      if (result?.data) {
+        navigation.navigate('ChatingScreen', { chatData: result.data });
+      }
+    } catch (err) {
+      showSnackbar('Could not open chat. Try again.', 'error');
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -393,8 +419,15 @@ export default function JobDetailedScreen({ navigation, route }) {
 
         {/* Action Buttons */}
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.iconAction}>
-            <Feather name="message-square" size={24} color="#fff" />
+          <TouchableOpacity
+            style={styles.iconAction}
+            onPress={handleChatPress}
+            disabled={chatLoading}>
+            <Feather
+              name={chatLoading ? 'loader' : 'message-square'}
+              size={24}
+              color="#fff"
+            />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('BidPlacementScreen', { job: jobData })} style={styles.applyButton}>
             <Text style={styles.applyText}>Apply</Text>

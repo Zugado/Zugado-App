@@ -2,7 +2,8 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { 
   postBidByJobIdAPI, 
   getAllBidsByJobIdAPI, 
-  getAllMyBidsAPI 
+  getAllMyBidsAPI,
+  updateBidStatusAPI,
 } from '../api/bidsApi';
 import { handleAxiosError } from '../../utils/handleAxiosError';
 
@@ -38,6 +39,20 @@ export const getAllMyBids = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       const response = await getAllMyBidsAPI();
+      return response?.data;
+    } catch (error) {
+      return handleAxiosError(error, thunkAPI);
+    }
+  }
+);
+
+// Update bid status thunk — approve or reject a bid
+// Payload: { bidId: string, status: 'approved' | 'rejected' }
+export const updateBidStatus = createAsyncThunk(
+  "bid/updateBidStatus",
+  async (data, thunkAPI) => {
+    try {
+      const response = await updateBidStatusAPI(data);
       return response?.data;
     } catch (error) {
       return handleAxiosError(error, thunkAPI);

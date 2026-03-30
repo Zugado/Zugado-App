@@ -1,6 +1,7 @@
 import { apiPostRequest } from "../https/post";
 import { apiGetRequest } from "../https/get";
 import { apiPutRequest } from "../https/put";
+import { apiPatchRequest } from "../https/patch";
 
 //Create Bid on job by id api
 export const postBidByJobIdAPI = (data) =>
@@ -18,6 +19,13 @@ export const updateBidByJobIdAPI = (data) =>
     data: data,
 });
 
+// Update bid status (approve / reject) — PATCH /bids/bid/:bidId/status
+export const updateBidStatusAPI = ({ bidId, status }) =>
+  apiPatchRequest({
+    apiUrl: `/bids/bid/${bidId}/status`,
+    content_type: "application/json",
+    data: { status },
+});
 
 //Get all bids of job by id api
 export const getAllBidsByJobIdAPI = (data) =>
