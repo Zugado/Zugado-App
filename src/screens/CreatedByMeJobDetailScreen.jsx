@@ -4,16 +4,17 @@ import {
   View,
   Image,
   TouchableOpacity,
-  StatusBar,
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Colors } from '../styles/commonStyles';
 import { getRelativeTime } from '../utils/timeUtils';
 import { CommonAppBar } from '../components/CommonComponents';
+import MyStatusBar from '../components/MyStatusbar';
 import Feather from 'react-native-vector-icons/Feather';
 import { useDispatch } from 'react-redux';
 import { getAllBidsByJobId, updateBidStatus } from '../store/thunks/bidThunk';
@@ -291,17 +292,18 @@ const CreatedByMeJobDetailScreen = () => {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={Colors.bodyBackColor} />
+      <SafeAreaView style={styles.container}>
+        <MyStatusBar backgroundColor={Colors.bodyBackColor} barStyle="dark-content" />
         <CommonAppBar navigation={navigation} title="Created Task Details" />
         <ActivityIndicator size="large" color={Colors.primary} style={styles.loader} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.bodyBackColor} />
+    <SafeAreaView style={styles.container}>
+      <MyStatusBar backgroundColor={Colors.bodyBackColor} barStyle="dark-content" />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
       <CommonAppBar
         borderBottomColor={Colors.whiteColor}
         navigation={navigation}
@@ -375,14 +377,15 @@ const CreatedByMeJobDetailScreen = () => {
       )}
 
       <View style={styles.bottomSpacer} />
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 export default CreatedByMeJobDetailScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bodyBackColor, paddingHorizontal: 16 },
+  container: { flex: 1, backgroundColor: Colors.bodyBackColor },
   loader: { marginTop: 40 },
   bottomSpacer: { height: 30 },
   cardContainer: {

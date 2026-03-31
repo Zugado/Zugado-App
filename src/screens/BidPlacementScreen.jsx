@@ -5,15 +5,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  StatusBar,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
 import { Colors } from '../styles/commonStyles';
 import JobCard from '../components/JobCard';
+import MyStatusBar from '../components/MyStatusbar';
 import { TextInput } from 'react-native-gesture-handler';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import axios from 'axios';
@@ -72,9 +73,9 @@ const BidPlacementScreen = ({ navigation, route }) => {
       showSnackbar('Bid submitted successfully!', 'success');
       navigation.goBack();
     } catch (error) {
-      console.error('Bid submission error:', error);
+      // console.error('Bid submission error:', error?.response || error);
       showSnackbar(
-        error.response?.data?.message || 'Failed to submit bid',
+        error.response?.data?.error?.message || 'Failed to submit bid',
         'error'
       );
     } finally {
@@ -83,19 +84,15 @@ const BidPlacementScreen = ({ navigation, route }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
-      <View style={styles.wrapper}>
-        <StatusBar
-          barStyle="dark-content"
-          backgroundColor={Colors.bodyBackColor}
-        />
+    <SafeAreaView style={styles.safeArea}>
+      <MyStatusBar backgroundColor={Colors.bodyBackColor} barStyle="dark-content" />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <CommonAppBar navigation={navigation} title="Place Your Bid" />
         <ScrollView ref={scrollViewRef} keyboardShouldPersistTaps="handled">
-          <JobCard job={job} showButttons={false} />
+          {job && <JobCard job={job} showButttons={false} />}
           <View style={styles.formContainer}>
             <Text style={styles.label}>Your Expected Amount</Text>
             <View style={styles.amountInputContainer}>
@@ -167,16 +164,17 @@ const BidPlacementScreen = ({ navigation, route }) => {
             )}
           </TouchableOpacity>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
+    backgroundColor: Colors.bodyBackColor,
   },
-  wrapper: {
+  container: {
     flex: 1,
     backgroundColor: Colors.bodyBackColor,
   },

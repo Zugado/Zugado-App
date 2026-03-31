@@ -29,6 +29,7 @@ const chatSlice = createSlice({
     totalPages: 1,
     currentPage: 1,
     total: 0,
+    totalUnreadCount: 0,
     loading: false,
     messages: [],
     messagesLoading: false,
@@ -40,6 +41,7 @@ const chatSlice = createSlice({
     /** Reset conversations list (e.g. on logout) */
     clearChats: state => {
       state.conversations = [];
+      state.totalUnreadCount = 0;
       state.error = null;
     },
 
@@ -126,6 +128,21 @@ const chatSlice = createSlice({
       }
     },
 
+    /** Increment global unread count when a new message arrives from another user */
+    incrementUnreadCount: state => {
+      state.totalUnreadCount += 1;
+    },
+
+    /** Reset unread count for a specific chat (called when user opens it) */
+    resetUnreadForChat: (state, action) => {
+      const chatId = action.payload;
+      const conv = state.conversations.find(c => c._id === chatId);
+      if (conv && conv.unreadCount > 0) {
+        state.totalUnreadCount = Math.max(0, state.totalUnreadCount - conv.unreadCount);
+        conv.unreadCount = 0;
+      }
+    },
+
     /** Mark all loaded messages as read — triggered by messages_read socket event */
     markMessagesRead: state => {
       state.messages = state.messages.map(m => ({ ...m, isRead: true }));
@@ -156,10 +173,13 @@ const chatSlice = createSlice({
       .addCase(getAllChats.fulfilled, (state, action) => {
         state.loading = false;
         // API response: { success, data: { conversations, totalPages, currentPage, total } }
-        state.conversations = action.payload?.data?.conversations || [];
+        const convs = action.payload?.data?.conversations || [];
+        state.conversations = convs;
         state.totalPages = action.payload?.data?.totalPages || 1;
         state.currentPage = action.payload?.data?.currentPage || 1;
         state.total = action.payload?.data?.total || 0;
+        // Recompute total unread from fresh conversations list
+        state.totalUnreadCount = convs.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
       })
       .addCase(getAllChats.rejected, (state, action) => {
         state.loading = false;
@@ -191,6 +211,8 @@ export const {
   replaceOptimisticMessage,
   markMessagesRead,
   updateConversationLastMessage,
+  incrementUnreadCount,
+  resetUnreadForChat,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

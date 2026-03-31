@@ -15,7 +15,7 @@ export default function ApproximateLocationMap({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MyStatusBar />
+      <MyStatusBar backgroundColor="#fff" barStyle="dark-content" />
       
       <CommonAppBar
         title="Approximate Location"

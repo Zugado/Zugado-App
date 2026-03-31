@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Image, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CommonActions } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 import HomeScreen from '../screens/Home/HomeScreen';
 import ManageJobScreen from '../screens/ManageJobScreen';
@@ -13,6 +13,7 @@ import AllChatScreen from '../screens/AllChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TabLoadingOverlay from '../components/TabLoadingOverlay';
 import LocationPickerScreen from '../screens/mapAndAddress/LocationPickerScreen';
+import { useGlobalChat } from '../hooks/useChat';
 
 const Tab = createBottomTabNavigator();
 
@@ -77,6 +78,10 @@ const icons = {
 export default function TabNavigator() {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
+  const totalUnreadCount = useSelector(state => state.chat.totalUnreadCount || 0);
+
+  // Persistent global socket — increments badge on incoming messages
+  useGlobalChat();
 
   const handleTabPress = () => {
     setIsLoading(true);
@@ -119,7 +124,18 @@ export default function TabNavigator() {
         break;
       case t('Message'):
         icon = focused ? icons.message.active : icons.message.inactive;
-        break;
+        return (
+          <View>
+            <Image source={icon} style={{ width: 20, height: 28, resizeMode: 'contain' }} />
+            {totalUnreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+                </Text>
+              </View>
+            )}
+          </View>
+        );
       case t('Profile'):
         icon = focused ? icons.profile.active : icons.profile.inactive;
         break;
@@ -176,5 +192,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.5,
     elevation: 5,
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: '#FF3B30',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '700',
+    lineHeight: 12,
   },
 });

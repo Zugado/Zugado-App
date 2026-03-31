@@ -38,7 +38,7 @@ export default function DraftChoiceScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MyStatusBar />
+      <MyStatusBar backgroundColor="#fff" barStyle="dark-content" />
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <Feather name="file-text" size={64} color={Colors.primary} />

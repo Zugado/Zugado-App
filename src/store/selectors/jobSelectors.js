@@ -9,9 +9,12 @@
  */
 export const selectHasBidded = (state, jobId) => {
   if (!jobId) return false;
-  const applied = state.job?.appliedJobs || [];
   try {
-    return applied.some(item => item?.job?._id === jobId || item?.job === jobId);
+    const applied = state.job?.appliedJobs || [];
+    if (applied.some(item => item?.job?._id === jobId || item?.job === jobId)) return true;
+    // Fallback: check myAllBids in case appliedJobs hasn't been fetched yet
+    const myBids = state.job?.myAllBids || [];
+    return myBids.some(item => item?.job?._id === jobId || item?.job === jobId || item?.jobId === jobId || item?.jobId?._id === jobId);
   } catch (e) {
     return false;
   }

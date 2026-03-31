@@ -8,7 +8,6 @@ import {
   ScrollView,
   RefreshControl,
   Dimensions,
-  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MiniJobCard from '../components/MiniJobCard';
@@ -294,11 +293,8 @@ const ManageJobScreen = () => {
     loadInitialData().then(() => setRefreshing(false));
   };
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={Colors.bodyBackColor}
-      />
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
+      <MyStatusBar backgroundColor={Colors.bodyBackColor} barStyle="dark-content" />
       <CommonAppBar
         borderBottomColor={Colors.whiteColor}
         navigation={navigation}
@@ -332,7 +328,7 @@ const ManageJobScreen = () => {
           />
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

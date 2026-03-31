@@ -71,7 +71,7 @@ const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabl
             ) : (
               <>
                 <Text style={styles.locationText}>
-                  {currentLocation?.city || locationAddress?.city || locationAddress?.town || locationAddress?.village || locationAddress?.state || 'Unknown Location'}
+                  {currentLocation?.city || locationAddress?.city || locationAddress?.town || locationAddress?.village || locationAddress?.state || 'Unknown'}
                 </Text>
                 <Text style={styles.pincodeText}>
                   {currentLocation?.postcode || locationAddress?.postcode || locationAddress?.pincode || locationAddress?.postal_code || 'N/A'}

@@ -43,7 +43,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectHasBidded } from '../store/selectors/jobSelectors';
 import { getChatMessages, markChatRead } from '../store/thunks/chatThunk';
-import { clearMessages } from '../store/slices/chatSlice';
+import { clearMessages, resetUnreadForChat } from '../store/slices/chatSlice';
 import { useChat } from '../hooks/useChat';
 
 /**
@@ -178,6 +178,7 @@ export default function ChatingScreen() {
   useEffect(() => {
     if (chatId) {
       dispatch(getChatMessages({ chatId }));
+      dispatch(resetUnreadForChat(chatId));
     }
     return () => {
       dispatch(clearMessages());
@@ -533,7 +534,11 @@ export default function ChatingScreen() {
                 <TouchableOpacity
                   style={styles.bidButton}
                   onPress={() =>
-                    navigation.navigate('BidPlacementScreen', { job: chatData?.jobId })
+                    navigation.navigate('BidPlacementScreen', {
+                      job: chatData?.jobId?._id
+                        ? chatData.jobId
+                        : { _id: chatData?.jobId },
+                    })
                   }>
                   <Text style={styles.bidButtonText}>Place a Bid</Text>
                 </TouchableOpacity>

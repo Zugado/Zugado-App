@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   appendMessage,
   addOptimisticMessage,
   replaceOptimisticMessage,
   markMessagesRead,
   updateConversationLastMessage,
+  incrementUnreadCount,
 } from '../store/slices/chatSlice';
 
 const SOCKET_URL = 'https://apiuat.zugado.com';
@@ -250,4 +251,51 @@ export const useChat = chatId => {
   }, [chatId]);
 
   return { connected, isTyping, typingUserId, sendMessage, sendTyping, markAsRead };
+};
+
+/**
+ * useGlobalChat — mounts a persistent socket at the app level (TabNavigator).
+ * Listens for new_message events from ANY chat and increments the global
+ * unread badge count in Redux whenever a message arrives from another user.
+ * Does NOT join any specific chat room — just needs the auth connection.
+ */
+export const useGlobalChat = () => {
+  const dispatch = useDispatch();
+  const currentUserId = useSelector(state => state.auth.user?._id);
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const init = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if (!token || !active) return;
+
+      const socket = io(SOCKET_URL, {
+        auth: { token },
+        transports: ['websocket'],
+        reconnection: true,
+        reconnectionAttempts: 10,
+        reconnectionDelay: 3000,
+      });
+      socketRef.current = socket;
+
+      socket.on('new_message', data => {
+        const msg = data?.message ?? data;
+        // Only count messages sent by the OTHER user
+        if (msg?.senderId && msg.senderId !== currentUserId) {
+          dispatch(incrementUnreadCount());
+        }
+      });
+    };
+
+    init();
+
+    return () => {
+      active = false;
+      socketRef.current?.disconnect();
+      socketRef.current = null;
+    };
+  // Re-init if the logged-in user changes (login/logout)
+  }, [currentUserId, dispatch]);
 };

@@ -4,15 +4,16 @@ import {
   View,
   Image,
   TouchableOpacity,
-  StatusBar,
   ScrollView,
 } from 'react-native';
 import React, { useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Colors } from '../styles/commonStyles';
 import { getRelativeTime } from '../utils/timeUtils';
 import { CommonAppBar } from '../components/CommonComponents';
+import MyStatusBar from '../components/MyStatusbar';
 import Feather from 'react-native-vector-icons/Feather';
 
 const MyBidStatusDetailScreen = () => {
@@ -147,11 +148,9 @@ const MyBidStatusDetailScreen = () => {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={Colors.bodyBackColor}
-      />
+    <SafeAreaView style={styles.safeArea}>
+      <MyStatusBar backgroundColor={Colors.bodyBackColor} barStyle="dark-content" />
+      <ScrollView style={styles.container}>
       <CommonAppBar
         borderBottomColor={Colors.whiteColor}
         navigation={navigation}
@@ -271,16 +270,20 @@ const MyBidStatusDetailScreen = () => {
         Your Bid Will be Refunded If you{' '}
         <Text style={styles.refundBold}>Cancel Now</Text>
       </Text>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 export default MyBidStatusDetailScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: Colors.bodyBackColor,
+  },
+  container: {
+    flex: 1,
     paddingHorizontal: 16,
   },
   cardContainer: {

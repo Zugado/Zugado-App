@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import MyStatusBar from '../components/MyStatusbar';
 import i18n from "../i18n/i18n";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
@@ -25,6 +27,7 @@ export default function LanguageSelectScreen({ navigation, onComplete }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <MyStatusBar backgroundColor="#f8f9fa" barStyle="dark-content" />
       <View style={styles.header}>
         <View style={styles.iconContainer}>
           <Feather name="globe" size={48} color="#4A90E2" />
