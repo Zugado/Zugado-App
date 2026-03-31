@@ -9,6 +9,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../components/MyStatusbar';
@@ -31,7 +32,10 @@ export default function AllChatScreen() {
   const filters = ['All', 'Read', 'Unread'];
   const roleFilters = ['All', 'Seeker', 'Creator'];
 
-  const { conversations, loading } = useSelector(state => state.chat, shallowEqual);
+  const { conversations, loading } = useSelector(
+    state => state.chat,
+    shallowEqual,
+  );
   const currentUserId = useSelector(state => state.auth.user?._id);
 
   useEffect(() => {
@@ -40,7 +44,9 @@ export default function AllChatScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    dispatch(getAllChats({ page: 1, limit: 20 })).finally(() => setRefreshing(false));
+    dispatch(getAllChats({ page: 1, limit: 20 })).finally(() =>
+      setRefreshing(false),
+    );
   }, []);
 
   const filteredChats = conversations.filter(conv => {
@@ -51,7 +57,9 @@ export default function AllChatScreen() {
       conv.jobId?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const myParticipant = conv.participants?.find(p => p.userId?._id === currentUserId);
+    const myParticipant = conv.participants?.find(
+      p => p.userId?._id === currentUserId,
+    );
     const myRole = myParticipant?.role; // 'bidder' = seeker, 'creator' = creator
 
     if (selectedFilter === 'Read') {
@@ -69,7 +77,7 @@ export default function AllChatScreen() {
     const other = item.otherParticipant;
     const name = `${other?.firstName} ${other?.lastName}`;
     const hasAvatar = !!other?.avatar;
-     console.log("Rendering chat item:", item);
+    console.log('Rendering chat item:', item);
     return (
       <TouchableOpacity
         onPress={() => navigation.navigate('ChatingScreen', { chatData: item })}
@@ -80,7 +88,9 @@ export default function AllChatScreen() {
           <Image source={{ uri: other.avatar }} style={styles.avatar} />
         ) : (
           <View style={[styles.avatar, styles.avatarPlaceholder]}>
-            <Text style={styles.avatarInitial}>{other?.firstName?.[0]?.toUpperCase()}</Text>
+            <Text style={styles.avatarInitial}>
+              {other?.firstName?.[0]?.toUpperCase()}
+            </Text>
           </View>
         )}
         <View style={styles.chatContent}>
@@ -88,7 +98,10 @@ export default function AllChatScreen() {
             <Text style={styles.chatName}>{name}</Text>
             <Text style={styles.chatTime}>
               {item.lastMessageTime
-                ? new Date(item.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                ? new Date(item.lastMessageTime).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
                 : ''}
             </Text>
           </View>
@@ -115,6 +128,11 @@ export default function AllChatScreen() {
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
       <MyStatusBar />
+      {/* <StatusBar
+        translucent={false}
+        backgroundColor={Colors.primary}
+        barStyle={'light-content'}
+      /> */}
       <Header showSearch={false} navigation={navigation} />
 
       <View style={styles.container}>
@@ -172,7 +190,9 @@ export default function AllChatScreen() {
               >
                 {role}
               </Text>
-              {selectedRole === role && <View style={styles.roleFilterUnderline} />}
+              {selectedRole === role && (
+                <View style={styles.roleFilterUnderline} />
+              )}
             </TouchableOpacity>
           ))}
         </View>
@@ -183,11 +203,19 @@ export default function AllChatScreen() {
           renderItem={renderChatItem}
           contentContainerStyle={styles.chatList}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           ListEmptyComponent={
-            loading
-              ? <ActivityIndicator style={{ marginTop: 40 }} size="large" color={Colors.primary} />
-              : <View />
+            loading ? (
+              <ActivityIndicator
+                style={{ marginTop: 40 }}
+                size="large"
+                color={Colors.primary}
+              />
+            ) : (
+              <View />
+            )
           }
           ListFooterComponent={<FaddedIcon />}
         />
@@ -291,7 +319,7 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: Colors.blackColor,
     // borderRadius: 2,
-  
+
     // paddingTop: 16,
   },
   chatItem: {

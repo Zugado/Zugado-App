@@ -67,6 +67,7 @@ export default function ChatingScreen() {
    * It contains: _id (chatId), jobId { _id, title }, otherParticipant { _id, firstName, lastName, avatar }
    */
   const { chatData } = route.params || {};
+  console.log('[ChatingScreen] chatData from route params:', JSON.stringify(chatData, null, 2));
   const chatId = chatData?._id;
   const currentUserId = useSelector(state => state.auth.user?._id || state.auth.user?.id);
 
@@ -540,9 +541,7 @@ export default function ChatingScreen() {
                   style={styles.bidButton}
                   onPress={() =>
                     navigation.navigate('BidPlacementScreen', {
-                      job: chatData?.jobId?._id
-                        ? chatData.jobId
-                        : { _id: chatData?.jobId },
+                      job: chatData?.jobId
                     })
                   }>
                   <Text style={styles.bidButtonText}>Place a Bid</Text>

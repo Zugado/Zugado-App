@@ -27,6 +27,8 @@ import { trimText } from '../utils/commonMethods';
 // Chat thunk — used to initiate or retrieve an existing conversation before navigating
 import { startNewChat } from '../store/thunks/chatThunk';
 
+import { getJobById } from '../store/thunks/jobThunk';
+
 const JobCard = ({ job, showButttons = true }) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -35,15 +37,32 @@ const JobCard = ({ job, showButttons = true }) => {
   const [isScrolling, setIsScrolling] = useState(false);
   const [cityName, setCityName] = useState('');
   const [isLoadingCity, setIsLoadingCity] = useState(true);
-  // Track chat initiation loading to prevent double-taps
   const [chatLoading, setChatLoading] = useState(false);
+  const [jobData, setJobData] = useState(null);
+  const [jobLoading, setJobLoading] = useState(false);
 
-  const isWishlisted = wishlistIds.includes(job?._id);
-  const isUrgent = job?.jobType === 'quick' || job?.jobType !== 'standard';
+  useEffect(() => {
+    if (job ) {
+      // only jobId passed, fetch full data
+      //  console.log("job ==>",job)
+      setJobLoading(true);
+      dispatch(getJobById(job?._id))
+        .then(res => {
+          if (res.payload?.success) setJobData(res.payload.data);
+          // console.log("job data on card==>",res.payload.data)
+        })
+        .finally(() => setJobLoading(false));
+    } else {
+      setJobLoading(false);
+    }
+  }, [job]);
+
+  const isWishlisted = wishlistIds.includes(jobData?._id);
+  const isUrgent = jobData?.jobType === 'quick';
   const { width } = Dimensions.get('window');
-  const cardWidth = width - 30; // Account for margins
+  const cardWidth = width - 30;
 
-  const imageList = job.attachments?.map(a => a.url);
+  const imageList = jobData?.attachments?.map(a => a.url);
   const [currentIndex, setCurrentIndex] = useState(0);
   const sliderRef = useRef(null);
 
@@ -58,21 +77,15 @@ const JobCard = ({ job, showButttons = true }) => {
   }).current;
 
   const onWishlistToggle = () => {
-    handleWishlistToggle(dispatch, job?._id, isWishlisted, showSnackbar);
+    handleWishlistToggle(dispatch, jobData?._id, isWishlisted, showSnackbar);
   };
 
-  /**
-   * Initiate or retrieve an existing chat for this job.
-   * POST /api/chat/initiate  { jobId, participantId: job.createdBy._id }
-   * On success the server returns the conversation object which we pass
-   * directly to ChatingScreen as chatData.
-   */
   const handleChatPress = async () => {
-    if (chatLoading || !job?.createdBy?._id) return;
+    if (chatLoading || !jobData?.createdBy?._id) return;
     setChatLoading(true);
     try {
       const result = await dispatch(
-        startNewChat({ jobId: job._id, participantId: job.createdBy._id }),
+        startNewChat({ jobId: jobData._id, participantId: jobData.createdBy._id }),
       ).unwrap();
       if (result?.data) {
         navigation.navigate('ChatingScreen', { chatData: result.data });
@@ -85,40 +98,36 @@ const JobCard = ({ job, showButttons = true }) => {
   };
 
   useEffect(() => {
-    if (job?.location?.coordinates) {
+    if (jobData?.location?.coordinates) {
       setIsLoadingCity(true);
-
       const timer = setTimeout(() => {
-        getLocationFromCoordinates(job.location.coordinates)
+        getLocationFromCoordinates(jobData.location.coordinates)
           .then(({ city }) => {
             setCityName(city);
             setIsLoadingCity(false);
           })
-          .catch(() => {
-            setIsLoadingCity(false);
-          });
+          .catch(() => setIsLoadingCity(false));
       }, 300);
-
       return () => clearTimeout(timer);
     }
-  }, [job?.location?.coordinates]);
+  }, [jobData?.location?.coordinates]);
 
   const getLocationDisplay = () => {
-    if (job?.locationType === 'remote') {
-      return 'Remote';
-    }
-    if (isLoadingCity) {
-      return null;
-    }
-    if (
-      cityName &&
-      job?.distanceFromUser !== null &&
-      job?.distanceFromUser !== undefined
-    ) {
-      return `${cityName} - ${formatDistance(job.distanceFromUser)}`;
+    if (jobData?.locationType === 'remote') return 'Remote';
+    if (isLoadingCity) return null;
+    if (cityName && jobData?.distanceFromUser !== null && jobData?.distanceFromUser !== undefined) {
+      return `${cityName} - ${formatDistance(jobData.distanceFromUser)}`;
     }
     return 'Distance N/A';
   };
+
+  if (jobLoading) {
+    return (
+      <View style={[styles.cardContainer, { height: 120, justifyContent: 'center', alignItems: 'center' }]}>
+        <DotLoader color="#000" size={6} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.cardContainer}>
@@ -138,10 +147,7 @@ const JobCard = ({ job, showButttons = true }) => {
               <TouchableOpacity
                 activeOpacity={showButttons ? 1 : 0.7}
                 disabled={!showButttons}
-                onPress={() =>
-                  showButttons &&
-                  navigation.navigate('JobDetailedScreen', { jobId: job?._id })
-                }
+                onPress={() => showButttons && navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })}
               >
                 <Image
                   source={{ uri: item }}
@@ -160,9 +166,7 @@ const JobCard = ({ job, showButttons = true }) => {
               <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.locationIcon} />
                 <Text style={styles.overlayText}>
-                  {job?.createdAt
-                    ? getRelativeTime(job.createdAt)
-                    : '23 hrs left'}
+                  {jobData?.createdAt ? getRelativeTime(jobData.createdAt) : '23 hrs left'}
                 </Text>
               </View>
               {imageList?.length > 1 && (
@@ -219,39 +223,26 @@ const JobCard = ({ job, showButttons = true }) => {
       <TouchableOpacity
         activeOpacity={0.85}
         disabled={!showButttons}
-        onPress={() =>
-          showButttons &&
-          navigation.navigate('JobDetailedScreen', { jobId: job?._id })
-        }
+        onPress={() => showButttons && navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })}
       >
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={styles.row}>
-            <Text style={styles.title}>
-              {trimText(job?.title, 40)  || 'Job Title'}
-            </Text>
+            <Text style={styles.title}>{trimText(jobData?.title, 40) || 'Job Title'}</Text>
             <Text style={styles.price}>
-              {job?.amount?.disclose && job?.amount?.max
-                ? `₹ ${job.amount.max}`
-                : 'Not disclosed'}
+              {jobData?.amount?.disclose && jobData?.amount?.max ? `₹ ${jobData.amount.max}` : 'Not disclosed'}
             </Text>
           </View>
 
           {/* Description */}
-          <Text style={styles.description}>
-            {job?.description || 'No description available'}
-          </Text>
+          <Text style={styles.description}>{jobData?.description || 'No description available'}</Text>
 
           {/* this is the place to put location for without image card */}
           {imageList?.length === 0 && (
             <View style={styles.noImageInfoContainer}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.noImageIcon} />
-                <Text style={styles.noImageText}>
-                  {job?.createdAt
-                    ? getRelativeTime(job.createdAt)
-                    : '23 hrs left'}
-                </Text>
+                <Text style={styles.noImageText}>{jobData?.createdAt ? getRelativeTime(jobData.createdAt) : '23 hrs left'}</Text>
               </View>
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.noImageIcon} />
@@ -266,17 +257,12 @@ const JobCard = ({ job, showButttons = true }) => {
           {/* Vendor + Ratings */}
           <View style={styles.row}>
             <Text style={styles.vendorName}>
-              {job?.createdBy
-                ? `${job.createdBy.firstName} ${job.createdBy.lastName}`
-                : 'Unknown'}
+              {jobData?.createdBy ? `${jobData.createdBy.firstName} ${jobData.createdBy.lastName}` : 'Unknown'}
             </Text>
-
             <View style={styles.ratingContainer}>
               <FontAwesome name="star" style={styles.starIcon} />
               <Text style={styles.ratingText}>
-                {job?.creatorRating !== undefined && job?.creatorRating !== null
-                  ? job.creatorRating
-                  : 'N/A'}
+                {jobData?.creatorRating !== undefined && jobData?.creatorRating !== null ? jobData.creatorRating : 'N/A'}
               </Text>
             </View>
           </View>
@@ -288,9 +274,7 @@ const JobCard = ({ job, showButttons = true }) => {
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.bidButton}
-                onPress={() =>
-                  navigation.navigate('BidPlacementScreen', { job })
-                }
+                onPress={() => navigation.navigate('BidPlacementScreen', { job: jobData })}
               >
                 <Text style={styles.bidButtonText}>Bid</Text>
               </TouchableOpacity>
