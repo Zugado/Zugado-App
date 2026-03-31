@@ -67,19 +67,20 @@ export default function ChatingScreen() {
    * It contains: _id (chatId), jobId { _id, title }, otherParticipant { _id, firstName, lastName, avatar }
    */
   const { chatData } = route.params || {};
-  const chatId = chatData?._id;                    // conversation _id — used for both REST and socket
-  const otherParticipant = chatData?.otherParticipant;
+  const chatId = chatData?._id;
+  const currentUserId = useSelector(state => state.auth.user?._id || state.auth.user?.id);
+
+  const otherParticipant = chatData?.otherParticipant ||
+    chatData?.participants?.find(p => p?.userId?._id !== currentUserId)?.userId;
+
+  const participants = chatData?.participants || [];
   const routeIsCreator = route.params?.isCreator;
 
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef(null);
 
-  // Pull messages + loading state from Redux chat slice — select separately to
-  // ensure re-render when messages array updates (safer than selecting whole slice)
   const messages = useSelector(state => state.chat.messages || []);
   const messagesLoading = useSelector(state => state.chat.messagesLoading);
-  // Current logged-in user id — used to distinguish sent vs received bubbles
-  const currentUserId = useSelector(state => state.auth.user?._id);
 
   /**
    * Determine chat access level from jobSlice:
@@ -270,8 +271,11 @@ export default function ChatingScreen() {
   };
 
   const hasAvatar = !!otherParticipant?.avatar;
-  const otherName =
-    `${otherParticipant?.firstName || ''} ${otherParticipant?.lastName || ''}`.trim();
+  const otherName = otherParticipant
+  ? `${otherParticipant.firstName || ''} ${otherParticipant.lastName || ''}`.trim()
+  : participants
+      ?.find(p => p.role === "creator")
+      ?.firstName || "";
 
   /**
    * Renders a single chat bubble.

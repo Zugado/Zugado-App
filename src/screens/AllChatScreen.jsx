@@ -69,7 +69,7 @@ export default function AllChatScreen() {
     const other = item.otherParticipant;
     const name = `${other?.firstName} ${other?.lastName}`;
     const hasAvatar = !!other?.avatar;
-
+     console.log("Rendering chat item:", item);
     return (
       <TouchableOpacity
         onPress={() => navigation.navigate('ChatingScreen', { chatData: item })}

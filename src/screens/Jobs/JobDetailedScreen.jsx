@@ -179,7 +179,8 @@ export default function JobDetailedScreen({ navigation, route }) {
         startNewChat({ jobId: jobData._id, participantId: jobData.createdBy._id }),
       ).unwrap();
       if (result?.data) {
-        navigation.navigate('ChatingScreen', { chatData: result.data });
+        //  console.log("Rendering chat item in job detail screen:", result.data);
+       navigation.navigate('ChatingScreen', { chatData: result.data });
       }
     } catch (err) {
       showSnackbar('Could not open chat. Try again.', 'error');
