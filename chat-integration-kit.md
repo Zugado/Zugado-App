@@ -278,6 +278,7 @@ Chat open karne par call karo — unread count reset ho jaayega.
 
 ---
 
+
 ### 6. Chat Delete Karo
 
 **DELETE** `/api/chat/:chatId`
