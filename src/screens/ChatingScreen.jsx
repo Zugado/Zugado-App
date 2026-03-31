@@ -339,10 +339,11 @@ export default function ChatingScreen() {
        * "Each child in a list should have a unique key prop" warning
        * that occurred when FlatList was nested inside a ScrollView.
        */}
-      <KeyboardAvoidingView
+       {/* don't uncomment KeyboardAvoidingView  */}
+      {/* <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 90}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 90}> */}
         <View style={styles.container}>
           {/* ── Chat Header: avatar, name, job title, online status ── */}
           <View style={styles.header}>
@@ -550,14 +551,14 @@ export default function ChatingScreen() {
             )}
           </View>
         </View>
-      </KeyboardAvoidingView>
+      {/* </KeyboardAvoidingView> */}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeAreaBlack: { flex: 1, backgroundColor: Colors.bodyBackColor },
-  keyboardView: { flex: 1 },
+  // keyboardView: { flex: 1 },
   container: {
     flex: 1,
     marginTop: -20,
