@@ -294,7 +294,9 @@ const ManageJobScreen = () => {
   };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bodyBackColor }}>
-      <MyStatusBar backgroundColor={Colors.bodyBackColor} barStyle="dark-content" />
+      {/* <MyStatusBar backgroundColor={Colors.primary} barStyle="dark-content" /> */}
+            <MyStatusBar  />
+
       <CommonAppBar
         borderBottomColor={Colors.whiteColor}
         navigation={navigation}
