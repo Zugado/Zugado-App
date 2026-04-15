@@ -13,14 +13,19 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Colors } from '../styles/commonStyles';
 import { getRelativeTime } from '../utils/timeUtils';
 import { CommonAppBar } from '../components/CommonComponents';
+import { WarningWithButton } from '../components/lottie/WarningWithButton';
 import MyStatusBar from '../components/MyStatusbar';
 import Feather from 'react-native-vector-icons/Feather';
 
 const MyBidStatusDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const [showCancelWarning, setShowCancelWarning] = useState(false);
   const { jobData } = route.params || {};
-  console.log('Received jobData: MyBidStatusDetailScreen==>', JSON.stringify(jobData, null, 2));
+  console.log(
+    'Received jobData: MyBidStatusDetailScreen==>',
+    JSON.stringify(jobData, null, 2),
+  );
 
   const job = jobData?.job;
   const bid = jobData?.bids?.[0];
@@ -68,7 +73,10 @@ const MyBidStatusDetailScreen = () => {
       };
     }
   };
-
+  const handleCancelBid = () => {
+    setShowCancelWarning(false);
+    // TODO: dispatch cancel bid API
+  };
   const statusConfig = getBidStatusConfig();
 
   const JobInfoSection = ({ children }) => (
@@ -137,11 +145,11 @@ const MyBidStatusDetailScreen = () => {
       ]}
     >
       <Text style={[styles.statusTitle, { color: statusConfig.textColor }]}>
-        {statusConfig.congratsText}{" "}
+        {statusConfig.congratsText}{' '}
         <Text
           style={[styles.statusSubtitle, { color: statusConfig.textColor }]}
         >
-          Your Bid has been {" "}{statusConfig.statusText}
+          Your Bid has been {statusConfig.statusText}
         </Text>
       </Text>
     </View>
@@ -149,129 +157,145 @@ const MyBidStatusDetailScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <MyStatusBar backgroundColor={Colors.bodyBackColor} barStyle="dark-content" />
-      <ScrollView style={styles.container}>
-      <CommonAppBar
-        borderBottomColor={Colors.whiteColor}
-        navigation={navigation}
-        title="View Bid Details"
+      <MyStatusBar
+        backgroundColor={Colors.bodyBackColor}
+        barStyle="dark-content"
       />
+      <ScrollView style={styles.container}>
+        <CommonAppBar
+          borderBottomColor={Colors.whiteColor}
+          navigation={navigation}
+          title="View Bid Details"
+        />
 
-      {/* Job Details Card */}
-      <JobInfoSection>
-        {isUrgent && (
-          <View style={styles.urgentTag}>
-            <Image
-              source={require('../assets/Icons/urgentTag.png')}
-              style={styles.urgentTagImage}
+        {/* Job Details Card */}
+        <JobInfoSection>
+          {isUrgent && (
+            <View style={styles.urgentTag}>
+              <Image
+                source={require('../assets/Icons/urgentTag.png')}
+                style={styles.urgentTagImage}
+              />
+              <Text style={styles.urgentText}>Urgent</Text>
+            </View>
+          )}
+
+          <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
+
+          <View style={styles.infoContainer}>
+            <InfoRow
+              icon="location-on"
+              text={job?.location?.address || 'Location not available'}
             />
-            <Text style={styles.urgentText}>Urgent</Text>
+            <InfoRow
+              icon="watch-later"
+              text={job?.createdAt ? getRelativeTime(job?.createdAt) : 'N/A'}
+              iconStyle={{ fontSize: 16, marginLeft: 2 }}
+            />
           </View>
-        )}
 
-        <Text style={styles.title}>{job?.title || 'Job Title'}</Text>
-
-        <View style={styles.infoContainer}>
-          <InfoRow
-            icon="location-on"
-            text={job?.location?.address || 'Location not available'}
-          />
-          <InfoRow
-            icon="watch-later"
-            text={job?.createdAt ? getRelativeTime(job?.createdAt) : 'N/A'}
-            iconStyle={{ fontSize: 16, marginLeft: 2 }}
-          />
-        </View>
-
-        {/* <View style={styles.buttonRow}>
+          {/* <View style={styles.buttonRow}>
           <ImageGallery />
           <VendorInfo />
         </View> */}
 
-        <Text style={styles.description}>
-          {job?.description || 'No description available'}
+          <Text style={styles.description}>
+            {job?.description || 'No description available'}
+          </Text>
+
+          <ActionButtons />
+        </JobInfoSection>
+
+        {/* Bid Status Header */}
+        <Text style={styles.bidHeader}>
+          Your Bid{' '}
+          <Text style={styles.bidStatus}>({statusConfig.statusText})</Text>
         </Text>
 
-        <ActionButtons />
-      </JobInfoSection>
+        {/* Bid Details Card */}
+        <JobInfoSection>
+          <Text style={[styles.title, { fontSize: 24 }]}>
+            ₹ {bid?.amount || 0}
+          </Text>
+          <Text
+            style={{
+              fontSize: 10,
+              color: Colors.grayColor,
+              position: 'absolute',
+              right: 12,
+              top: 12,
+            }}
+          >
+            Updated {bid?.updatedAt ? getRelativeTime(bid.updatedAt) : 'N/A'}
+          </Text>
+          <InfoRow
+            icon="circle"
+            text={`Negotiable: ${bid?.isNegotiable ? 'Yes' : 'No'}`}
+          />
+          <BidStatusBanner />
 
-      {/* Bid Status Header */}
-      <Text style={styles.bidHeader}>
-        Your Bid{' '}
-        <Text style={styles.bidStatus}>({statusConfig.statusText})</Text>
-      </Text>
+          <Text style={styles.proposalTitle}>Your Proposal</Text>
+          <Text style={styles.description}>
+            {bid?.message || 'No proposal message'}
+          </Text>
 
-      {/* Bid Details Card */}
-      <JobInfoSection>
-        <Text style={[styles.title, { fontSize: 24 }]}>
-          ₹ {bid?.amount || 0}
-        </Text>
-        <Text
-          style={{
-            fontSize: 10,
-            color: Colors.grayColor,
-            position: 'absolute',
-            right: 12,
-            top: 12,
-          }}
-        >
-          Updated {bid?.updatedAt ? getRelativeTime(bid.updatedAt) : 'N/A'}
-        </Text>
-        <InfoRow
-          icon="circle"
-          text={`Negotiable: ${bid?.isNegotiable ? 'Yes' : 'No'}`}
-        />
-        <BidStatusBanner />
-
-        <Text style={styles.proposalTitle}>Your Proposal</Text>
-        <Text style={styles.description}>
-          {bid?.message || 'No proposal message'}
-        </Text>
-
-        {!(bidStatus === 'accepted') && (
-          <TouchableOpacity   onPress={() => navigation.navigate('BidUpdateScreen', { job: jobData })} style={styles.editBidButton}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#9dd1c12a',
-                paddingHorizontal: 8,
-                paddingVertical: 6,
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: '#a1a1a1',
-               
-              }}
+          {!(bidStatus === 'accepted') && (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('BidUpdateScreen', { job: jobData })
+              }
+              style={styles.editBidButton}
             >
-              <Feather name="edit-2" size={12} color={Colors.blackColor} />
-              <Text style={styles.editBidText}>Edit Bid</Text>
-            </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#9dd1c12a',
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: '#a1a1a1',
+                }}
+              >
+                <Feather name="edit-2" size={12} color={Colors.blackColor} />
+                <Text style={styles.editBidText}>Edit Bid</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </JobInfoSection>
+
+        {/* Action Button */}
+        <TouchableOpacity
+          style={[
+            styles.mainActionButton,
+            {
+              backgroundColor: statusConfig.buttonColor,
+              borderColor: statusConfig.buttonColor,
+              opacity: statusConfig.buttonDisabled ? 0.7 : 1,
+            },
+          ]}
+          disabled={statusConfig.buttonDisabled}
+        >
+          <Text style={styles.mainActionButtonText}>
+            {statusConfig.buttonText}
+          </Text>
+        </TouchableOpacity>
+
+        <View style={styles.refundRow}>
+          <Text style={styles.refundText}>Your Bid Will be Refunded If you </Text>
+          <TouchableOpacity onPress={() => setShowCancelWarning(true)}>
+            <Text style={styles.refundBold}>Cancel Now</Text>
           </TouchableOpacity>
-        )}
-      </JobInfoSection>
-
-      {/* Action Button */}
-      <TouchableOpacity
-        style={[
-          styles.mainActionButton,
-          {
-            backgroundColor: statusConfig.buttonColor,
-            borderColor: statusConfig.buttonColor,
-            opacity: statusConfig.buttonDisabled ? 0.7 : 1,
-          },
-        ]}
-        disabled={statusConfig.buttonDisabled}
-      >
-        <Text style={styles.mainActionButtonText}>
-          {statusConfig.buttonText}
-        </Text>
-      </TouchableOpacity>
-
-      <Text style={styles.refundText}>
-        Your Bid Will be Refunded If you{' '}
-        <Text style={styles.refundBold}>Cancel Now</Text>
-      </Text>
+        </View>
       </ScrollView>
+      {showCancelWarning && (
+        <WarningWithButton
+          message="Are you sure you want to cancel your bid?"
+          onYes={handleCancelBid}
+          onClose={() => setShowCancelWarning(false)}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -473,9 +497,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 14,
   },
+  refundRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
   refundText: {
     fontSize: 14,
-    textAlign: 'center',
     color: Colors.grayColor,
   },
   refundBold: {
