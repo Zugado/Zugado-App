@@ -19,6 +19,7 @@ import ManageSavedAddressesScreen from '../screens/ManageSavedAddressesScreen';
 import LocationPermissionScreen from '../screens/LocationPermissionScreen';
 import WishlistScreen from '../screens/WishlistScreen';
 import BidPlacementScreen from '../screens/BidPlacementScreen';
+import BidUpdateScreen from '../screens/BidUpdateScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import CreatedByMeJobDetailScreen from '../screens/CreatedByMeJobDetailScreen';
 import MyBidStatusDetailScreen from '../screens/MyBidStatusDetailScreen';
@@ -73,6 +74,7 @@ export default function AppStackNavigator() {
         component={CreatedByMeJobDetailScreen}
       />
       <Stack.Screen name="BidPlacementScreen" component={BidPlacementScreen} />
+      <Stack.Screen name="BidUpdateScreen" component={BidUpdateScreen} />
        <Stack.Screen name="ChatingScreen" component={ChatingScreen} />
     </Stack.Navigator>
   );

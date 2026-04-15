@@ -50,7 +50,7 @@ const JobCard = ({ job, showButttons = true }) => {
       dispatch(getJobById(job?._id))
         .then(res => {
           if (res.payload?.success) setJobData(res.payload.data);
-          console.log("job data on card==>",JSON.stringify(res.payload.data,null,2));
+          // console.log("job data on card==>",JSON.stringify(res.payload.data,null,2));
         })
         .finally(() => setJobLoading(false));
     } else {

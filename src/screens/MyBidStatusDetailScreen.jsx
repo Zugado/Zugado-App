@@ -20,7 +20,7 @@ const MyBidStatusDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { jobData } = route.params || {};
-  console.log('Received jobData: MyBidStatusDetailScreen==>', jobData);
+  console.log('Received jobData: MyBidStatusDetailScreen==>', JSON.stringify(jobData, null, 2));
 
   const job = jobData?.job;
   const bid = jobData?.bids?.[0];
@@ -137,11 +137,11 @@ const MyBidStatusDetailScreen = () => {
       ]}
     >
       <Text style={[styles.statusTitle, { color: statusConfig.textColor }]}>
-        {statusConfig.congratsText}
+        {statusConfig.congratsText}{" "}
         <Text
           style={[styles.statusSubtitle, { color: statusConfig.textColor }]}
         >
-          Your Bid has been {statusConfig.statusText}
+          Your Bid has been {" "}{statusConfig.statusText}
         </Text>
       </Text>
     </View>
@@ -228,18 +228,19 @@ const MyBidStatusDetailScreen = () => {
           {bid?.message || 'No proposal message'}
         </Text>
 
-        {(bidStatus === 'rejected' || bidStatus === 'pending') && (
-          <TouchableOpacity style={styles.editBidButton}>
+        {!(bidStatus === 'accepted') && (
+          <TouchableOpacity   onPress={() => navigation.navigate('BidUpdateScreen', { job: jobData })} style={styles.editBidButton}>
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 backgroundColor: '#9dd1c12a',
                 paddingHorizontal: 8,
-                paddingVertical: 4,
+                paddingVertical: 6,
                 borderRadius: 12,
                 borderWidth: 1,
                 borderColor: '#a1a1a1',
+               
               }}
             >
               <Feather name="edit-2" size={12} color={Colors.blackColor} />
@@ -430,7 +431,7 @@ const styles = StyleSheet.create({
   },
   statusTitle: {
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 12,
   },
   statusSubtitle: {
     fontWeight: '500',
