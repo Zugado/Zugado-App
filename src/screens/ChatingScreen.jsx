@@ -67,11 +67,17 @@ export default function ChatingScreen() {
    * It contains: _id (chatId), jobId { _id, title }, otherParticipant { _id, firstName, lastName, avatar }
    */
   const { chatData } = route.params || {};
-  console.log('[ChatingScreen] chatData from route params:', JSON.stringify(chatData, null, 2));
+  console.log(
+    '[ChatingScreen] chatData from route params:',
+    JSON.stringify(chatData, null, 2),
+  );
   const chatId = chatData?._id;
-  const currentUserId = useSelector(state => state.auth.user?._id || state.auth.user?.id);
+  const currentUserId = useSelector(
+    state => state.auth.user?._id || state.auth.user?.id,
+  );
 
-  const otherParticipant = chatData?.otherParticipant ||
+  const otherParticipant =
+    chatData?.otherParticipant ||
     chatData?.participants?.find(p => p?.userId?._id !== currentUserId)?.userId;
 
   const participants = chatData?.participants || [];
@@ -105,9 +111,16 @@ export default function ChatingScreen() {
 
     // Prefer participants array from chatData if backend returned it
     try {
-      const participants = chatData?.participants || chatData?.data?.participants || null;
-      if (Array.isArray(participants) && participants.length > 0 && currentUserId) {
-        const me = participants.find(p => p?.userId?._id === currentUserId || p?.userId === currentUserId);
+      const participants =
+        chatData?.participants || chatData?.data?.participants || null;
+      if (
+        Array.isArray(participants) &&
+        participants.length > 0 &&
+        currentUserId
+      ) {
+        const me = participants.find(
+          p => p?.userId?._id === currentUserId || p?.userId === currentUserId,
+        );
         if (me && (me.role === 'creator' || me.role === 'owner')) return true;
       }
     } catch (e) {
@@ -115,8 +128,12 @@ export default function ChatingScreen() {
     }
 
     const jobCreatorId =
-      chatData?.jobId?.createdBy?._id || chatData?.jobId?.creator?._id || chatData?.jobId?.userId || null;
-    if (currentUserId && jobCreatorId && currentUserId === jobCreatorId) return true;
+      chatData?.jobId?.createdBy?._id ||
+      chatData?.jobId?.creator?._id ||
+      chatData?.jobId?.userId ||
+      null;
+    if (currentUserId && jobCreatorId && currentUserId === jobCreatorId)
+      return true;
     return state.job.createdJobs?.some(j => j._id === jobIdOfChat);
   });
 
@@ -130,16 +147,25 @@ export default function ChatingScreen() {
    * useChat hook manages the Socket.IO lifecycle.
    * We pass chatId directly — no need to wait for activeChatId from REST.
    */
-  const { connected, isTyping, typingUserId, sendMessage, sendTyping, markAsRead } = useChat(chatId);
+  const {
+    connected,
+    isTyping,
+    typingUserId,
+    sendMessage,
+    sendTyping,
+    markAsRead,
+  } = useChat(chatId);
   const [showQuickChats, setShowQuickChats] = useState(true);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [quickChatHeight, setQuickChatHeight] = useState(0);
   const [inputHeight, setInputHeight] = useState(56);
-  
+
   useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
     const onKeyboardShow = e => {
       setKeyboardVisible(true);
@@ -161,8 +187,13 @@ export default function ChatingScreen() {
 
   // Compute dynamic bottom padding so messages don't get hidden under quick chat card
   const basePadding = 10;
-  const computedPadding = inputHeight + ( !isChatUnlocked && showQuickChats ? quickChatHeight : 0 ) + basePadding;
-  const effectivePadding = keyboardVisible ? Math.max(computedPadding, keyboardHeight + basePadding) : computedPadding;
+  const computedPadding =
+    inputHeight +
+    (!isChatUnlocked && showQuickChats ? quickChatHeight : 0) +
+    basePadding;
+  const effectivePadding = keyboardVisible
+    ? Math.max(computedPadding, keyboardHeight + basePadding)
+    : computedPadding;
 
   // When quick chats visibility or measured heights change, ensure the list scrolls
   useEffect(() => {
@@ -221,7 +252,10 @@ export default function ChatingScreen() {
   // Auto-scroll to the latest message whenever the list grows
   useEffect(() => {
     if (messages.length > 0) {
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      setTimeout(
+        () => flatListRef.current?.scrollToEnd({ animated: true }),
+        100,
+      );
     }
   }, [messages.length]);
 
@@ -229,7 +263,9 @@ export default function ChatingScreen() {
   const handleSend = useCallback(() => {
     if (!inputText.trim()) return;
     if (!connected) {
-      console.warn('[ChatingScreen] handleSend — socket not connected, cannot send');
+      console.warn(
+        '[ChatingScreen] handleSend — socket not connected, cannot send',
+      );
       return;
     }
     console.log(`[ChatingScreen] Sending message: "${inputText.trim()}"`);
@@ -244,9 +280,13 @@ export default function ChatingScreen() {
    */
   const handleQuickSend = useCallback(
     text => {
-      console.log(`[ChatingScreen] Quick send tapped — text: "${text}" | connected: ${connected}`);
+      console.log(
+        `[ChatingScreen] Quick send tapped — text: "${text}" | connected: ${connected}`,
+      );
       if (!connected) {
-        console.warn('[ChatingScreen] Quick send failed — socket not connected yet. Wait a moment and try again.');
+        console.warn(
+          '[ChatingScreen] Quick send failed — socket not connected yet. Wait a moment and try again.',
+        );
         return;
       }
       sendMessage(text);
@@ -273,10 +313,10 @@ export default function ChatingScreen() {
 
   const hasAvatar = !!otherParticipant?.avatar;
   const otherName = otherParticipant
-  ? `${otherParticipant.firstName || ''} ${otherParticipant.lastName || ''}`.trim()
-  : participants
-      ?.find(p => p.role === "creator")
-      ?.firstName || "";
+    ? `${otherParticipant.firstName || ''} ${
+        otherParticipant.lastName || ''
+      }`.trim()
+    : participants?.find(p => p.role === 'creator')?.firstName || '';
 
   /**
    * Renders a single chat bubble.
@@ -292,7 +332,8 @@ export default function ChatingScreen() {
           style={[
             styles.messageBubble,
             isMine ? styles.myBubble : styles.theirBubble,
-          ]}>
+          ]}
+        >
           {item.messageType === 'image' && item.fileUrl ? (
             // Image message — rendered as a thumbnail
             <Image source={{ uri: item.fileUrl }} style={styles.messageImage} />
@@ -340,216 +381,255 @@ export default function ChatingScreen() {
        * "Each child in a list should have a unique key prop" warning
        * that occurred when FlatList was nested inside a ScrollView.
        */}
-       {/* don't uncomment KeyboardAvoidingView  */}
+      {/* don't uncomment KeyboardAvoidingView  */}
       {/* <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 110 : 90}> */}
-        <View style={styles.container}>
-          {/* ── Chat Header: avatar, name, job title, online status ── */}
-          <View style={styles.header}>
-            {/* Back button — important for iOS devices without gesture navigation */}
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-              <Feather name="arrow-left" size={22} color={Colors.blackColor} />
-            </TouchableOpacity>
+      <View style={styles.container}>
+        {/* ── Chat Header: avatar, name, job title, online status ── */}
+        <View style={styles.header}>
+          {/* Back button — important for iOS devices without gesture navigation */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Feather name="arrow-left" size={22} color={Colors.blackColor} />
+          </TouchableOpacity>
 
-            {hasAvatar ? (
-              <Image
-                source={{ uri: otherParticipant.avatar }}
-                style={styles.avatar}
-              />
-            ) : (
-              // Fallback: show first letter of name when no avatar URL
-              <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                <Text style={styles.avatarInitial}>
-                  {otherParticipant?.firstName?.[0]?.toUpperCase() || '?'}
-                </Text>
-              </View>
-            )}
-            <View style={styles.userThings}>
-              <View style={styles.userHeader}>
-                <Text style={styles.usernameTop}>{otherName || 'User'}</Text>
-                <TouchableOpacity style={styles.dotOption}>
-                  <Feather
-                    name="more-vertical"
-                    size={16}
-                    color={Colors.blackColor}
-                  />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.jobName} numberOfLines={1}>
-                {chatData?.jobId?.title || 'Job'}
+          {hasAvatar ? (
+            <Image
+              source={{ uri: otherParticipant.avatar }}
+              style={styles.avatar}
+            />
+          ) : (
+            // Fallback: show first letter of name when no avatar URL
+            <View style={[styles.avatar, styles.avatarPlaceholder]}>
+              <Text style={styles.avatarInitial}>
+                {otherParticipant?.firstName?.[0]?.toUpperCase() || '?'}
               </Text>
-              {/* Online/offline dot — driven by socket connection state */}
-              <View style={styles.statusRow}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    connected ? styles.statusDotOnline : styles.statusDotOffline,
-                  ]}
+            </View>
+          )}
+          <View style={styles.userThings}>
+            <View style={styles.userHeader}>
+              <Text style={styles.usernameTop}>{otherName || 'User'}</Text>
+              <TouchableOpacity style={styles.dotOption}>
+                <Feather
+                  name="more-vertical"
+                  size={16}
+                  color={Colors.blackColor}
                 />
-                <Text style={styles.userStatus}>
-                  {isTyping && typingUserId && typingUserId !== currentUserId
-                    ? 'Typing...'
-                    : connected
-                    ? 'Online'
-                    : 'Offline'}
-                </Text>
-              </View>
+              </TouchableOpacity>
             </View>
-          </View>
-
-          {/* ── Safety warning banner ── */}
-          <View style={styles.warningContainer}>
-            <View style={styles.warningBox}>
-              <MaterialIcons name="work" size={16} color={Colors.grayColor} />
-              <Text style={styles.warningText}>
-                Do not Share Mobile Number Until Finalized
+            <Text style={styles.jobName} numberOfLines={1}>
+              {chatData?.jobId?.title || 'Job'}
+            </Text>
+            {/* Online/offline dot — driven by socket connection state */}
+            <View style={styles.statusRow}>
+              <View
+                style={[
+                  styles.statusDot,
+                  connected ? styles.statusDotOnline : styles.statusDotOffline,
+                ]}
+              />
+              <Text style={styles.userStatus}>
+                {isTyping && typingUserId && typingUserId !== currentUserId
+                  ? 'Typing...'
+                  : connected
+                  ? 'Online'
+                  : 'Offline'}
               </Text>
             </View>
           </View>
+        </View>
 
-          {/* ── Main chat area ── */}
-          <View style={styles.chatContainer}>
-            {messagesLoading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
-              </View>
-            ) : (
-              <>
-                {/* Always render the messages list so optimistic quick messages appear */}
-                <FlatList
-                  ref={flatListRef}
-                  data={messages}
-                  keyExtractor={(item, index) => item._id ?? `msg_${index}`}
-                  renderItem={renderMessage}
-                  onViewableItemsChanged={onViewableItemsChanged}
-                  viewabilityConfig={viewabilityConfig}
-                  contentContainerStyle={[
-                    styles.messagesListDefault,
-                    { paddingBottom: effectivePadding },
-                  ]}
-                  showsVerticalScrollIndicator={false}
-                  ListEmptyComponent={
-                    <View style={styles.emptyChat}>
-                      {isChatUnlocked ? (
-                        <Text style={styles.emptyChatText}>No messages yet. Say hello! 👋</Text>
-                      ) : (
-                        <View style={styles.aiBubble}>
-                          <Text style={styles.aiBubbleLabel}>🤖 Quick chat</Text>
-                          <Text style={styles.aiBubbleText}>
-                            Tap a quick message below to send it to the other user.
+        {/* ── Safety warning banner ── */}
+        <View style={styles.warningContainer}>
+          <View style={styles.warningBox}>
+            <MaterialIcons name="work" size={16} color={Colors.grayColor} />
+            <Text style={styles.warningText}>
+              Do not Share Mobile Number Until Finalized
+            </Text>
+          </View>
+        </View>
+
+        {/* ── Main chat area ── */}
+        <View style={styles.chatContainer}>
+          {messagesLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+            </View>
+          ) : (
+            <>
+              {/* Always render the messages list so optimistic quick messages appear */}
+              <FlatList
+                ref={flatListRef}
+                data={messages}
+                keyExtractor={(item, index) => item._id ?? `msg_${index}`}
+                renderItem={renderMessage}
+                onViewableItemsChanged={onViewableItemsChanged}
+                viewabilityConfig={viewabilityConfig}
+                contentContainerStyle={[
+                  styles.messagesListDefault,
+                  { paddingBottom: effectivePadding },
+                ]}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View style={styles.emptyChat}>
+                    {isChatUnlocked ? (
+                      <Text style={styles.emptyChatText}>
+                        No messages yet. Say hello! 👋
+                      </Text>
+                    ) : (
+                      <View style={styles.aiBubble}>
+                        <Text style={styles.aiBubbleLabel}>🤖 Quick chat</Text>
+                        <Text style={styles.aiBubbleText}>
+                          Tap a quick message below to send it to the other
+                          user.
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                }
+              />
+
+              {/* Quick chat floating panel — anchored above the input so it doesn't push the input down */}
+              {!isChatUnlocked && (
+                <View
+                    pointerEvents={connected ? 'auto' : 'none'}
+                  onLayout={e => {
+                    const h = e.nativeEvent.layout.height || 0;
+                    setQuickChatHeight(h);
+                  }}
+                >
+                  <View style={styles.quickChatCard}>
+                    <View style={styles.quickChatHeader}>
+                      <Text style={styles.quickChatTitle}>Quick chat</Text>
+                      <View style={styles.quickChatHeaderRight}>
+                        <View style={styles.lockBadge}>
+                          <Feather
+                            name="lock"
+                            size={12}
+                            color={Colors.grayColor}
+                          />
+                          <Text style={styles.lockBadgeText}>
+                            Bid to unlock
                           </Text>
                         </View>
-                      )}
-                    </View>
-                  }
-                />
-
-                {/* Quick chat floating panel — anchored above the input so it doesn't push the input down */}
-                {!isChatUnlocked && (
-                  <View
-                    style={styles.quickChatFloating}
-                    pointerEvents={connected ? 'auto' : 'none'}
-                    onLayout={e => {
-                      const h = e.nativeEvent.layout.height || 0;
-                      setQuickChatHeight(h);
-                    }}
-                  >
-                    <View style={styles.quickChatCard}>
-                      <View style={styles.quickChatHeader}>
-                        <Text style={styles.quickChatTitle}>Quick chat</Text>
-                        <View style={styles.quickChatHeaderRight}>
-                          <View style={styles.lockBadge}>
-                            <Feather name="lock" size={12} color={Colors.grayColor} />
-                            <Text style={styles.lockBadgeText}>Bid to unlock</Text>
-                          </View>
-                          <TouchableOpacity onPress={() => setShowQuickChats(s => !s)} style={styles.quickChatToggle}>
-                            <Feather name={showQuickChats ? 'chevron-down' : 'chevron-up'} size={16} color={Colors.grayColor} />
-                          </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity
+                          onPress={() => setShowQuickChats(s => !s)}
+                          style={styles.quickChatToggle}
+                        >
+                          <Feather
+                            name={
+                              showQuickChats ? 'chevron-down' : 'chevron-up'
+                            }
+                            size={16}
+                            color={Colors.grayColor}
+                          />
+                        </TouchableOpacity>
                       </View>
-
-                      {showQuickChats && QUICK_CHAT_SUGGESTIONS.map((text, index) => (
+                    </View>
+                    {showQuickChats &&
+                      QUICK_CHAT_SUGGESTIONS.map((text, index) => (
                         <TouchableOpacity
                           key={index}
-                          style={[styles.quickBubble, !connected && styles.quickBubbleDisabled]}
+                          style={[
+                            styles.quickBubble,
+                            !connected && styles.quickBubbleDisabled,
+                          ]}
                           onPress={() => handleQuickSend(text)}
                           activeOpacity={connected ? 0.85 : 1}
                         >
                           <Text style={styles.quickBubbleText}>{text}</Text>
-                          <View style={[styles.quickBubbleIconWrap, !connected && styles.quickBubbleDisabled]}> 
+                          <View
+                            style={[
+                              styles.quickBubbleIconWrap,
+                              !connected && styles.quickBubbleDisabled,
+                            ]}
+                          >
                             <Feather
                               name="arrow-right"
                               size={14}
-                              color={connected ? Colors.primary : Colors.grayColor}
+                              color={
+                                connected ? Colors.primary : Colors.grayColor
+                              }
                             />
                           </View>
                         </TouchableOpacity>
                       ))}
-                    </View>
                   </View>
-                )}
-              </>
-            )}
-
-            {/* Typing indicator — show whenever the other user types (even when locked)
-                so receiver sees live typing feedback */}
-            {isTyping && (
-              <View style={styles.typingIndicator}>
-                <Text style={styles.typingText}>{otherName} is typing...</Text>
-              </View>
-            )}
-
-            {/* ── Bottom action area ── */}
-              {isChatUnlocked ? (
-              // UNLOCKED: live text input + send button
-              <View
-                style={styles.inputRow}
-                onLayout={e => {
-                  const h = e.nativeEvent.layout.height || 56;
-                  setInputHeight(h);
-                }}
-              >
-                <TextInput
-                  style={styles.textInput}
-                  value={inputText}
-                  onChangeText={handleTyping}
-                  placeholder="Type a message..."
-                  placeholderTextColor={Colors.grayColor}
-                  multiline
-                  maxLength={500}
-                />
-                <TouchableOpacity
-                  style={[
-                    styles.sendButton,
-                    !inputText.trim() && styles.sendButtonDisabled,
-                  ]}
-                  onPress={handleSend}
-                  disabled={!inputText.trim()}>
-                  <Feather name="send" size={18} color={Colors.whiteColor} />
-                </TouchableOpacity>
-              </View>
-            ) : (
-              // LOCKED: disabled input + Place a Bid CTA
-              <View style={styles.bottomButtons}>
-                <View style={styles.unlockButton}>
-                  <Feather name="lock" size={14} color={Colors.grayColor} style={styles.lockIconMargin} />
-                  <Text style={styles.unlockButtonText}>Chat will Unlock After Bidding</Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.bidButton}
-                  onPress={() =>
-                    navigation.navigate('BidPlacementScreen', {
-                      job: chatData?.jobId
-                    })
-                  }>
-                  <Text style={styles.bidButtonText}>Place a Bid</Text>
-                </TouchableOpacity>
+              )}
+            </>
+          )}
+
+          {/* Typing indicator — show whenever the other user types (even when locked)
+                so receiver sees live typing feedback */}
+          {isTyping && (
+            <View style={styles.typingIndicator}>
+              <Text style={styles.typingText}>{otherName} is typing...</Text>
+            </View>
+          )}
+
+          {/* ── Bottom action area ── */}
+          {isChatUnlocked ? (
+            // UNLOCKED: live text input + send button
+            <View
+              style={styles.inputRow}
+              onLayout={e => {
+                const h = e.nativeEvent.layout.height || 56;
+                setInputHeight(h);
+              }}
+            >
+              <TextInput
+                style={styles.textInput}
+                value={inputText}
+                onChangeText={handleTyping}
+                placeholder="Type a message..."
+                placeholderTextColor={Colors.grayColor}
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  !inputText.trim() && styles.sendButtonDisabled,
+                ]}
+                onPress={handleSend}
+                disabled={!inputText.trim()}
+              >
+                <Feather name="send" size={18} color={Colors.whiteColor} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            // LOCKED: disabled input + Place a Bid CTA
+            <View style={styles.bottomButtons}>
+              <View style={styles.unlockButton}>
+                <Feather
+                  name="lock"
+                  size={14}
+                  color={Colors.grayColor}
+                  style={styles.lockIconMargin}
+                />
+                <Text style={styles.unlockButtonText}>
+                  Chat will Unlock After Bidding
+                </Text>
               </View>
-            )}
-          </View>
+              <TouchableOpacity
+                style={styles.bidButton}
+                onPress={() =>
+                  navigation.navigate('BidPlacementScreen', {
+                    job: chatData?.jobId,
+                  })
+                }
+              >
+                <Text style={styles.bidButtonText}>Place a Bid</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
+      </View>
       {/* </KeyboardAvoidingView> */}
     </SafeAreaView>
   );
@@ -622,7 +702,12 @@ const styles = StyleSheet.create({
   },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   messagesList: { paddingVertical: 10, flexGrow: 1 },
-  emptyChat: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 },
+  emptyChat: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60,
+  },
   emptyChatText: { color: Colors.grayColor, fontSize: 14 },
   messageBubble: {
     maxWidth: '75%',
@@ -661,14 +746,15 @@ const styles = StyleSheet.create({
   typingText: { fontSize: 11, color: Colors.grayColor, fontStyle: 'italic' },
   statusDotOnline: { backgroundColor: Colors.greenColor },
   statusDotOffline: { backgroundColor: '#ccc' },
-  quickChatFloating: {
-    position: 'absolute',
-    left: 12,
-    right: 12,
-    bottom: 102,
-    zIndex: 20,
-  },
+  // quickChatFloating: {
+  //   position: 'absolute',
+  //   left: 12,
+  //   right: 12,
+  //   bottom: 102,
+  //   zIndex: 20,
+  // },
   quickChatCard: {
+    alignSelf: 'flex-end',
     backgroundColor: Colors.whiteColor,
     borderRadius: 14,
     padding: 12,
@@ -679,9 +765,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   quickBubbleIconWrap: {
-    marginLeft: 12,
-    width: 28,
-    height: 28,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -697,7 +780,11 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     borderRadius: 8,
   },
-  messagesListWithFooter: { paddingVertical: 10, paddingBottom: 300, flexGrow: 1 },
+  messagesListWithFooter: {
+    paddingVertical: 10,
+    paddingBottom: 300,
+    flexGrow: 1,
+  },
   messagesListDefault: { paddingVertical: 10, flexGrow: 1 },
   inputRow: {
     zIndex: 30,
