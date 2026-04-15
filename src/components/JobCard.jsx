@@ -12,6 +12,7 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -49,7 +50,7 @@ const JobCard = ({ job, showButttons = true }) => {
       dispatch(getJobById(job?._id))
         .then(res => {
           if (res.payload?.success) setJobData(res.payload.data);
-          // console.log("job data on card==>",res.payload.data)
+          console.log("job data on card==>",JSON.stringify(res.payload.data,null,2));
         })
         .finally(() => setJobLoading(false));
     } else {
@@ -117,6 +118,9 @@ const JobCard = ({ job, showButttons = true }) => {
     if (isLoadingCity) return null;
     if (cityName && jobData?.distanceFromUser !== null && jobData?.distanceFromUser !== undefined) {
       return `${cityName} - ${formatDistance(jobData.distanceFromUser)}`;
+    }
+     if ( jobData?.distanceFromUser !== null && jobData?.distanceFromUser !== undefined) {
+      return `${formatDistance(jobData?.distanceFromUser)}`;
     }
     return 'Distance N/A';
   };
@@ -237,6 +241,21 @@ const JobCard = ({ job, showButttons = true }) => {
           {/* Description */}
           <Text style={styles.description}>{jobData?.description || 'No description available'}</Text>
 
+          <View style={styles.badgeRow}>
+            {jobData?.jobType && (
+              <View style={styles.badge}>
+                <Feather name="zap" size={11} color="#fff" />
+                <Text style={styles.badgeText}>{jobData.jobType.charAt(0).toUpperCase() + jobData.jobType.slice(1)}</Text>
+              </View>
+            )}
+            {jobData?.timingType && (
+              <View style={[styles.badge, { backgroundColor: '#6B7280' }]}>
+                <Feather name="clock" size={11} color="#fff" />
+                <Text style={styles.badgeText}>{jobData.timingType.charAt(0).toUpperCase() + jobData.timingType.slice(1)}</Text>
+              </View>
+            )}
+          </View>
+
           {/* this is the place to put location for without image card */}
           {imageList?.length === 0 && (
             <View style={styles.noImageInfoContainer}>
@@ -254,6 +273,7 @@ const JobCard = ({ job, showButttons = true }) => {
               </View>
             </View>
           )}
+          
           {/* Vendor + Ratings */}
           <View style={styles.row}>
             <Text style={styles.vendorName}>
@@ -301,7 +321,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 24,
     marginHorizontal: 15,
-    marginVertical: 10,
+    marginVertical: 8,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
@@ -451,6 +471,25 @@ const styles = StyleSheet.create({
     color: '#555',
     fontSize: 12,
     marginBottom: 6,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 6,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#111827',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  badgeText: {
+    fontSize: 10,
+    color: '#fff',
+    fontWeight: '600',
   },
 
   locationIcon: {

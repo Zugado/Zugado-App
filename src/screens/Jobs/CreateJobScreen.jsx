@@ -520,7 +520,7 @@ export default function CreateJob({ navigation, route }) {
             onChangeText={setSkill}
             multiline
             numberOfLines={3}
-            placeholder="List specific skills, experience, or qualifications needed"
+            placeholder="Requirement for you tasks e.g skills, experience, or qualifications needed"
             onFocus={ref => scrollToInput(ref, scrollViewRef)}
           />
 

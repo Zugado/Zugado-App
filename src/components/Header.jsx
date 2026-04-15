@@ -101,23 +101,24 @@ const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabl
         </View>
       </View>
 
-      {/* Row 2: Search bar + Job button */}
       {showSearch && (
-        <View style={styles.searchWrapper}>
-          <View style={styles.searchSection}>
-            <Feather name="search" style={styles.searchIcon} />
-            <TextInput
-              placeholder="Search Here..."
-              placeholderTextColor="#888"
-              style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
+        <View style={styles.searchRow}>
+          <View style={styles.searchWrapper}>
+            <View style={styles.searchSection}>
+              <Feather name="search" style={styles.searchIcon} />
+              <TextInput
+                placeholder="Search Here..."
+                placeholderTextColor="#888"
+                style={styles.searchInput}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
           </View>
           <TouchableOpacity
             style={[
               styles.jobButton,
-              { backgroundColor: isUrgentEnabled ? '#000': '#666' },
+              { backgroundColor: isUrgentEnabled ? '#000' : '#666' },
             ]}
             onPress={() => setUrgentEnabled(!isUrgentEnabled)}
             activeOpacity={0.8}
@@ -186,7 +187,13 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   searchWrapper: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -208,24 +215,23 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#000',
     paddingVertical: 10,
-    fontSize: 16,
+    fontSize: 14,
   },
   jobButton: {
     flexDirection: 'row',
     gap: 4,
-    // borderColor: '#000000ff',
-    // borderWidth: 1,
     alignItems: 'center',
-    // shadowColor: '#000',
-    // shadowOffset: { width: 0, height: 1 },
-    // shadowOpacity: 0.3,
-    // shadowRadius: 3,
-    // elevation: 5,
     borderRadius: 25,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    marginRight: 5,
-    marginVertical: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    flexShrink: 0,
+    borderWidth: 0.1,
+    borderColor: '#ffffff',
+    shadowColor: '#ffffff',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+    elevation: 6,
   },
   jobIcon: {
     backgroundColor: '#fff',

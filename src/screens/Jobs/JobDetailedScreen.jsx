@@ -1,5 +1,16 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Modal, FlatList, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Modal,
+  FlatList,
+  Dimensions,
+} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -38,7 +49,12 @@ const MetaItem = ({ icon, text }) => (
 const DetailRow = ({ icon, label, value }) => (
   <View style={styles.detailRow}>
     <View style={styles.detailLabel}>
-      <Feather name={icon} size={16} color="#6B7280" style={{ marginRight: 8 }} />
+      <Feather
+        name={icon}
+        size={16}
+        color="#6B7280"
+        style={{ marginRight: 8 }}
+      />
       <Text style={styles.detailLabelText}>{label}</Text>
     </View>
     <Text style={styles.detailValue}>{value}</Text>
@@ -53,24 +69,24 @@ const Tag = ({ text }) => (
 );
 
 // Helper functions
-const formatTime = (time) => {
+const formatTime = time => {
   if (!time) return '';
   return time;
 };
 
-const formatDate = (dateStr) => {
+const formatDate = dateStr => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    month: 'short', 
-    day: 'numeric' 
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   });
 };
 
 const getTimingText = (timingType, timingDetails) => {
   if (!timingType || !timingDetails) return 'NA';
-  
+
   switch (timingType) {
     case 'fixed':
       const formattedDate = formatDate(timingDetails.date);
@@ -83,13 +99,13 @@ const getTimingText = (timingType, timingDetails) => {
       return `${startDate} to ${endDate} (${timingDetails.dailyHours}h daily)`;
     case 'deadline':
       const deadlineDate = new Date(timingDetails.deadline);
-      const formattedDeadline = deadlineDate.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
+      const formattedDeadline = deadlineDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
         day: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
       });
       return `Due by ${formattedDeadline}`;
     case 'flexible':
@@ -99,21 +115,29 @@ const getTimingText = (timingType, timingDetails) => {
   }
 };
 
-const getExperienceText = (level) => {
+const getExperienceText = level => {
   switch (level) {
-    case 'entry': return 'Entry Level (0-2 years)';
-    case 'intermediate': return 'Intermediate (2-5 years)';
-    case 'expert': return 'Expert Level (5+ years)';
-    default: return 'NA';
+    case 'entry':
+      return 'Entry Level (0-2 years)';
+    case 'intermediate':
+      return 'Intermediate (2-5 years)';
+    case 'expert':
+      return 'Expert Level (5+ years)';
+    default:
+      return 'NA';
   }
 };
 
-const getLocationIcon = (locationType) => {
+const getLocationIcon = locationType => {
   switch (locationType) {
-    case 'remote': return 'home';
-    case 'onsite': return 'map-pin';
-    case 'hybrid': return 'globe';
-    default: return 'map-pin';
+    case 'remote':
+      return 'home';
+    case 'onsite':
+      return 'map-pin';
+    case 'hybrid':
+      return 'globe';
+    default:
+      return 'map-pin';
   }
 };
 
@@ -134,9 +158,9 @@ export default function JobDetailedScreen({ navigation, route }) {
   const flatListRef = useRef(null);
   const intervalRef = useRef(null);
   const jobId = route.params?.jobId;
-  
+
   const isWishlisted = wishlistIds.includes(jobId);
-  
+
   useEffect(() => {
     if (jobId) {
       fetchJobDetails();
@@ -146,9 +170,11 @@ export default function JobDetailedScreen({ navigation, route }) {
 
   useEffect(() => {
     if (jobData?.location?.coordinates) {
-      getLocationFromCoordinates(jobData.location.coordinates).then(({ locality, city, state }) => {
-        setLocationText(`${locality}, ${city}, ${state}`);
-      });
+      getLocationFromCoordinates(jobData.location.coordinates).then(
+        ({ locality, city, state }) => {
+          setLocationText(`${locality}, ${city}, ${state}`);
+        },
+      );
     }
   }, [jobData?.location?.coordinates]);
 
@@ -176,11 +202,14 @@ export default function JobDetailedScreen({ navigation, route }) {
     setChatLoading(true);
     try {
       const result = await dispatch(
-        startNewChat({ jobId: jobData._id, participantId: jobData.createdBy._id }),
+        startNewChat({
+          jobId: jobData._id,
+          participantId: jobData.createdBy._id,
+        }),
       ).unwrap();
       if (result?.data) {
         //  console.log("Rendering chat item in job detail screen:", result.data);
-       navigation.navigate('ChatingScreen', { chatData: result.data });
+        navigation.navigate('ChatingScreen', { chatData: result.data });
       }
     } catch (err) {
       showSnackbar('Could not open chat. Try again.', 'error');
@@ -189,7 +218,7 @@ export default function JobDetailedScreen({ navigation, route }) {
     }
   };
 
-  const openPreview = (media) => {
+  const openPreview = media => {
     setSelectedMedia(media);
     setPreviewModal(true);
   };
@@ -198,32 +227,59 @@ export default function JobDetailedScreen({ navigation, route }) {
     handleWishlistToggle(dispatch, jobId, isWishlisted, showSnackbar);
   };
 
-  const isVideo = (url) => {
-    return url.toLowerCase().includes('.mp4') || url.toLowerCase().includes('.mov') || url.toLowerCase().includes('.avi');
+  const isVideo = url => {
+    return (
+      url.toLowerCase().includes('.mp4') ||
+      url.toLowerCase().includes('.mov') ||
+      url.toLowerCase().includes('.avi')
+    );
   };
-
-  const renderAttachment = useCallback(({ item }) => (
-    <TouchableOpacity 
-      style={styles.attachmentItem}
-      onPress={() => openPreview(item)}
-    >
-      {isVideo(item.url) ? (
-        <View style={styles.videoThumbnail}>
-          <Video
-            source={{ uri: item.url }}
-            style={styles.attachmentImage}
-            paused={true}
-            resizeMode="cover"
+  const StarRating = ({ rating, totalRatings }) => {
+    const filled = Math.round(rating || 0);
+    return (
+      <View style={styles.starsRow}>
+        {[1, 2, 3, 4, 5].map(i => (
+          <FontAwesome
+            key={i}
+            name={i <= filled ? 'star' : 'star-o'}
+            size={14}
+            color={i <= filled ? '#F59E0B' : '#D1D5DB'}
+            style={{ marginRight: 2 }}
           />
-          <View style={styles.playIcon}>
-            <Feather name="play" size={24} color="#fff" />
+        ))}
+        <Text style={styles.ratingText}>
+          {rating > 0 ? ` ${rating.toFixed(1)}` : ' No ratings'}
+          {totalRatings > 0 ? ` (${totalRatings})` : ''}
+        </Text>
+      </View>
+    );
+  };
+  const renderAttachment = useCallback(({ item }) => {
+    if (!item?.url) return null;
+
+    return (
+      <TouchableOpacity
+        style={styles.attachmentItem}
+        onPress={() => openPreview(item)}
+      >
+        {isVideo(item.url) ? (
+          <View style={styles.videoThumbnail}>
+            <Video
+              source={{ uri: item.url }}
+              style={styles.attachmentImage}
+              paused={true}
+              resizeMode="cover"
+            />
+            <View style={styles.playIcon}>
+              <Feather name="play" size={24} color="#fff" />
+            </View>
           </View>
-        </View>
-      ) : (
-        <Image source={{ uri: item.url }} style={styles.attachmentImage} />
-      )}
-    </TouchableOpacity>
-  ), []);
+        ) : (
+          <Image source={{ uri: item.url }} style={styles.attachmentImage} />
+        )}
+      </TouchableOpacity>
+    );
+  }, []);
 
   if (loading) {
     return (
@@ -243,7 +299,10 @@ export default function JobDetailedScreen({ navigation, route }) {
         <MyStatusBar />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Task not found</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -253,12 +312,13 @@ export default function JobDetailedScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-          <MyStatusBar/>
+      <MyStatusBar />
       {/* Header */}
-     <CommonAppBar
-      title="Task Details"
-      onBackPress={() => navigation.goBack()}
-      showNotificationIcon={true} />
+      <CommonAppBar
+        title="Task Details"
+        onBackPress={() => navigation.goBack()}
+        showNotificationIcon={true}
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Attachments Carousel */}
@@ -268,7 +328,7 @@ export default function JobDetailedScreen({ navigation, route }) {
               ref={flatListRef}
               data={jobData.attachments}
               renderItem={renderAttachment}
-              keyExtractor={(item) => item._id}
+              keyExtractor={item => item._id}
               horizontal
               showsHorizontalScrollIndicator={false}
               pagingEnabled
@@ -282,29 +342,45 @@ export default function JobDetailedScreen({ navigation, route }) {
               removeClippedSubviews={true}
               maxToRenderPerBatch={3}
               windowSize={3}
-              onMomentumScrollEnd={(event) => {
-                const index = Math.round(event.nativeEvent.contentOffset.x / width);
+              onMomentumScrollEnd={event => {
+                const index = Math.round(
+                  event.nativeEvent.contentOffset.x / width,
+                );
                 if (index !== currentIndex) {
                   setCurrentIndex(index);
                 }
               }}
             />
-            <TouchableOpacity style={styles.bookmarkButton} onPress={onWishlistToggle}>
+            <TouchableOpacity
+              style={styles.bookmarkButton}
+              onPress={onWishlistToggle}
+            >
               <Image
-                source={isWishlisted ? require('../../assets/Icons/SavedGolden.png') : require('../../assets/Icons/Saved.png')}
+                source={
+                  isWishlisted
+                    ? require('../../assets/Icons/SavedGolden.png')
+                    : require('../../assets/Icons/Saved.png')
+                }
                 style={styles.bookmarkIcon}
               />
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.imageContainer}>
-            <Image 
-              source={require('../../assets/jobImage.png')} 
-              style={styles.image} 
+            <Image
+              source={require('../../assets/noImage.png')}
+              style={styles.image}
             />
-            <TouchableOpacity style={styles.bookmarkButton} onPress={onWishlistToggle}>
+            <TouchableOpacity
+              style={styles.bookmarkButton}
+              onPress={onWishlistToggle}
+            >
               <Image
-                source={isWishlisted ? require('../../assets/Icons/SavedGolden.png') : require('../../assets/Icons/Saved.png')}
+                source={
+                  isWishlisted
+                    ? require('../../assets/Icons/SavedGolden.png')
+                    : require('../../assets/Icons/Saved.png')
+                }
                 style={styles.bookmarkIcon}
               />
             </TouchableOpacity>
@@ -319,7 +395,7 @@ export default function JobDetailedScreen({ navigation, route }) {
                 key={index}
                 style={[
                   styles.paginationDotExternal,
-                  index === currentIndex && styles.paginationDotExternalActive
+                  index === currentIndex && styles.paginationDotExternalActive,
                 ]}
               />
             ))}
@@ -336,12 +412,59 @@ export default function JobDetailedScreen({ navigation, route }) {
               </View>
             )}
           </View>
+          {/* Creator Info + Rating */}
+          <View style={styles.creatorRow}>
+            <FontAwesome name="user-circle" size={36} color="#6B7280" />
+            <View style={{ marginLeft: 10 }}>
+              <Text style={styles.creatorName}>
+                {jobData.createdBy?.firstName} {jobData.createdBy?.lastName}
+              </Text>
 
+              {/* types of rating to be added in job data */}
+              {/* "ratings": {
+      "averageRating": 0,
+      "totalRatings": 0,
+      "taskCreatorRating": 0,
+      "taskWorkerRating": 0
+    }, */}
+              <StarRating
+                rating={
+                  jobData.createdBy?.ratings?.averageRating ||
+                  jobData.creatorRating ||
+                  0
+                }
+                totalRatings={jobData.createdBy?.ratings?.totalRatings || 0}
+              />
+            </View>
+          </View>
           {/* Metadata Row */}
           <View style={styles.metaRow}>
-            <MetaItem icon="clock" text={jobData.timingType? jobData.timingType.charAt(0).toUpperCase() + jobData.timingType.slice(1):'NA'} />
-            <MetaItem icon={getLocationIcon(jobData.locationType)} text={jobData.locationType ? jobData.locationType.charAt(0).toUpperCase() + jobData.locationType.slice(1) : 'NA'} />
-            <MetaItem icon="user" text={jobData.createdBy?.firstName && jobData.createdBy?.lastName ? `${jobData.createdBy.firstName} ${jobData.createdBy.lastName}` : 'NA'} />
+            <MetaItem
+              icon="clock"
+              text={
+                jobData.timingType
+                  ? jobData.timingType.charAt(0).toUpperCase() +
+                    jobData.timingType.slice(1)
+                  : 'NA'
+              }
+            />
+            <MetaItem
+              icon={getLocationIcon(jobData.locationType)}
+              text={
+                jobData.locationType
+                  ? jobData.locationType.charAt(0).toUpperCase() +
+                    jobData.locationType.slice(1)
+                  : 'NA'
+              }
+            />
+            {/* <MetaItem
+              icon="user"
+              text={
+                jobData.createdBy?.firstName && jobData.createdBy?.lastName
+                  ? `${jobData.createdBy.firstName} ${jobData.createdBy.lastName}`
+                  : 'NA'
+              }
+            /> */}
           </View>
 
           {/* Tags Row */}
@@ -367,42 +490,85 @@ export default function JobDetailedScreen({ navigation, route }) {
           {jobData.requirements && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Requirements</Text>
-              <Text style={styles.sectionText}>
-                {jobData.requirements}
-              </Text>
+              <Text style={styles.sectionText}>{jobData.requirements}</Text>
             </View>
           )}
 
           {/* Task Details */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Task Details</Text>
-            <DetailRow icon="briefcase" label="Task For" value={jobData.jobFor ? jobData.jobFor.charAt(0).toUpperCase() + jobData.jobFor.slice(1) : 'NA'} />
-            <DetailRow icon="zap" label="Task Type" value={jobData.jobType ? jobData.jobType.charAt(0).toUpperCase() + jobData.jobType.slice(1) : 'NA'} />
-            <DetailRow icon="award" label="Experience" value={getExperienceText(jobData.experienceLevel)} />
+            <DetailRow
+              icon="briefcase"
+              label="Task For"
+              value={
+                jobData.jobFor
+                  ? jobData.jobFor.charAt(0).toUpperCase() +
+                    jobData.jobFor.slice(1)
+                  : 'NA'
+              }
+            />
+            <DetailRow
+              icon="zap"
+              label="Task Type"
+              value={
+                jobData.jobType
+                  ? jobData.jobType.charAt(0).toUpperCase() +
+                    jobData.jobType.slice(1)
+                  : 'NA'
+              }
+            />
+            <DetailRow
+              icon="award"
+              label="Experience"
+              value={getExperienceText(jobData.experienceLevel)}
+            />
             {jobData.location ? (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.detailRow}
-                onPress={() => navigation.navigate('ApproximateLocationMap', {
-                  coordinates: jobData.location.coordinates,
-                  address: locationText
-                })}
+                onPress={() =>
+                  navigation.navigate('ApproximateLocationMap', {
+                    coordinates: jobData.location.coordinates,
+                    address: locationText,
+                  })
+                }
                 activeOpacity={0.7}
               >
                 <View style={styles.detailLabel}>
-                  <Feather name="map-pin" size={16} color="#6B7280" style={{ marginRight: 8 }} />
+                  <Feather
+                    name="map-pin"
+                    size={16}
+                    color="#6B7280"
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={styles.detailLabelText}>Location</Text>
                 </View>
                 <View style={styles.locationValueContainer}>
-                  <Text style={styles.detailValue}>
-                    {locationText}
-                  </Text>
-                  <Feather name="chevron-right" size={16} color="#6B7280" style={{ marginLeft: 4 }} />
+                  <Text style={styles.detailValue}>{locationText}</Text>
+                  <Feather
+                    name="chevron-right"
+                    size={16}
+                    color="#6B7280"
+                    style={{ marginLeft: 4 }}
+                  />
                 </View>
               </TouchableOpacity>
             ) : (
-              <DetailRow icon={getLocationIcon(jobData.locationType)} label="Location" value={jobData.locationType ? jobData.locationType.charAt(0).toUpperCase() + jobData.locationType.slice(1) : 'NA'} />
+              <DetailRow
+                icon={getLocationIcon(jobData.locationType)}
+                label="Location"
+                value={
+                  jobData.locationType
+                    ? jobData.locationType.charAt(0).toUpperCase() +
+                      jobData.locationType.slice(1)
+                    : 'NA'
+                }
+              />
             )}
-            <DetailRow icon="clock" label="Timing" value={getTimingText(jobData.timingType, jobData.timingDetails)} />
+            <DetailRow
+              icon="clock"
+              label="Timing"
+              value={getTimingText(jobData.timingType, jobData.timingDetails)}
+            />
           </View>
         </View>
       </ScrollView>
@@ -414,7 +580,11 @@ export default function JobDetailedScreen({ navigation, route }) {
           <Text style={styles.budgetLabel}>Budget</Text>
           <Text style={styles.budgetValue}>
             {/* <FontAwesome name="dollar" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min >= 0 || jobData.amount?.max >= 0) ? `${jobData.amount.min}-${jobData.amount.max}` : 'Not Disclosed'} */}
-            <FontAwesome name="rupee" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min >= 0 || jobData.amount?.max >= 0) ? `${jobData.amount.max}` : 'Not Disclosed'}
+            <FontAwesome name="rupee" size={16} color="#16A34A" />{' '}
+            {jobData.amount?.disclose &&
+            (jobData.amount?.min >= 0 || jobData.amount?.max >= 0)
+              ? `${jobData.amount.max}`
+              : 'Not Disclosed'}
           </Text>
         </View>
 
@@ -423,19 +593,25 @@ export default function JobDetailedScreen({ navigation, route }) {
           <TouchableOpacity
             style={styles.iconAction}
             onPress={handleChatPress}
-            disabled={chatLoading}>
+            disabled={chatLoading}
+          >
             <Feather
               name={chatLoading ? 'loader' : 'message-square'}
               size={24}
               color="#fff"
             />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('BidPlacementScreen', { job: jobData })} style={styles.applyButton}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('BidPlacementScreen', { job: jobData })
+            }
+            style={styles.applyButton}
+          >
             <Text style={styles.applyText}>Apply</Text>
             <Feather name="chevron-down" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
-       </View>
+      </View>
 
       {/* Preview Modal */}
       <Modal
@@ -445,13 +621,13 @@ export default function JobDetailedScreen({ navigation, route }) {
         onRequestClose={() => setPreviewModal(false)}
       >
         <View style={styles.modalContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.modalClose}
             onPress={() => setPreviewModal(false)}
           >
             <Feather name="x" size={24} color="#fff" />
           </TouchableOpacity>
-          
+
           {selectedMedia && (
             <View style={styles.modalContent}>
               {isVideo(selectedMedia.url) ? (
@@ -466,8 +642,8 @@ export default function JobDetailedScreen({ navigation, route }) {
                   playWhenInactive={false}
                 />
               ) : (
-                <Image 
-                  source={{ uri: selectedMedia.url }} 
+                <Image
+                  source={{ uri: selectedMedia.url }}
                   style={styles.modalImage}
                   resizeMode="contain"
                 />
@@ -483,17 +659,40 @@ export default function JobDetailedScreen({ navigation, route }) {
 // Styles
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
   iconButton: { padding: 8 },
   headerTitle: { fontSize: 18, fontWeight: '600', color: '#111827' },
-  notificationDot: { position: 'absolute', top: 4, right: 4, width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444' },
+  notificationDot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#EF4444',
+  },
 
   scrollContent: { paddingBottom: 100 },
   imageContainer: { position: 'relative', height: 200 },
   image: { width: '100%', height: '100%' },
-  bookmarkButton: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 999, zIndex: 10 },
-  bookmarkIcon: { width: 20, height: 23, resizeMode: 'contain' },
-  
+  bookmarkButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(151, 149, 149, 0.33)',
+    padding: 8,
+    borderRadius: 999,
+    zIndex: 10,
+  },
+  bookmarkIcon: { width: 23, height: 23, resizeMode: 'contain' },
+
   // Attachments Carousel Styles
   attachmentsContainer: { position: 'relative', height: 200 },
   attachmentItem: { width: width, height: 200 },
@@ -508,7 +707,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 8,
   },
-  
+
   // External Pagination Dots
   paginationContainerExternal: {
     flexDirection: 'row',
@@ -527,7 +726,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#111827',
     width: 24,
   },
-  
+
   // Modal Styles
   modalContainer: {
     flex: 1,
@@ -558,45 +757,139 @@ const styles = StyleSheet.create({
   },
 
   content: { padding: 16 },
-  titleRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   jobTitle: { fontSize: 22, fontWeight: '700', flex: 1, paddingRight: 8 },
-  statusBadge: { backgroundColor: '#EF4444', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  statusBadge: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   statusText: { color: '#fff', fontSize: 12, fontWeight: '600' },
 
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', marginRight: 12, marginBottom: 6 },
-  metaText: { marginLeft: 4, fontSize: 12, color: '#4B5563', fontWeight: '500' },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
+    marginBottom: 6,
+  },
+  metaText: {
+    marginLeft: 4,
+    fontSize: 12,
+    color: '#4B5563',
+    fontWeight: '500',
+  },
 
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 16 },
-  tag: { backgroundColor: '#F3F4F6', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, marginRight: 6, marginBottom: 6 },
+  tag: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+    marginRight: 6,
+    marginBottom: 6,
+  },
   tagText: { fontSize: 12, color: '#4B5563', fontWeight: '600' },
 
   section: { marginTop: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 4, color: '#111827' },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+    color: '#111827',
+  },
   sectionText: { fontSize: 14, lineHeight: 20, color: '#4B5563' },
   list: { marginLeft: 12 },
   listItem: { fontSize: 14, lineHeight: 20, color: '#4B5563', marginBottom: 2 },
 
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
   detailLabel: { flexDirection: 'row', alignItems: 'center' },
   detailLabelText: { fontSize: 14, fontWeight: '500', color: '#111827' },
   detailValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  locationValueContainer: { flexDirection: 'row', alignItems: 'center', flex: 1, justifyContent: 'flex-end' },
+  locationValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
 
-  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderTopWidth: 1, borderTopColor: '#E5E7EB', backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: -2 }, shadowRadius: 4 },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: -2 },
+    shadowRadius: 4,
+  },
   budgetLabel: { fontSize: 12, fontWeight: '500', color: '#6B7280' },
   budgetValue: { fontSize: 22, fontWeight: '800', color: '#16A34A' },
 
   actions: { flexDirection: 'row', alignItems: 'center' },
-  iconAction: { backgroundColor: '#111827', padding: 12, borderRadius: 999, marginRight: 8 },
-  applyButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#111827', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 999 },
+  iconAction: {
+    backgroundColor: '#111827',
+    padding: 12,
+    borderRadius: 999,
+    marginRight: 8,
+  },
+  applyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111827',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 999,
+  },
   applyText: { color: '#fff', fontSize: 16, fontWeight: '700', marginRight: 6 },
   applyArrow: { color: '#fff', fontSize: 18, lineHeight: 18 },
 
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 16, fontSize: 16, color: '#666' },
-  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   errorText: { fontSize: 18, color: '#666', marginBottom: 20 },
-  backButton: { backgroundColor: '#000', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8 },
+  backButton: {
+    backgroundColor: '#000',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
   backButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  creatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+  },
+  creatorName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  starsRow: { flexDirection: 'row', alignItems: 'center' },
+  ratingText: { fontSize: 12, color: '#6B7280', marginLeft: 4 },
 });
