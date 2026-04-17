@@ -2,127 +2,95 @@ import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Animated } from "react-native";
 import { Colors } from "../styles/commonStyles";
 
-const LoaderCard = ({ count = 1, cardHeight = 12 }) => {
-  const shimmer = useRef(new Animated.Value(0)).current;
+export const LoaderCard = ({ count = 1, cardHeight = 12 }) => {
+  const shimmerValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
-      Animated.timing(shimmer, {
+      Animated.timing(shimmerValue, {
         toValue: 1,
-        duration: 900,
+        duration: 1000,
         useNativeDriver: true,
       })
     ).start();
   }, []);
 
   const shimmerStyle = {
-    opacity: shimmer.interpolate({
+    opacity: shimmerValue.interpolate({
       inputRange: [0, 1],
       outputRange: [0.3, 1],
     }),
   };
 
-  const Block = ({ width, height = 12, radius = 6, marginBottom = 6 }) => (
+  const renderPlaceholder = (width, height = cardHeight, marginVertical = 4) => (
     <Animated.View
       style={[
         {
           width,
           height,
-          borderRadius: radius,
           backgroundColor: Colors.extraLightGrayColor,
-          marginBottom,
+          borderRadius: 4,
+          marginVertical,
         },
         shimmerStyle,
       ]}
     />
   );
 
-  const Card = ({ index }) => (
-    <View style={styles.card}>
-      <Animated.View style={[styles.image, shimmerStyle]} />
-
-      <View style={styles.saveTag} />
-      <View style={styles.urgentTag} />
-
-      <View style={styles.content}>
-        <View style={styles.row}>
-          <Block width="55%" />
-          <Block width="20%" />
+  const renderCard = (_, index) => (
+    <View key={index} style={styles.card}>
+      {renderPlaceholder("70%", 12)}
+      {renderPlaceholder("90%")}
+      {renderPlaceholder("80%")}
+      <View style={styles.divider} />
+      {renderPlaceholder("60%")}
+      {renderPlaceholder("65%")}
+      <View style={styles.divider} />
+      {renderPlaceholder("50%")}
+      <View style={styles.bottomContainer}>
+        <View
+          style={[
+            styles.button,
+            { backgroundColor: Colors.extraLightGrayColor },
+          ]}
+        >
+          {renderPlaceholder("60%", 12, 0)}
         </View>
-
-        <Block width="90%" />
-        <Block width="75%" />
-
-        <View style={styles.row}>
-          <Block width="35%" />
-        </View>
-
-        <View style={styles.row}>
-          <Block width="40%" />
-          <Block width="30%" />
-        </View>
-
-        <View style={styles.buttonRow}>
-          <Block width="45%" height={34} radius={20} />
-          <Block width="45%" height={34} radius={20} />
-        </View>
+        {renderPlaceholder("25%", 12, 0)}
       </View>
     </View>
   );
 
-  return <>{Array.from({ length: count }, (_, index) => <Card key={index} index={index} />)}</>;
+  return <>{Array.from({ length: count }).map(renderCard)}</>;
 };
+
+export default LoaderCard;
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.whiteColor,
-    borderRadius: 24,
-    marginHorizontal: 15,
-    marginVertical: 8,
-    elevation: 5,
+    borderRadius: 12,
+    padding: 16,
+    margin: 4,
+    elevation: 2,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  image: {
-    width: "100%",
-    height: 120,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+  divider: {
+    height: 1,
     backgroundColor: Colors.extraLightGrayColor,
+    marginVertical: 4,
   },
-  saveTag: {
-    position: "absolute",
-    top: 12,
-    left: 12,
-    width: 20,
-    height: 23,
-    borderRadius: 6,
-    backgroundColor: Colors.extraLightGrayColor,
-  },
-  urgentTag: {
-    position: "absolute",
-    top: 12,
-    right: 0,
-    width: 75,
-    height: 16,
-    borderRadius: 4,
-    backgroundColor: Colors.extraLightGrayColor,
-  },
-  content: {
-    padding: 12,
-  },
-  row: {
+  bottomContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 12,
+  button: {
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
 });
-
-export default LoaderCard;

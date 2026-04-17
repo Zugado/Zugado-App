@@ -12,55 +12,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
-import LoaderCard from '../components/LoaderCard';
 import MiniJobCard from '../components/MiniJobCard';
 import MyStatusBar from '../components/MyStatusbar';
 import SelectorToggleButton from '../components/SelectorToggleButton';
 import { getAllMyBids } from '../store/thunks/bidThunk';
 import { getAllCreatedJobs } from '../store/thunks/jobThunk';
 import { Colors } from '../styles/commonStyles';
-// Dummy data for My Jobs (jobs I applied to)
-const myJobsData = [
-  {
-    id: 1,
-    title: 'Newspaper Collection',
-    price: 500,
-    description: 'Old newspapers and magazines to be collected',
-    distance: '22 Km left',
-    vendorName: 'Ramesh Traders',
-    rating: 4.9,
-    reviews: '2.2K',
-    saved: true,
-    urgent: true,
-    status: 'Active',
-  },
-  {
-    id: 2,
-    title: 'Plastic Scrap Pickup',
-    price: 350,
-    description: 'Household plastic waste pickup',
-    distance: '10 Km left',
-    vendorName: 'Green Scrap Hub',
-    rating: 4.6,
-    reviews: '1.1K',
-    saved: false,
-    urgent: false,
-    status: 'Incomplete',
-  },
-  {
-    id: 6,
-    title: 'E-Waste Collection',
-    price: 800,
-    description: 'Old electronics and cables',
-    distance: '18 Km left',
-    vendorName: 'Eco Recycle',
-    rating: 4.7,
-    reviews: '540',
-    saved: false,
-    urgent: true,
-    status: 'Out for pickup',
-  },
-];
+import LoaderCard from '../components/LoaderCard';
+
 
 const EMPTY_ARRAY = [];
 
@@ -106,7 +65,7 @@ const AppliedTasksSection = ({
   if (isLoading) {
     return (
       <ScrollView>
-        <LoaderCard count={5} cardHeight={12} />
+      <LoaderCard count={5}  />
       </ScrollView>
     );
   }
@@ -195,7 +154,7 @@ const CreatedTasksSection = ({
   if (isLoading) {
     return (
       <ScrollView>
-        <LoaderCard count={5} cardHeight={12} />
+        <LoaderCard count={5} />
       </ScrollView>
     );
   }

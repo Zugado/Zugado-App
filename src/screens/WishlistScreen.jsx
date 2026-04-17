@@ -19,7 +19,7 @@ import MyStatusBar from '../components/MyStatusbar';
 import JobCard from '../components/JobCard';
 import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
 import { Colors } from '../styles/commonStyles';
-import LoaderCard from '../components/LoaderCard';
+import JobCardSkeleton from '../components/JobCardSkeleton';
 
 export default function WishlistScreen({ navigation }) {
   const dispatch = useDispatch();
@@ -67,7 +67,7 @@ export default function WishlistScreen({ navigation }) {
         <MyStatusBar />
         <CommonAppBar title="My Wishlist" />
         <ScrollView>
-          <LoaderCard count={5} cardHeight={12} />
+          <JobCardSkeleton count={5} cardHeight={12} />
         </ScrollView>
       </SafeAreaView>
     );

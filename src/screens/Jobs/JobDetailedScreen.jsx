@@ -184,6 +184,7 @@ export default function JobDetailedScreen({ navigation, route }) {
       const response = await dispatch(getJobById(jobId));
       if (response.payload?.success) {
         setJobData(response.payload.data);
+        console.log('Fetched job details:', response.payload.data);
       }
     } catch (error) {
       console.log('Error fetching job details:', error);

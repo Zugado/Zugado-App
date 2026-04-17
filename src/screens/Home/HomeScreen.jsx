@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   StatusBar,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   FlatList,
+  BackHandler,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Geolocation from '@react-native-community/geolocation';
@@ -16,17 +17,20 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Header from '../../components/Header';
 import JobCard from '../../components/JobCard';
 import JobCardSkeleton from '../../components/JobCardSkeleton';
-import LoaderCard from '../../components/LoaderCard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllJobs, getAllTags } from '../../store/thunks/jobThunk';
 import { getWishlist } from '../../store/thunks/wishlistThunk';
 import { getUserLocation, updateUserLocation } from '../../store/thunks/locationThunk';
 import { selectJobs, selectJobsLoading, selectLocationAddress, selectLocationCoordinates, selectTags } from '../../store/selector';
 import { FaddedIcon } from '../../components/CommonComponents';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import { calculateDistance } from '../../utils/distanceUtils';
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
+  const { showSnackbar } = useSnackbar();
+  const backClickCount = useRef(0);
   const allJobs = useSelector(selectJobs || []);
   const loading = useSelector(selectJobsLoading);
   const locationAddress = useSelector(selectLocationAddress);
@@ -114,6 +118,22 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (backClickCount.current === 1) {
+          BackHandler.exitApp();
+          return true;
+        }
+        backClickCount.current = 1;
+        showSnackbar('Press back again to exit', 'info');
+        setTimeout(() => { backClickCount.current = 0; }, 2000);
+        return true;
+      });
+      return () => backHandler.remove();
+    }, []),
+  );
 
   const loadInitialData = async() => {
      updateLocation();
@@ -229,7 +249,7 @@ const HomeScreen = ({ navigation }) => {
 
         {loading ? (
           <ScrollView>
-            <LoaderCard count={5} cardHeight={12} />
+            <JobCardSkeleton count={5} cardHeight={12} />
           </ScrollView>
         ) : (
           <FlatList

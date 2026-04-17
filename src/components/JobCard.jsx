@@ -197,7 +197,7 @@ const JobCard = ({ job, showButttons = true }) => {
         </View>
       )}
       {/* ---------- This is to make height ---------- */}
-      {imageList?.length === 0 && <View style={styles.emptyImageHeight} />}
+      {(imageList?.length === 0 || imageList === undefined) && <View style={styles.emptyImageHeight} />}
       {/* ---------- URGENT TAG ---------- */}
       {isUrgent && (
         <View style={styles.urgentTag}>

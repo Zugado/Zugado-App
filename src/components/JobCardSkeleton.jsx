@@ -1,184 +1,127 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
+import { Colors } from '../styles/commonStyles';
 
-const JobCardSkeleton = () => {
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
+const JobCardSkeleton = ({ count = 1, cardHeight = 12 }) => {
+  const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const shimmer = () => {
-      Animated.sequence([
-        Animated.timing(shimmerAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shimmerAnim, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ]).start(() => shimmer());
-    };
-    shimmer();
+    Animated.loop(
+      Animated.timing(shimmer, {
+        toValue: 1,
+        duration: 900,
+        useNativeDriver: true,
+      })
+    ).start();
   }, []);
 
   const shimmerStyle = {
-    opacity: shimmerAnim.interpolate({
+    opacity: shimmer.interpolate({
       inputRange: [0, 1],
-      outputRange: [0.3, 0.7],
+      outputRange: [0.3, 1],
     }),
   };
 
-  return (
-    <View style={styles.cardContainer}>
-      <Animated.View style={[styles.imageSkeleton, shimmerStyle]} />
-      <View style={styles.urgentTagSkeleton} />
-      
-      <View style={styles.contentContainer}>
+  const Block = ({ width, height = 12, radius = 6, marginBottom = 6 }) => (
+    <Animated.View
+      style={[
+        {
+          width,
+          height,
+          borderRadius: radius,
+          backgroundColor: Colors.extraLightGrayColor,
+          marginBottom,
+        },
+        shimmerStyle,
+      ]}
+    />
+  );
+
+  const Card = ({ index }) => (
+    <View style={styles.card}>
+      <Animated.View style={[styles.image, shimmerStyle]} />
+
+      <View style={styles.saveTag} />
+      <View style={styles.urgentTag} />
+
+      <View style={styles.content}>
         <View style={styles.row}>
-          <Animated.View style={[styles.titleSkeleton, shimmerStyle]} />
-          <Animated.View style={[styles.priceSkeleton, shimmerStyle]} />
+          <Block width="55%" />
+          <Block width="20%" />
         </View>
-        
-        <Animated.View style={[styles.descriptionSkeleton, shimmerStyle]} />
-        <Animated.View style={[styles.descriptionSkeleton2, shimmerStyle]} />
-        
-        <View style={styles.locationRow}>
-          <Animated.View style={[styles.iconSkeleton, shimmerStyle]} />
-          <Animated.View style={[styles.locationTextSkeleton, shimmerStyle]} />
-        </View>
-        
+
+        <Block width="90%" />
+        <Block width="75%" />
+
         <View style={styles.row}>
-          <Animated.View style={[styles.vendorSkeleton, shimmerStyle]} />
-          <View style={styles.ratingContainer}>
-            <Animated.View style={[styles.starSkeleton, shimmerStyle]} />
-            <Animated.View style={[styles.ratingSkeleton, shimmerStyle]} />
-          </View>
+          <Block width="35%" />
         </View>
-        
+
+        <View style={styles.row}>
+          <Block width="40%" />
+          <Block width="30%" />
+        </View>
+
         <View style={styles.buttonRow}>
-          <Animated.View style={[styles.buttonSkeleton, shimmerStyle]} />
-          <Animated.View style={[styles.buttonSkeleton, shimmerStyle]} />
+          <Block width="45%" height={34} radius={20} />
+          <Block width="45%" height={34} radius={20} />
         </View>
       </View>
     </View>
   );
+
+  return <>{Array.from({ length: count }, (_, index) => <Card key={index} index={index} />)}</>;
 };
 
 const styles = StyleSheet.create({
-  cardContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
+  card: {
+    backgroundColor: Colors.whiteColor,
+    borderRadius: 24,
     marginHorizontal: 15,
-    marginVertical: 5,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
+    marginVertical: 8,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
-  imageSkeleton: {
-    width: '100%',
+  image: {
+    width: "100%",
     height: 120,
-    backgroundColor: '#e0e0e0',
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    backgroundColor: Colors.extraLightGrayColor,
   },
-  urgentTagSkeleton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#e0e0e0',
-    width: 60,
-    height: 25,
-    borderRadius: 7,
+  saveTag: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    width: 20,
+    height: 23,
+    borderRadius: 6,
+    backgroundColor: Colors.extraLightGrayColor,
   },
-  contentContainer: {
-    padding: 10,
+  urgentTag: {
+    position: "absolute",
+    top: 12,
+    right: 0,
+    width: 75,
+    height: 16,
+    borderRadius: 4,
+    backgroundColor: Colors.extraLightGrayColor,
+  },
+  content: {
+    padding: 12,
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  titleSkeleton: {
-    backgroundColor: '#e0e0e0',
-    height: 20,
-    width: '60%',
-    borderRadius: 4,
-  },
-  priceSkeleton: {
-    backgroundColor: '#e0e0e0',
-    height: 20,
-    width: '25%',
-    borderRadius: 4,
-  },
-  descriptionSkeleton: {
-    backgroundColor: '#e0e0e0',
-    height: 14,
-    width: '100%',
-    borderRadius: 4,
-    marginBottom: 5,
-  },
-  descriptionSkeleton2: {
-    backgroundColor: '#e0e0e0',
-    height: 14,
-    width: '70%',
-    borderRadius: 4,
-    marginBottom: 6,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  iconSkeleton: {
-    backgroundColor: '#e0e0e0',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    marginRight: 5,
-  },
-  locationTextSkeleton: {
-    backgroundColor: '#e0e0e0',
-    height: 14,
-    width: 80,
-    borderRadius: 4,
-  },
-  vendorSkeleton: {
-    backgroundColor: '#e0e0e0',
-    height: 16,
-    width: '40%',
-    borderRadius: 4,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  starSkeleton: {
-    backgroundColor: '#e0e0e0',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    marginRight: 5,
-  },
-  ratingSkeleton: {
-    backgroundColor: '#e0e0e0',
-    height: 14,
-    width: 60,
-    borderRadius: 4,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  buttonSkeleton: {
-    backgroundColor: '#e0e0e0',
-    height: 35,
-    width: '48%',
-    borderRadius: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 12,
   },
 });
 

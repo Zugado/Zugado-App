@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Image, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +19,8 @@ const Tab = createBottomTabNavigator();
 
 // Custom FAB Button
 const CustomTabBarButton = ({ children, onPress }) => (
+
+
   <TouchableOpacity
     style={{
       top: -30,
@@ -83,10 +85,10 @@ export default function TabNavigator() {
   // Persistent global socket — increments badge on incoming messages
   useGlobalChat();
 
-  const handleTabPress = () => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
-  };
+  // const handleTabPress = () => {
+  //   setIsLoading(true);
+  //   setTimeout(() => setIsLoading(false), 1000);
+  // };
 
   const handleCreateJobPress = async (navigation) => {
     try {
@@ -155,7 +157,7 @@ export default function TabNavigator() {
           tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginTop: 4 },
           tabBarIcon: ({ focused }) => renderTabIcon(route.name, focused),
         })}
-        screenListeners={{ tabPress: handleTabPress }}
+        // screenListeners={{ tabPress: handleTabPress }}
       >
         <Tab.Screen name={t('Home')} component={HomeScreen} />
         <Tab.Screen name={t('Manage Tasks')} component={ManageJobScreen} />
@@ -180,7 +182,7 @@ export default function TabNavigator() {
         <Tab.Screen name={t('Message')} component={AllChatScreen} />
         <Tab.Screen name={t('Profile')} component={ProfileScreen} />
       </Tab.Navigator>
-      <TabLoadingOverlay visible={isLoading} />
+    
     </View>
   );
 }
