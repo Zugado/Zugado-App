@@ -50,15 +50,21 @@ import { clearMessages, resetUnreadForChat } from '../store/slices/chatSlice';
 import { useChat } from '../hooks/useChat';
 
 // ─── FEATURE FLAGS ────────────────────────────────────────────────────────────
-const ENABLE_SLIDING_BANNER    = true; // comment this line to hide the sliding info banner
-const ENABLE_PHONE_BLOCK       = true; // comment this line to allow phone numbers in messages
+const ENABLE_SLIDING_BANNER = true; // comment this line to hide the sliding info banner
+const ENABLE_PHONE_BLOCK = true; // comment this line to allow phone numbers in messages
 // ──────────────────────────────────────────────────────────────────────────────
 
 /** Slides shown in the info banner — add / remove objects freely */
 const BANNER_SLIDES = [
-  { icon: '🔒', text: 'Do not share your mobile number until the job is finalized.' },
-  { icon: '💼', text: 'Keep all communication within the app for your safety.' },
-  { icon: '⚠️',  text: 'Never make payments outside the Zugado platform.' },
+  {
+    icon: '🔒',
+    text: 'Do not share your mobile number until the job is finalized.',
+  },
+  {
+    icon: '💼',
+    text: 'Keep all communication within the app for your safety.',
+  },
+  { icon: '⚠️', text: 'Never make payments outside the Zugado platform.' },
   { icon: '✅', text: 'Rate the other party after the job is completed.' },
 ];
 
@@ -161,7 +167,7 @@ export default function ChatingScreen() {
 
   // Chat is unlocked if user created the job OR has placed a bid on it
   // const isChatUnlocked = Boolean(isCreator || hasBid);
-  const [isChatUnlocked,setIsChatUnlocked] = useState(isCreator || hasBid);
+  const [isChatUnlocked, setIsChatUnlocked] = useState(isCreator || hasBid);
 
   /**
    * useChat hook manages the Socket.IO lifecycle.
@@ -180,22 +186,29 @@ export default function ChatingScreen() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [quickChatHeight, setQuickChatHeight] = useState(0);
   const [inputHeight, setInputHeight] = useState(56);
-
+  const [showMenu, setShowMenu] = useState(false);
   // ── Sliding info banner ──────────────────────────────────────────────────
   const SCREEN_WIDTH = Dimensions.get('window').width;
   const [bannerIndex, setBannerIndex] = useState(0);
   const bannerAnim = useRef(new Animated.Value(0)).current;
   const bannerIndexRef = useRef(0);
 
-  const goToSlide = useCallback((nextIndex, direction = 1) => {
-    const toValue = -direction * SCREEN_WIDTH;
-    bannerAnim.setValue(0);
-    Animated.timing(bannerAnim, { toValue, duration: 280, useNativeDriver: true }).start(() => {
-      bannerIndexRef.current = nextIndex;
-      setBannerIndex(nextIndex);
+  const goToSlide = useCallback(
+    (nextIndex, direction = 1) => {
+      const toValue = -direction * SCREEN_WIDTH;
       bannerAnim.setValue(0);
-    });
-  }, [bannerAnim, SCREEN_WIDTH]);
+      Animated.timing(bannerAnim, {
+        toValue,
+        duration: 280,
+        useNativeDriver: true,
+      }).start(() => {
+        bannerIndexRef.current = nextIndex;
+        setBannerIndex(nextIndex);
+        bannerAnim.setValue(0);
+      });
+    },
+    [bannerAnim, SCREEN_WIDTH],
+  );
 
   // Auto-slide every 3 s, first slide after 2 s
   useEffect(() => {
@@ -223,10 +236,15 @@ export default function ChatingScreen() {
           const next = (bannerIndexRef.current + 1) % BANNER_SLIDES.length;
           goToSlide(next, 1);
         } else if (g.dx > threshold) {
-          const prev = (bannerIndexRef.current - 1 + BANNER_SLIDES.length) % BANNER_SLIDES.length;
+          const prev =
+            (bannerIndexRef.current - 1 + BANNER_SLIDES.length) %
+            BANNER_SLIDES.length;
           goToSlide(prev, -1);
         } else {
-          Animated.spring(bannerAnim, { toValue: 0, useNativeDriver: true }).start();
+          Animated.spring(bannerAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
         }
       },
     }),
@@ -335,7 +353,9 @@ export default function ChatingScreen() {
   const handleSend = useCallback(() => {
     if (!inputText.trim()) return;
     if (!connected) {
-      console.warn('[ChatingScreen] handleSend — socket not connected, cannot send');
+      console.warn(
+        '[ChatingScreen] handleSend — socket not connected, cannot send',
+      );
       return;
     }
     if (ENABLE_PHONE_BLOCK && containsPhone(inputText)) return; // FEATURE: phone number block
@@ -484,13 +504,43 @@ export default function ChatingScreen() {
           <View style={styles.userThings}>
             <View style={styles.userHeader}>
               <Text style={styles.usernameTop}>{otherName || 'User'}</Text>
-              <TouchableOpacity style={styles.dotOption}>
-                <Feather
-                  name="more-vertical"
-                  size={16}
-                  color={Colors.blackColor}
-                />
-              </TouchableOpacity>
+
+              <View style={{ position: 'relative' }}>
+                <TouchableOpacity
+                  onPress={() => setShowMenu(!showMenu)}
+                  style={styles.dotOption}
+                >
+                  <Feather
+                    name="more-vertical"
+                    size={16}
+                    color={Colors.blackColor}
+                  />
+                </TouchableOpacity>
+
+                {showMenu && (
+                  <View style={styles.menu}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setShowMenu(false);
+                        navigation.navigate('JobDetailedScreen', {
+                          jobId: jobIdOfChat,
+                        });
+                      }}
+                      style={styles.menuStyle}
+                    >
+                      <Feather
+                        name="briefcase"
+                        size={14}
+                        color="#374151"
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text style={{ fontSize: 14, color: '#111827' }}>
+                        View Job
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
             </View>
             <Text style={styles.jobName} numberOfLines={1}>
               {chatData?.jobId?.title || 'Job'}
@@ -516,9 +566,19 @@ export default function ChatingScreen() {
 
         {/* ── Sliding info banner ── */}
         {ENABLE_SLIDING_BANNER && ( // FEATURE: remove this condition with ENABLE_SLIDING_BANNER flag
-          <View style={styles.bannerContainer} {...bannerPanResponder.panHandlers}>
-            <Animated.View style={[styles.bannerSlide, { transform: [{ translateX: bannerAnim }] }]}>
-              <Text style={styles.bannerIcon}>{BANNER_SLIDES[bannerIndex].icon}</Text>
+          <View
+            style={styles.bannerContainer}
+            {...bannerPanResponder.panHandlers}
+          >
+            <Animated.View
+              style={[
+                styles.bannerSlide,
+                { transform: [{ translateX: bannerAnim }] },
+              ]}
+            >
+              <Text style={styles.bannerIcon}>
+                {BANNER_SLIDES[bannerIndex].icon}
+              </Text>
               <Text style={styles.bannerText} numberOfLines={2}>
                 {BANNER_SLIDES[bannerIndex].text}
               </Text>
@@ -526,7 +586,13 @@ export default function ChatingScreen() {
             {/* Dot indicators */}
             <View style={styles.bannerDots}>
               {BANNER_SLIDES.map((_, i) => (
-                <View key={i} style={[styles.bannerDot, i === bannerIndex && styles.bannerDotActive]} />
+                <View
+                  key={i}
+                  style={[
+                    styles.bannerDot,
+                    i === bannerIndex && styles.bannerDotActive,
+                  ]}
+                />
               ))}
             </View>
           </View>
@@ -575,7 +641,7 @@ export default function ChatingScreen() {
               {/* Quick chat floating panel — anchored above the input so it doesn't push the input down */}
               {!isChatUnlocked && (
                 <View
-                    pointerEvents={connected ? 'auto' : 'none'}
+                  pointerEvents={connected ? 'auto' : 'none'}
                   onLayout={e => {
                     const h = e.nativeEvent.layout.height || 0;
                     setQuickChatHeight(h);
@@ -665,7 +731,9 @@ export default function ChatingScreen() {
               {ENABLE_PHONE_BLOCK && containsPhone(inputText) && (
                 <View style={styles.phoneWarn}>
                   <Feather name="alert-circle" size={12} color="#c0392b" />
-                  <Text style={styles.phoneWarnText}>Phone numbers are not allowed in chat</Text>
+                  <Text style={styles.phoneWarnText}>
+                    Phone numbers are not allowed in chat
+                  </Text>
                 </View>
               )}
               <View style={styles.inputRowInner}>
@@ -681,10 +749,15 @@ export default function ChatingScreen() {
                 <TouchableOpacity
                   style={[
                     styles.sendButton,
-                    (!inputText.trim() || (ENABLE_PHONE_BLOCK && containsPhone(inputText))) && styles.sendButtonDisabled,
+                    (!inputText.trim() ||
+                      (ENABLE_PHONE_BLOCK && containsPhone(inputText))) &&
+                      styles.sendButtonDisabled,
                   ]}
                   onPress={handleSend}
-                  disabled={!inputText.trim() || (ENABLE_PHONE_BLOCK && containsPhone(inputText))}
+                  disabled={
+                    !inputText.trim() ||
+                    (ENABLE_PHONE_BLOCK && containsPhone(inputText))
+                  }
                 >
                   <Feather name="send" size={18} color={Colors.whiteColor} />
                 </TouchableOpacity>
@@ -832,7 +905,7 @@ const styles = StyleSheet.create({
   inputRowInner: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginBottom:10,
+    marginBottom: 10,
     gap: 8,
     flex: 1,
   },
@@ -1077,5 +1150,27 @@ const styles = StyleSheet.create({
   aiBubbleText: {
     fontSize: 13,
     color: Colors.blackColor,
+  },
+  menu: {
+    position: 'absolute',
+    top: 28,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingVertical: 6,
+    width: 140,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    zIndex: 10,
+  },
+  menuStyle: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });

@@ -28,8 +28,6 @@ import { trimText } from '../utils/commonMethods';
 // Chat thunk — used to initiate or retrieve an existing conversation before navigating
 import { startNewChat } from '../store/thunks/chatThunk';
 
-import { getJobById } from '../store/thunks/jobThunk';
-
 const JobCard = ({ job, showButttons = true }) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
