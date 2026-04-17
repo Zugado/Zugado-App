@@ -522,7 +522,13 @@ export default function JobDetailedScreen({ navigation, route }) {
               label="Experience"
               value={getExperienceText(jobData.experienceLevel)}
             />
-            {jobData.location ? (
+          
+            <DetailRow
+              icon="clock"
+              label="Timing"
+              value={getTimingText(jobData.timingType, jobData.timingDetails)}
+            />
+              {jobData.location ? (
               <TouchableOpacity
                 style={styles.detailRow}
                 onPress={() =>
@@ -543,13 +549,29 @@ export default function JobDetailedScreen({ navigation, route }) {
                   <Text style={styles.detailLabelText}>Location</Text>
                 </View>
                 <View style={styles.locationValueContainer}>
-                  <Text style={styles.detailValue}>{locationText}</Text>
-                  <Feather
-                    name="chevron-right"
-                    size={16}
-                    color="#6B7280"
-                    style={{ marginLeft: 4 }}
-                  />
+                  <Text style={[styles.detailValue,{color: '#002880' }]}>{locationText}</Text>
+                  <View
+                    style={{
+                      marginLeft: 4,
+                      padding: 4,
+                      backgroundColor: '#E5E7EB',
+                      borderRadius: 12,
+                      shadowColor: '#000',
+                      shadowOpacity: 0.1,
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowRadius: 2,
+                      elevation: 2,
+                      flexDirection: 'row',
+                    }}
+                  >
+                    {/* <Text style={{fontSize: 10,marginLeft: 4 }}>View On map</Text> */}
+                    <Feather
+                      name="chevron-right"
+                      size={16}
+                      color="#00308f"
+                      // style={{ marginLeft: 4 }}
+                    />
+                  </View>
                 </View>
               </TouchableOpacity>
             ) : (
@@ -564,11 +586,6 @@ export default function JobDetailedScreen({ navigation, route }) {
                 }
               />
             )}
-            <DetailRow
-              icon="clock"
-              label="Timing"
-              value={getTimingText(jobData.timingType, jobData.timingDetails)}
-            />
           </View>
         </View>
       </ScrollView>
@@ -597,7 +614,7 @@ export default function JobDetailedScreen({ navigation, route }) {
           >
             <Feather
               name={chatLoading ? 'loader' : 'message-square'}
-              size={24}
+              size={20}
               color="#fff"
             />
           </TouchableOpacity>
@@ -800,14 +817,14 @@ const styles = StyleSheet.create({
 
   section: { marginTop: 16 },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
     color: '#111827',
   },
-  sectionText: { fontSize: 14, lineHeight: 20, color: '#4B5563' },
+  sectionText: { fontSize: 12, lineHeight: 20, color: '#4B5563' },
   list: { marginLeft: 12 },
-  listItem: { fontSize: 14, lineHeight: 20, color: '#4B5563', marginBottom: 2 },
+  listItem: { fontSize: 12, lineHeight: 20, color: '#4B5563', marginBottom: 2 },
 
   detailRow: {
     flexDirection: 'row',
@@ -818,8 +835,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F3F4F6',
   },
   detailLabel: { flexDirection: 'row', alignItems: 'center' },
-  detailLabelText: { fontSize: 14, fontWeight: '500', color: '#111827' },
-  detailValue: { fontSize: 14, fontWeight: '600', color: '#111827' },
+  detailLabelText: { fontSize: 12, fontWeight: '700', color: '#111827' },
+  detailValue: { fontSize: 12, fontWeight: '500', color: '#111827' },
   locationValueContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -841,7 +858,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   budgetLabel: { fontSize: 12, fontWeight: '500', color: '#6B7280' },
-  budgetValue: { fontSize: 22, fontWeight: '800', color: '#16A34A' },
+  budgetValue: { fontSize: 18, fontWeight: '800', color: '#16A34A' },
 
   actions: { flexDirection: 'row', alignItems: 'center' },
   iconAction: {
@@ -858,7 +875,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 999,
   },
-  applyText: { color: '#fff', fontSize: 16, fontWeight: '700', marginRight: 6 },
+  applyText: { color: '#fff', fontSize: 14, fontWeight: '700', marginRight: 6 },
   applyArrow: { color: '#fff', fontSize: 18, lineHeight: 18 },
 
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },

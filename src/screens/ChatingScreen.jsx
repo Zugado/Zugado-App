@@ -160,7 +160,8 @@ export default function ChatingScreen() {
   const hasBid = useSelector(state => selectHasBidded(state, jobIdOfChat));
 
   // Chat is unlocked if user created the job OR has placed a bid on it
-  const isChatUnlocked = Boolean(isCreator || hasBid);
+  // const isChatUnlocked = Boolean(isCreator || hasBid);
+  const [isChatUnlocked,setIsChatUnlocked] = useState(isCreator || hasBid);
 
   /**
    * useChat hook manages the Socket.IO lifecycle.
@@ -831,6 +832,7 @@ const styles = StyleSheet.create({
   inputRowInner: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    marginBottom:10,
     gap: 8,
     flex: 1,
   },

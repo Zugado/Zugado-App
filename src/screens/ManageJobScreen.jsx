@@ -86,8 +86,12 @@ const AppliedTasksSection = ({
     'Active',
     'Completed',
     'Cancelled',
+    'Approved',
     'Rejected',
   ];
+  //  useEffect(() => {
+  //   console.log('Applied Jobs Updated:', JSON.stringify(appliedJobs, null, 2));
+  // }, [appliedJobs]);
 
   const getStatusFromBid = item => {
     const bidStatus = item.bids?.[0]?.status || 'pending';
@@ -273,7 +277,7 @@ const ManageJobScreen = () => {
   );
 
   // console.log('Created Jobs:', createdJobs); //state.job.jobs.jobs;
-  console.log('Applied Jobs:', JSON.stringify(appliedJobs, null, 2)); //state.job.jobs.jobs;
+  // console.log('Applied Jobs:', JSON.stringify(appliedJobs, null, 2)); //state.job.jobs.jobs;
 
   useEffect(() => {
     loadInitialData();

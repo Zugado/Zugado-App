@@ -39,24 +39,24 @@ const JobCard = ({ job, showButttons = true }) => {
   const [cityName, setCityName] = useState('');
   const [isLoadingCity, setIsLoadingCity] = useState(true);
   const [chatLoading, setChatLoading] = useState(false);
-  const [jobData, setJobData] = useState(null);
+  const [jobData, setJobData] = useState(job);
   const [jobLoading, setJobLoading] = useState(false);
 
-  useEffect(() => {
-    if (job ) {
-      // only jobId passed, fetch full data
-      //  console.log("job ==>",job)
-      setJobLoading(true);
-      dispatch(getJobById(job?._id))
-        .then(res => {
-          if (res.payload?.success) setJobData(res.payload.data);
-          // console.log("job data on card==>",JSON.stringify(res.payload.data,null,2));
-        })
-        .finally(() => setJobLoading(false));
-    } else {
-      setJobLoading(false);
-    }
-  }, [job]);
+  // useEffect(() => {
+  //   if (job ) {
+  //     // only jobId passed, fetch full data
+  //     //  console.log("job ==>",job)
+  //     setJobLoading(true);
+  //     dispatch(getJobById(job?._id))
+  //       .then(res => {
+  //         if (res.payload?.success) setJobData(res.payload.data);
+  //         // console.log("job data on card==>",JSON.stringify(res.payload.data,null,2));
+  //       })
+  //       .finally(() => setJobLoading(false));
+  //   } else {
+  //     setJobLoading(false);
+  //   }
+  // }, [job]);
 
   const isWishlisted = wishlistIds.includes(jobData?._id);
   const isUrgent = jobData?.jobType === 'quick';

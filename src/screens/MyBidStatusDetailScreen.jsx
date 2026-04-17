@@ -104,13 +104,14 @@ const MyBidStatusDetailScreen = () => {
    * Navigates to ChatingScreen with the returned conversation object.
    */
   const handleChatPress = async () => {
-    if (chatLoading || !jobData?.createdBy?._id) return;
+    // console.log('Chat Pressed. Job Data:', jobData);
+    if (chatLoading || !jobData?.job?.createdBy) return;
     setChatLoading(true);
     try {
       const result = await dispatch(
         startNewChat({
-          jobId: jobData._id,
-          participantId: jobData.createdBy._id,
+          jobId: jobData?.job?._id,
+          participantId: jobData?.job?.createdBy,
         }),
       ).unwrap();
       if (result?.data) {
@@ -118,13 +119,13 @@ const MyBidStatusDetailScreen = () => {
         navigation.navigate('ChatingScreen', { chatData: result.data });
       }
     } catch (err) {
+      console.log("Errror initiating chat:", err);
       showSnackbar('Could not open chat. Try again.', 'error');
     } finally {
       setChatLoading(false);
     }
   };
 
-  
   const JobInfoSection = ({ children }) => (
     <View style={styles.cardContainer}>
       <View style={styles.contentContainer}>{children}</View>
@@ -176,7 +177,10 @@ const MyBidStatusDetailScreen = () => {
         <Text style={styles.detailButtonText}>View Detail</Text>
       </TouchableOpacity>
       {showChat && (
-        <TouchableOpacity style={styles.chatButton} onPress={handleChatPress}>
+        <TouchableOpacity
+          style={styles.chatButton}
+          onPress={handleChatPress}
+        >
           <Text style={styles.chatButtonText}>Chat</Text>
         </TouchableOpacity>
       )}
