@@ -1,27 +1,24 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   FlatList,
-  ScrollView,
   RefreshControl,
-  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
+import LoaderCard from '../components/LoaderCard';
 import MiniJobCard from '../components/MiniJobCard';
 import MyStatusBar from '../components/MyStatusbar';
-import { useNavigation } from '@react-navigation/native';
-import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
-import SwipableTabs from '../components/SwipableTabs';
-import { Colors } from '../styles/commonStyles';
-import LoaderCard from '../components/LoaderCard';
 import SelectorToggleButton from '../components/SelectorToggleButton';
-import JobCard from '../components/JobCard';
-import { getAllAppliedJobs, getAllCreatedJobs } from '../store/thunks/jobThunk';
 import { getAllMyBids } from '../store/thunks/bidThunk';
-import { useDispatch, useSelector, shallowEqual } from 'react-redux';
+import { getAllCreatedJobs } from '../store/thunks/jobThunk';
+import { Colors } from '../styles/commonStyles';
 // Dummy data for My Jobs (jobs I applied to)
 const myJobsData = [
   {

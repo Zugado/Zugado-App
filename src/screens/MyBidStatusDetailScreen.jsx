@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Colors } from '../styles/commonStyles';
 import { getRelativeTime } from '../utils/timeUtils';
@@ -16,21 +16,34 @@ import { CommonAppBar } from '../components/CommonComponents';
 import { WarningWithButton } from '../components/lottie/WarningWithButton';
 import MyStatusBar from '../components/MyStatusbar';
 import Feather from 'react-native-vector-icons/Feather';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllMyBids } from '../store/thunks/bidThunk';
 
 const MyBidStatusDetailScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const dispatch = useDispatch();
   const [showCancelWarning, setShowCancelWarning] = useState(false);
   const { jobData } = route.params || {};
-  console.log(
-    'Received jobData: MyBidStatusDetailScreen==>',
-    JSON.stringify(jobData, null, 2),
-  );
 
   const job = jobData?.job;
-  const bid = jobData?.bids?.[0];
-  console.log('Extracted job:', job);
-  console.log('Extracted bid:', bid);
+  const jobId = job?._id;
+
+  // Always read the live bid from Redux so edits are reflected immediately on back-navigate.
+  // Fall back to route.params bid only if Redux hasn't loaded yet.
+  const myAllBids = useSelector(state => state.job.myAllBids || []);
+  const liveBidEntry = myAllBids.find(
+    item => item?.job?._id === jobId || item?.job === jobId,
+  );
+  const bid = liveBidEntry?.bids?.[0] ?? jobData?.bids?.[0];
+
+  // Re-fetch on every focus so the data is always fresh (covers back-navigate from BidUpdateScreen)
+  useFocusEffect(
+    React.useCallback(() => {
+      dispatch(getAllMyBids());
+    }, [dispatch]),
+  );
+
   const bidStatus = bid?.status || 'pending';
   const isUrgent = job?.jobType === 'quick';
 
@@ -282,12 +295,15 @@ const MyBidStatusDetailScreen = () => {
           </Text>
         </TouchableOpacity>
 
-        <View style={styles.refundRow}>
-          <Text style={styles.refundText}>Your Bid Will be Refunded If you </Text>
-          <TouchableOpacity onPress={() => setShowCancelWarning(true)}>
-            <Text style={styles.refundBold}>Cancel Now</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Cancel row — hidden when bid is accepted */}
+        {bidStatus !== 'accepted' && (
+          <View style={styles.refundRow}>
+            <Text style={styles.refundText}>Your Bid Will be Refunded If you </Text>
+            <TouchableOpacity onPress={() => setShowCancelWarning(true)}>
+              <Text style={styles.refundBold}>Cancel Now</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
       {showCancelWarning && (
         <WarningWithButton

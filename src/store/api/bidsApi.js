@@ -14,9 +14,9 @@ export const postBidByJobIdAPI = (data) =>
 //Update Bid on job by id api
 export const updateBidByJobIdAPI = (data) =>
   apiPutRequest({
-    apiUrl: `/bids/bid/${data}`,
+    apiUrl: `/bids/bid/${data?.bidId}`,
     content_type: "application/json",
-    data: data,
+    data: data.payload,
 });
 
 // Update bid status (approve / reject) — PATCH /bids/bid/:bidId/status

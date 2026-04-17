@@ -32,6 +32,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Animated,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MyStatusBar from '../components/MyStatusbar';
@@ -45,6 +48,22 @@ import { selectHasBidded } from '../store/selectors/jobSelectors';
 import { getChatMessages, markChatRead } from '../store/thunks/chatThunk';
 import { clearMessages, resetUnreadForChat } from '../store/slices/chatSlice';
 import { useChat } from '../hooks/useChat';
+
+// ─── FEATURE FLAGS ────────────────────────────────────────────────────────────
+const ENABLE_SLIDING_BANNER    = true; // comment this line to hide the sliding info banner
+const ENABLE_PHONE_BLOCK       = true; // comment this line to allow phone numbers in messages
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Slides shown in the info banner — add / remove objects freely */
+const BANNER_SLIDES = [
+  { icon: '🔒', text: 'Do not share your mobile number until the job is finalized.' },
+  { icon: '💼', text: 'Keep all communication within the app for your safety.' },
+  { icon: '⚠️',  text: 'Never make payments outside the Zugado platform.' },
+  { icon: '✅', text: 'Rate the other party after the job is completed.' },
+];
+
+/** Returns true if the string contains a phone-like pattern (10+ digit sequence) */
+const containsPhone = text => /(?:\+?\d[\s\-.]?){9,}\d/.test(text);
 
 /**
  * Predefined quick-chat messages shown when the user hasn't bid on the job yet.
@@ -161,6 +180,58 @@ export default function ChatingScreen() {
   const [quickChatHeight, setQuickChatHeight] = useState(0);
   const [inputHeight, setInputHeight] = useState(56);
 
+  // ── Sliding info banner ──────────────────────────────────────────────────
+  const SCREEN_WIDTH = Dimensions.get('window').width;
+  const [bannerIndex, setBannerIndex] = useState(0);
+  const bannerAnim = useRef(new Animated.Value(0)).current;
+  const bannerIndexRef = useRef(0);
+
+  const goToSlide = useCallback((nextIndex, direction = 1) => {
+    const toValue = -direction * SCREEN_WIDTH;
+    bannerAnim.setValue(0);
+    Animated.timing(bannerAnim, { toValue, duration: 280, useNativeDriver: true }).start(() => {
+      bannerIndexRef.current = nextIndex;
+      setBannerIndex(nextIndex);
+      bannerAnim.setValue(0);
+    });
+  }, [bannerAnim, SCREEN_WIDTH]);
+
+  // Auto-slide every 3 s, first slide after 2 s
+  useEffect(() => {
+    if (!ENABLE_SLIDING_BANNER) return; // FEATURE: remove this line with ENABLE_SLIDING_BANNER flag
+    const timer = setTimeout(() => {
+      const next = (bannerIndexRef.current + 1) % BANNER_SLIDES.length;
+      goToSlide(next, 1);
+      const interval = setInterval(() => {
+        const n = (bannerIndexRef.current + 1) % BANNER_SLIDES.length;
+        goToSlide(n, 1);
+      }, 3000);
+      return () => clearInterval(interval);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [goToSlide]);
+
+  const bannerPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => ENABLE_SLIDING_BANNER,
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 8,
+      onPanResponderMove: (_, g) => bannerAnim.setValue(g.dx),
+      onPanResponderRelease: (_, g) => {
+        const threshold = SCREEN_WIDTH * 0.25;
+        if (g.dx < -threshold) {
+          const next = (bannerIndexRef.current + 1) % BANNER_SLIDES.length;
+          goToSlide(next, 1);
+        } else if (g.dx > threshold) {
+          const prev = (bannerIndexRef.current - 1 + BANNER_SLIDES.length) % BANNER_SLIDES.length;
+          goToSlide(prev, -1);
+        } else {
+          Animated.spring(bannerAnim, { toValue: 0, useNativeDriver: true }).start();
+        }
+      },
+    }),
+  ).current;
+  // ── end sliding banner ───────────────────────────────────────────────────
+
   useEffect(() => {
     const showEvent =
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -263,11 +334,10 @@ export default function ChatingScreen() {
   const handleSend = useCallback(() => {
     if (!inputText.trim()) return;
     if (!connected) {
-      console.warn(
-        '[ChatingScreen] handleSend — socket not connected, cannot send',
-      );
+      console.warn('[ChatingScreen] handleSend — socket not connected, cannot send');
       return;
     }
+    if (ENABLE_PHONE_BLOCK && containsPhone(inputText)) return; // FEATURE: phone number block
     console.log(`[ChatingScreen] Sending message: "${inputText.trim()}"`);
     sendMessage(inputText.trim());
     setInputText('');
@@ -443,15 +513,23 @@ export default function ChatingScreen() {
           </View>
         </View>
 
-        {/* ── Safety warning banner ── */}
-        <View style={styles.warningContainer}>
-          <View style={styles.warningBox}>
-            <MaterialIcons name="work" size={16} color={Colors.grayColor} />
-            <Text style={styles.warningText}>
-              Do not Share Mobile Number Until Finalized
-            </Text>
+        {/* ── Sliding info banner ── */}
+        {ENABLE_SLIDING_BANNER && ( // FEATURE: remove this condition with ENABLE_SLIDING_BANNER flag
+          <View style={styles.bannerContainer} {...bannerPanResponder.panHandlers}>
+            <Animated.View style={[styles.bannerSlide, { transform: [{ translateX: bannerAnim }] }]}>
+              <Text style={styles.bannerIcon}>{BANNER_SLIDES[bannerIndex].icon}</Text>
+              <Text style={styles.bannerText} numberOfLines={2}>
+                {BANNER_SLIDES[bannerIndex].text}
+              </Text>
+            </Animated.View>
+            {/* Dot indicators */}
+            <View style={styles.bannerDots}>
+              {BANNER_SLIDES.map((_, i) => (
+                <View key={i} style={[styles.bannerDot, i === bannerIndex && styles.bannerDotActive]} />
+              ))}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* ── Main chat area ── */}
         <View style={styles.chatContainer}>
@@ -582,25 +660,34 @@ export default function ChatingScreen() {
                 setInputHeight(h);
               }}
             >
-              <TextInput
-                style={styles.textInput}
-                value={inputText}
-                onChangeText={handleTyping}
-                placeholder="Type a message..."
-                placeholderTextColor={Colors.grayColor}
-                multiline
-                maxLength={500}
-              />
-              <TouchableOpacity
-                style={[
-                  styles.sendButton,
-                  !inputText.trim() && styles.sendButtonDisabled,
-                ]}
-                onPress={handleSend}
-                disabled={!inputText.trim()}
-              >
-                <Feather name="send" size={18} color={Colors.whiteColor} />
-              </TouchableOpacity>
+              {/* Phone-number warning — FEATURE: remove this block with ENABLE_PHONE_BLOCK flag */}
+              {ENABLE_PHONE_BLOCK && containsPhone(inputText) && (
+                <View style={styles.phoneWarn}>
+                  <Feather name="alert-circle" size={12} color="#c0392b" />
+                  <Text style={styles.phoneWarnText}>Phone numbers are not allowed in chat</Text>
+                </View>
+              )}
+              <View style={styles.inputRowInner}>
+                <TextInput
+                  style={styles.textInput}
+                  value={inputText}
+                  onChangeText={handleTyping}
+                  placeholder="Type a message..."
+                  placeholderTextColor={Colors.grayColor}
+                  multiline
+                  maxLength={500}
+                />
+                <TouchableOpacity
+                  style={[
+                    styles.sendButton,
+                    (!inputText.trim() || (ENABLE_PHONE_BLOCK && containsPhone(inputText))) && styles.sendButtonDisabled,
+                  ]}
+                  onPress={handleSend}
+                  disabled={!inputText.trim() || (ENABLE_PHONE_BLOCK && containsPhone(inputText))}
+                >
+                  <Feather name="send" size={18} color={Colors.whiteColor} />
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             // LOCKED: disabled input + Place a Bid CTA
@@ -682,6 +769,71 @@ const styles = StyleSheet.create({
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   statusDot: { width: 7, height: 7, borderRadius: 4 },
   userStatus: { fontSize: 10, color: Colors.grayColor },
+  // ── Sliding info banner ───────────────────────────────────────────────────
+  bannerContainer: {
+    marginHorizontal: 10,
+    marginTop: 8,
+    backgroundColor: '#fffbf0',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ffe58f',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    overflow: 'hidden',
+  },
+  bannerSlide: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bannerIcon: { fontSize: 16 },
+  bannerText: {
+    flex: 1,
+    fontSize: 11,
+    color: '#7d5c00',
+    lineHeight: 16,
+  },
+  bannerDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: 6,
+  },
+  bannerDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#ffe58f',
+  },
+  bannerDotActive: {
+    backgroundColor: '#fa8c16',
+    width: 12,
+  },
+  // ── Phone-number warning ─────────────────────────────────────────────────
+  phoneWarn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#fff0f0',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#ffcccc',
+  },
+  phoneWarnText: {
+    fontSize: 11,
+    color: '#c0392b',
+    flex: 1,
+  },
+  // ── Input row wrapper ────────────────────────────────────────────────────
+  inputRowInner: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+    flex: 1,
+  },
   warningContainer: { paddingHorizontal: 10, paddingTop: 8 },
   warningBox: {
     flexDirection: 'row',
@@ -788,10 +940,8 @@ const styles = StyleSheet.create({
   messagesListDefault: { paddingVertical: 10, flexGrow: 1 },
   inputRow: {
     zIndex: 30,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: 'column',
     paddingVertical: 8,
-    gap: 8,
     borderTopWidth: 0.5,
     borderTopColor: Colors.extraLightGrayColor,
   },

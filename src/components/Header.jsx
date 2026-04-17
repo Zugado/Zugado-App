@@ -15,6 +15,7 @@ import { selectLocationAddress } from '../store/selector';
 import NotificationIcon from './NotificationIcon';
 import Geolocation from '@react-native-community/geolocation';
 import DotLoader from './DotLoader';
+import { getCityFromCoordinates } from '../utils/locationUtils';
 
 const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabled, searchQuery, setSearchQuery }) => {
   const locationAddress = useSelector(selectLocationAddress);
@@ -26,30 +27,16 @@ const Header = ({ showSearch = true, navigation, isUrgentEnabled, setUrgentEnabl
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-            {
-              headers: {
-                'User-Agent': 'ZugadoApp/1.0'
-              }
-            }
-          );
-          const data = await response.json();
-          setCurrentLocation({
-            city: data.address?.city || data.address?.town || data.address?.village || data.address?.state,
-            postcode: data.address?.postcode || data.address?.pincode || data.address?.postal_code
-          });
-        } catch (error) {
-          console.log('Error fetching location:', error);
+          const { city, postcode } = await getCityFromCoordinates(latitude, longitude);
+          setCurrentLocation({ city, postcode });
+        } catch {
+          // silently ignore — fallback to Redux locationAddress
         } finally {
           setIsLoadingLocation(false);
         }
       },
-      (error) => {
-        console.log('Error getting position:', error);
-        setIsLoadingLocation(false);
-      },
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
+      () => setIsLoadingLocation(false),
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 },
     );
   }, []);
   

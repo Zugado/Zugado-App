@@ -1,24 +1,24 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import { CommonAppBar, FaddedIcon } from '../components/CommonComponents';
-import { Colors } from '../styles/commonStyles';
 import JobCard from '../components/JobCard';
 import MyStatusBar from '../components/MyStatusbar';
-import { TextInput } from 'react-native-gesture-handler';
 import { useSnackbar } from '../contexts/SnackbarContext';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Colors } from '../styles/commonStyles';
+import { useDispatch } from 'react-redux';
+import { getAllMyBids, updateBidByJobId } from '../store/thunks/bidThunk';
 
 const BidUpdateScreen = ({ navigation, route }) => {
   const { job } = route.params || {};
@@ -32,6 +32,7 @@ const BidUpdateScreen = ({ navigation, route }) => {
   const [message, setMessage] = useState(bid?.message || '');
   const [isNegotiable, setIsNegotiable] = useState(bid?.isNegotiable || false);
   const scrollViewRef = useRef(null);
+  const dispatch = useDispatch();
 
   const scrollToInput = (inputRef, scrollRef) => {
     if (inputRef?.current && scrollRef?.current) {
@@ -46,19 +47,58 @@ const BidUpdateScreen = ({ navigation, route }) => {
   };
 
   const handleUpdateBid = async () => {
-    if (!bidAmount || bidAmount.trim() === '') {
+        if (!bidAmount || bidAmount.trim() === '') {
       showSnackbar('Please enter bid amount', 'error');
       return;
     }
+
+    if (isNaN(bidAmount) || Number(bidAmount) <= 0) {
+      showSnackbar('Please enter a valid amount', 'error');
+      return;
+    }
+
+    setIsLoading(true);
+
     const payload = {
-      bidId: bid?._id,
-      jobId: jobInfo?._id,
+      // bidId: bid?._id,
+      // jobId: jobInfo?._id,
       amount: Number(bidAmount),
       message: message.trim(),
       isNegotiable,
     };
+    const data = { 
+       bidId: bid?._id,
+       payload
+
+    };
+    try {
+      const response = await dispatch(updateBidByJobId(data));
+      console.log('Bid responese:', response?.payload);
+      if (updateBidByJobId.fulfilled.match(response)) {
+        showSnackbar('Bid updated successfully!', 'success');
+        await dispatch(getAllMyBids());
+        navigation.goBack();
+      } else {
+        showSnackbar(
+          response?.payload?.error?.message || 'Failed to update bid',
+          'error'
+        );
+      }
+     
+      
+    } catch (error) {
+      console.error('Bid submission error:', error?.response || error);
+      showSnackbar(
+        error.response?.data?.error?.message || 'Failed to submit bid',
+        'error'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+    
     console.log('Update bid payload:', payload);
-    navigation.goBack();
+    // console.log('Bid responese:', response?.payload);
+    // navigation.goBack();
     // TODO: dispatch update bid API with payload
   };
 

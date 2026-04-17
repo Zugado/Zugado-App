@@ -4,6 +4,7 @@ import {
   getAllBidsByJobIdAPI, 
   getAllMyBidsAPI,
   updateBidStatusAPI,
+  updateBidByJobIdAPI,
 } from '../api/bidsApi';
 import { handleAxiosError } from '../../utils/handleAxiosError';
 
@@ -13,6 +14,19 @@ export const postBidByJobId = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       const response = await postBidByJobIdAPI(data);
+      return response?.data;
+    } catch (error) {
+      return handleAxiosError(error, thunkAPI);
+    }
+  }
+);
+
+// Update Bid by Job Id Thunk
+export const updateBidByJobId = createAsyncThunk(
+  "bid/updateBidByJobId",
+  async (data, thunkAPI) => {
+    try {
+      const response = await updateBidByJobIdAPI(data);
       return response?.data;
     } catch (error) {
       return handleAxiosError(error, thunkAPI);

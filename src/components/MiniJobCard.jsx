@@ -36,12 +36,12 @@ const MiniJobCard = ({ jobData }) => {
   const cardWidth = width - 30; // Account for margins
 
   const imageList = [
-    'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
-    'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
-    'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
-    'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
-    'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
-    'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
+    // 'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
+    // 'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
+    // 'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
+    // 'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
+    // 'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
+    // 'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
   ];
 
   const displayImages = imageList.map((image, index) => ({

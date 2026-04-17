@@ -60,20 +60,25 @@ const HomeScreen = ({ navigation }) => {
   });
   
   // Apply search filter
-  const searchFilteredJobs = searchQuery.trim() === '' 
-    ? jobs 
-    : jobs.filter(job => {
-        const query = searchQuery.toLowerCase();
-        return (
-          job.title?.toLowerCase().includes(query) ||
-          job.description?.toLowerCase().includes(query) ||
-          job.tags?.toLowerCase().includes(query) ||
-          job.requirements?.toLowerCase().includes(query) ||
-          job.location?.address?.toLowerCase().includes(query) ||
-          job.createdBy?.firstName?.toLowerCase().includes(query) ||
-          job.createdBy?.lastName?.toLowerCase().includes(query)
-        );
-      });
+ const searchFilteredJobs = searchQuery.trim() === '' 
+  ? jobs 
+  : jobs.filter(job => {
+      const query = searchQuery.toLowerCase();
+
+      return (
+        job.title?.toLowerCase().includes(query) ||
+        job.description?.toLowerCase().includes(query) ||
+        (
+          Array.isArray(job.tags)
+            ? job.tags.join(' ').toLowerCase()
+            : job.tags?.toLowerCase() || ''
+        ).includes(query) ||
+        job.requirements?.toLowerCase().includes(query) ||
+        job.location?.address?.toLowerCase().includes(query) ||
+        job.createdBy?.firstName?.toLowerCase().includes(query) ||
+        job.createdBy?.lastName?.toLowerCase().includes(query)
+      );
+    });
   
   // Apply tag filters (multiselect with OR logic)
   const filteredJobs = selectedFilters.includes('All') 
