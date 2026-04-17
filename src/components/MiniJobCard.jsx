@@ -1,25 +1,21 @@
 // components/JobCard.js
+import { useNavigation } from '@react-navigation/native';
 import React, { useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  FlatList,
   Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { Colors } from '../styles/commonStyles';
-import { selectWishlistIds } from '../store/selector';
-import { handleWishlistToggle } from '../utils/wishlistUtils';
 import { useSnackbar } from '../contexts/SnackbarContext';
-import { getRelativeTime } from '../utils/timeUtils';
+import { selectWishlistIds } from '../store/selector';
+import { Colors } from '../styles/commonStyles';
 import { trimText } from '../utils/commonMethods';
+import { getRelativeTime } from '../utils/timeUtils';
+import { handleWishlistToggle } from '../utils/wishlistUtils';
 
 const MiniJobCard = ({ jobData }) => {
   const dispatch = useDispatch();
