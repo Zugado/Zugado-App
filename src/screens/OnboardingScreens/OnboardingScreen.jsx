@@ -154,6 +154,7 @@ export default function OnboardingScreen({ navigation }) {
       {/* Action Button */}
       <View style={styles.buttonWrapper}>
         <TouchableOpacity style={styles.getStartedButton} onPress={handleNext}>
+
           <Text style={styles.getStartedButtonText}>
             {isLastScreen ? 'Get Started' : 'Next'}
           </Text>
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, color: '#6B7280', textAlign: 'center', marginBottom: 40, lineHeight: 24 },
   dotsWrapper: { alignItems: 'center', marginBottom: 20 },
   buttonWrapper: { paddingHorizontal: 30, paddingBottom: 30 },
-  getStartedButton: { backgroundColor: '#000', paddingVertical: 18, borderRadius: 30, alignItems: 'center', width: '100%', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 5, elevation: 8 },
+  getStartedButton: { backgroundColor: '#000', paddingVertical: 14, borderRadius: 30, alignItems: 'center', width: '100%', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 5, elevation: 8 },
   getStartedButtonText: { color: '#FFF', fontWeight: '600', fontSize: 16 },
   modalOverlay: {
     flex: 1,

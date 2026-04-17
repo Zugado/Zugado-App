@@ -37,181 +37,14 @@ import MyStatusBar from '../components/MyStatusbar';
 import ImagePreviewModal from '../components/ImagePreviewModal';
 import { Colors } from '../styles/commonStyles';
 
-const InfoBox = ({
-  iconName,
-  title,
-  value,
-  field,
-  isEditingProfile,
-  activeEditField,
-  onEditFieldToggle,
-  onInputChange,
-  editValue,
-  isDropdown,
-  options,
-  onDropdownSelect,
-  showDropdown,
-  onDropdownToggle,
-}) => {
-  const isFieldEditing = isEditingProfile && activeEditField === field;
-
-  const infoBoxStyles = {
-    infoBox: {
-      width: '48%',
-      backgroundColor: '#f7f7f7',
-      borderRadius: 15,
-      padding: 12,
-      marginBottom: 10,
-      flexDirection: 'row',
-      alignItems: 'center',
-      position: 'relative',
-      zIndex: showDropdown ? 10000 : 1,
-      elevation: showDropdown ? 15 : 4,
-      overflow: 'visible',
-
-      // iOS shadow
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
-    },
-    infoIconContainer: {
-      marginRight: 12,
-    },
-    infoTextContainer: {
-      flex: 1,
-    },
-    infoTitle: {
-      fontSize: 12,
-      color: '#777',
-      marginBottom: 2,
-    },
-    infoValue: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      color: '#000',
-    },
-    fieldEditButton: {
-      padding: 6,
-      borderRadius: 12,
-      backgroundColor: '#f0f0f0',
-    },
-    activeFieldEditButton: {
-      backgroundColor: '#000',
-    },
-    editInput: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      color: '#000',
-      borderBottomWidth: isFieldEditing ? 1 : 0,
-      borderBottomColor: '#ddd',
-      paddingBottom: 4,
-    },
-    dropdownButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-    dropdownMenu: {
-      position: 'absolute',
-      top: 40,
-      left: 0,
-      right: 0,
-      backgroundColor: '#fff',
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: '#ddd',
-      zIndex: 9999,
-      elevation: 10,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      maxHeight: 150,
-    },
-    dropdownItem: {
-      padding: 10,
-      borderBottomWidth: 1,
-      borderBottomColor: '#f0f0f0',
-    },
-    dropdownText: {
-      fontSize: 12,
-      color: '#000',
-    },
-  };
-
-  return (
-    <View style={infoBoxStyles.infoBox}>
-      <View style={infoBoxStyles.infoIconContainer}>
-        <Feather name={iconName} size={20} color="#666" />
-      </View>
-      <View style={infoBoxStyles.infoTextContainer}>
-        <Text style={infoBoxStyles.infoTitle}>{title}</Text>
-        {isFieldEditing ? (
-          isDropdown ? (
-            <View>
-              <TouchableOpacity
-                style={infoBoxStyles.dropdownButton}
-                onPress={onDropdownToggle}
-              >
-                <Text style={infoBoxStyles.infoValue}>{editValue}</Text>
-                <Feather name="chevron-down" size={16} color="#666" />
-              </TouchableOpacity>
-              {showDropdown && (
-                <View style={infoBoxStyles.dropdownMenu}>
-                  {options.map(option => (
-                    <TouchableOpacity
-                      key={option}
-                      style={infoBoxStyles.dropdownItem}
-                      onPress={() => onDropdownSelect(field, option)}
-                    >
-                      <Text style={infoBoxStyles.dropdownText}>{option}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-          ) : (
-            <TextInput
-              style={infoBoxStyles.editInput}
-              value={editValue}
-              onChangeText={text => onInputChange(field, text)}
-              keyboardType={
-                field === 'mobile' || field === 'age' ? 'numeric' : 'default'
-              }
-              autoFocus={true}
-            />
-          )
-        ) : (
-          <Text style={infoBoxStyles.infoValue}>{value}</Text>
-        )}
-      </View>
-
-      {/* Individual Edit Toggle Button */}
-      {isEditingProfile && (
-        <TouchableOpacity
-          style={[
-            infoBoxStyles.fieldEditButton,
-            isFieldEditing && infoBoxStyles.activeFieldEditButton,
-          ]}
-          onPress={() => onEditFieldToggle(field)}
-        >
-          <Feather
-            name={isFieldEditing ? 'check' : 'edit-2'}
-            size={14}
-            color={isFieldEditing ? '#fff' : '#666'}
-          />
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-};
-
 const ProBadge = ({ isPro = true }) => {
   // if (!isPro) return null;
   return (
     <View style={styles.proBadgeContainer}>
-      <Image source={require('../assets/proBadge.png')} style={styles.proBadgeImage} />
+      <Image
+        source={require('../assets/proBadge.png')}
+        style={styles.proBadgeImage}
+      />
     </View>
   );
 };
@@ -574,12 +407,14 @@ export default function ProfileScreen({ navigation }) {
               source={
                 user?.avatar
                   ? { uri: user.avatar }
-                  : require('../assets/profile.png')
+                  : {
+                      uri: 'https://tamilnaducouncil.ac.in/wp-content/uploads/2020/04/dummy-avatar.jpg',
+                    }
               }
               style={styles.profileImage}
             />
           </TouchableOpacity>
-            <ProBadge isPro={user?.isPro} />
+          <ProBadge isPro={user?.isPro} />
         </View>
       </View>
 
@@ -603,9 +438,10 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.profileHeader}>
           <View style={styles.nameContainer}>
             <Text style={styles.profileName}>
-              {`${user?.firstName || ''} ${user?.middleName || ''} ${user?.lastName || ''}` || 'User Name'}
+              {`${user?.firstName || ''} ${user?.middleName || ''} ${
+                user?.lastName || ''
+              }` || 'User Name'}
             </Text>
-          
           </View>
 
           <View style={styles.subHeader}>
@@ -1140,7 +976,7 @@ const styles = StyleSheet.create({
     right: 2,
     padding: 4,
     backgroundColor: Colors.primary,
-    borderRadius:20,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#eac11c',
     shadowColor: '#FFD700',

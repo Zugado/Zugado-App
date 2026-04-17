@@ -523,13 +523,13 @@ export default function JobDetailedScreen({ navigation, route }) {
               label="Experience"
               value={getExperienceText(jobData.experienceLevel)}
             />
-          
+
             <DetailRow
               icon="clock"
               label="Timing"
               value={getTimingText(jobData.timingType, jobData.timingDetails)}
             />
-              {jobData.location ? (
+            {jobData.location ? (
               <TouchableOpacity
                 style={styles.detailRow}
                 onPress={() =>
@@ -550,7 +550,9 @@ export default function JobDetailedScreen({ navigation, route }) {
                   <Text style={styles.detailLabelText}>Location</Text>
                 </View>
                 <View style={styles.locationValueContainer}>
-                  <Text style={[styles.detailValue,{color: '#002880' }]}>{locationText}</Text>
+                  <Text style={[styles.detailValue, { color: '#002880' }]}>
+                    {locationText}
+                  </Text>
                   <View
                     style={{
                       marginLeft: 4,
@@ -595,7 +597,31 @@ export default function JobDetailedScreen({ navigation, route }) {
       <View style={styles.footer}>
         {/* Budget */}
         <View>
-          <Text style={styles.budgetLabel}>Budget</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 4,
+            }}
+          >
+            <Text style={styles.budgetLabel}>Budget</Text>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '500',
+                color: '#6B7280',
+                marginLeft: 8,
+                paddingHorizontal: 6,
+                paddingVertical: 2,
+                backgroundColor: jobData.amount?.negotiable
+                  ? '#c5f7d6'
+                  : '#ffc6b8d6',
+                borderRadius: 12,
+              }}
+            >
+              {jobData.amount?.negotiable ? 'Negotiable' : 'Non Negotiable'}
+            </Text>
+          </View>
           <Text style={styles.budgetValue}>
             {/* <FontAwesome name="dollar" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min >= 0 || jobData.amount?.max >= 0) ? `${jobData.amount.min}-${jobData.amount.max}` : 'Not Disclosed'} */}
             <FontAwesome name="rupee" size={16} color="#16A34A" />{' '}
