@@ -169,7 +169,7 @@ export default function JobDetailedScreen({ navigation, route }) {
     item => item?.job?._id === jobId || item?.jobId === jobId,
   );
   const disableApply = isCreator || alreadyApplied || isGuest;
-  const disableChat = isCreator || isGuest;
+  const disableChat = isCreator || isGuest || jobData?.bid?.status === 'rejected';
   const isWishlisted = wishlistIds.includes(jobId);
 
   useEffect(() => {

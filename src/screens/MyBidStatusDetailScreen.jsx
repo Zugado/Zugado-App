@@ -119,7 +119,7 @@ const MyBidStatusDetailScreen = () => {
         navigation.navigate('ChatingScreen', { chatData: result.data });
       }
     } catch (err) {
-      console.log("Errror initiating chat:", err);
+      console.log('Errror initiating chat:', err);
       showSnackbar('Could not open chat. Try again.', 'error');
     } finally {
       setChatLoading(false);
@@ -166,7 +166,7 @@ const MyBidStatusDetailScreen = () => {
     </View>
   );
 
-  const ActionButtons = ({ showChat = true }) => (
+  const ActionButtons = () => (
     <View style={styles.actionButtonsRow}>
       <TouchableOpacity
         onPress={() =>
@@ -176,11 +176,8 @@ const MyBidStatusDetailScreen = () => {
       >
         <Text style={styles.detailButtonText}>View Detail</Text>
       </TouchableOpacity>
-      {showChat && (
-        <TouchableOpacity
-          style={styles.chatButton}
-          onPress={handleChatPress}
-        >
+      {bidStatus !== 'rejected' && (
+        <TouchableOpacity style={styles.chatButton} onPress={handleChatPress}>
           <Text style={styles.chatButtonText}>Chat</Text>
         </TouchableOpacity>
       )}
@@ -333,7 +330,7 @@ const MyBidStatusDetailScreen = () => {
         </TouchableOpacity>
 
         {/* Cancel row — hidden when bid is accepted */}
-        {bidStatus !== 'accepted' && (
+        {(bidStatus !== 'accepted' || bidStatus === 'rejected') && (
           <View style={styles.refundRow}>
             <Text style={styles.refundText}>
               Your Bid Will be Refunded If you{' '}
