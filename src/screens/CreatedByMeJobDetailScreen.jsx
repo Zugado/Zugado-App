@@ -86,11 +86,12 @@ const BidCard = ({ bid, actionLoading, chatLoading, onAction, onChat }) => {
             <Text style={styles.userName}>
               {bid?.bidder?.name || 'Unknown'}
             </Text>
-            <Text style={styles.userPhone}>
-              {bid?.bidder?.mobile
+            {/* <Text style={styles.userPhone}>
+               {bid?.bidder?.mobile
                 ? `+91 ${bid.bidder.mobile}`
-                : bid?.bidder?.email || ''}
-            </Text>
+                : bid?.bidder?.email || ''} 
+                
+            </Text> */}
             <View style={styles.ratingRow}>
               <MaterialIcons name="star" size={12} color="#FFC107" />
               <Text style={styles.ratingText}>

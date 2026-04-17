@@ -236,7 +236,7 @@ const ManageJobScreen = () => {
   );
 
   // console.log('Created Jobs:', createdJobs); //state.job.jobs.jobs;
-  // console.log('Applied Jobs:', JSON.stringify(appliedJobs, null, 2)); //state.job.jobs.jobs;
+  console.log('Applied Jobs:', JSON.stringify(appliedJobs, null, 2)); //state.job.jobs.jobs;
 
   useEffect(() => {
     loadInitialData();

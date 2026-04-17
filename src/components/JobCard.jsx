@@ -84,7 +84,10 @@ const JobCard = ({ job, showButttons = true }) => {
     setChatLoading(true);
     try {
       const result = await dispatch(
-        startNewChat({ jobId: jobData._id, participantId: jobData.createdBy._id }),
+        startNewChat({
+          jobId: jobData._id,
+          participantId: jobData.createdBy._id,
+        }),
       ).unwrap();
       if (result?.data) {
         navigation.navigate('ChatingScreen', { chatData: result.data });
@@ -114,10 +117,17 @@ const JobCard = ({ job, showButttons = true }) => {
   const getLocationDisplay = () => {
     if (jobData?.locationType === 'remote') return 'Remote';
     if (isLoadingCity) return null;
-    if (cityName && jobData?.distanceFromUser !== null && jobData?.distanceFromUser !== undefined) {
+    if (
+      cityName &&
+      jobData?.distanceFromUser !== null &&
+      jobData?.distanceFromUser !== undefined
+    ) {
       return `${cityName} - ${formatDistance(jobData.distanceFromUser)}`;
     }
-     if ( jobData?.distanceFromUser !== null && jobData?.distanceFromUser !== undefined) {
+    if (
+      jobData?.distanceFromUser !== null &&
+      jobData?.distanceFromUser !== undefined
+    ) {
       return `${formatDistance(jobData?.distanceFromUser)}`;
     }
     return 'Distance N/A';
@@ -125,7 +135,12 @@ const JobCard = ({ job, showButttons = true }) => {
 
   if (jobLoading) {
     return (
-      <View style={[styles.cardContainer, { height: 120, justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.cardContainer,
+          { height: 120, justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
         <DotLoader color="#000" size={6} />
       </View>
     );
@@ -149,7 +164,12 @@ const JobCard = ({ job, showButttons = true }) => {
               <TouchableOpacity
                 activeOpacity={showButttons ? 1 : 0.7}
                 disabled={!showButttons}
-                onPress={() => showButttons && navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })}
+                onPress={() =>
+                  showButttons &&
+                  navigation.navigate('JobDetailedScreen', {
+                    jobId: jobData?._id,
+                  })
+                }
               >
                 <Image
                   source={{ uri: item }}
@@ -168,7 +188,9 @@ const JobCard = ({ job, showButttons = true }) => {
               <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.locationIcon} />
                 <Text style={styles.overlayText}>
-                  {jobData?.createdAt ? getRelativeTime(jobData.createdAt) : '23 hrs left'}
+                  {jobData?.createdAt
+                    ? getRelativeTime(jobData.createdAt)
+                    : '23 hrs left'}
                 </Text>
               </View>
               {imageList?.length > 1 && (
@@ -197,7 +219,9 @@ const JobCard = ({ job, showButttons = true }) => {
         </View>
       )}
       {/* ---------- This is to make height ---------- */}
-      {(imageList?.length === 0 || imageList === undefined) && <View style={styles.emptyImageHeight} />}
+      {(imageList?.length === 0 || imageList === undefined) && (
+        <View style={styles.emptyImageHeight} />
+      )}
       {/* ---------- URGENT TAG ---------- */}
       {isUrgent && (
         <View style={styles.urgentTag}>
@@ -225,31 +249,50 @@ const JobCard = ({ job, showButttons = true }) => {
       <TouchableOpacity
         activeOpacity={0.85}
         disabled={!showButttons}
-        onPress={() => showButttons && navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })}
+        onPress={() =>
+          showButttons &&
+          navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })
+        }
       >
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={styles.row}>
-            <Text style={styles.title}>{trimText(jobData?.title, 40) || 'Job Title'}</Text>
+            <Text style={styles.title}>
+              {trimText(jobData?.title, 40) || 'Job Title'}
+            </Text>
             <Text style={styles.price}>
-              {jobData?.amount?.disclose && jobData?.amount?.max ? `₹ ${jobData.amount.max}` : 'Not disclosed'}
+              {jobData?.amount?.disclose
+                ? jobData.amount?.min >= 0 && jobData.amount?.max >= 0
+                  ? `₹ ${jobData.amount.min} - ${jobData.amount.max}`
+                  : jobData.amount?.value >= 0
+                  ? `₹ ${jobData.amount.value}`
+                  : 'Not disclosed'
+                : 'Not disclosed'}
             </Text>
           </View>
 
           {/* Description */}
-          <Text style={styles.description}>{jobData?.description || 'No description available'}</Text>
+          <Text style={styles.description}>
+            {jobData?.description || 'No description available'}
+          </Text>
 
           <View style={styles.badgeRow}>
             {jobData?.jobType && (
               <View style={styles.badge}>
                 <Feather name="zap" size={11} color="#fff" />
-                <Text style={styles.badgeText}>{jobData.jobType.charAt(0).toUpperCase() + jobData.jobType.slice(1)}</Text>
+                <Text style={styles.badgeText}>
+                  {jobData.jobType.charAt(0).toUpperCase() +
+                    jobData.jobType.slice(1)}
+                </Text>
               </View>
             )}
             {jobData?.timingType && (
               <View style={[styles.badge, { backgroundColor: '#6B7280' }]}>
                 <Feather name="clock" size={11} color="#fff" />
-                <Text style={styles.badgeText}>{jobData.timingType.charAt(0).toUpperCase() + jobData.timingType.slice(1)}</Text>
+                <Text style={styles.badgeText}>
+                  {jobData.timingType.charAt(0).toUpperCase() +
+                    jobData.timingType.slice(1)}
+                </Text>
               </View>
             )}
           </View>
@@ -259,7 +302,11 @@ const JobCard = ({ job, showButttons = true }) => {
             <View style={styles.noImageInfoContainer}>
               <View style={styles.infoRow}>
                 <MaterialIcons name="watch-later" style={styles.noImageIcon} />
-                <Text style={styles.noImageText}>{jobData?.createdAt ? getRelativeTime(jobData.createdAt) : '23 hrs left'}</Text>
+                <Text style={styles.noImageText}>
+                  {jobData?.createdAt
+                    ? getRelativeTime(jobData.createdAt)
+                    : '23 hrs left'}
+                </Text>
               </View>
               <View style={styles.infoRow}>
                 <MaterialIcons name="location-on" style={styles.noImageIcon} />
@@ -271,16 +318,21 @@ const JobCard = ({ job, showButttons = true }) => {
               </View>
             </View>
           )}
-          
+
           {/* Vendor + Ratings */}
           <View style={styles.row}>
             <Text style={styles.vendorName}>
-              {jobData?.createdBy ? `${jobData.createdBy.firstName} ${jobData.createdBy.lastName}` : 'Unknown'}
+              {jobData?.createdBy
+                ? `${jobData.createdBy.firstName} ${jobData.createdBy.lastName}`
+                : 'Unknown'}
             </Text>
             <View style={styles.ratingContainer}>
               <FontAwesome name="star" style={styles.starIcon} />
               <Text style={styles.ratingText}>
-                {jobData?.creatorRating !== undefined && jobData?.creatorRating !== null ? jobData.creatorRating : 'N/A'}
+                {jobData?.creatorRating !== undefined &&
+                jobData?.creatorRating !== null
+                  ? jobData.creatorRating
+                  : 'N/A'}
               </Text>
             </View>
           </View>
@@ -292,7 +344,9 @@ const JobCard = ({ job, showButttons = true }) => {
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.bidButton}
-                onPress={() => navigation.navigate('BidPlacementScreen', { job: jobData })}
+                onPress={() =>
+                  navigation.navigate('BidPlacementScreen', { job: jobData })
+                }
               >
                 <Text style={styles.bidButtonText}>Bid</Text>
               </TouchableOpacity>

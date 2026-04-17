@@ -11,7 +11,7 @@ import {
   FlatList,
   Dimensions,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -158,7 +158,18 @@ export default function JobDetailedScreen({ navigation, route }) {
   const flatListRef = useRef(null);
   const intervalRef = useRef(null);
   const jobId = route.params?.jobId;
+  const appliedJobs = useSelector(
+    state => state.job?.myAllBids || [],
+    shallowEqual,
+  );
+  const { user, isGuest } = useSelector(state => state.auth);
 
+  const isCreator = jobData?.createdBy?._id === (user?._id || user?.id);
+  const alreadyApplied = appliedJobs.some(
+    item => item?.job?._id === jobId || item?.jobId === jobId,
+  );
+  const disableApply = isCreator || alreadyApplied || isGuest;
+  const disableChat = isCreator || isGuest;
   const isWishlisted = wishlistIds.includes(jobId);
 
   useEffect(() => {
@@ -623,11 +634,13 @@ export default function JobDetailedScreen({ navigation, route }) {
             </Text>
           </View>
           <Text style={styles.budgetValue}>
-            {/* <FontAwesome name="dollar" size={16} color="#16A34A" /> {jobData.amount?.disclose && (jobData.amount?.min >= 0 || jobData.amount?.max >= 0) ? `${jobData.amount.min}-${jobData.amount.max}` : 'Not Disclosed'} */}
             <FontAwesome name="rupee" size={16} color="#16A34A" />{' '}
-            {jobData.amount?.disclose &&
-            (jobData.amount?.min >= 0 || jobData.amount?.max >= 0)
-              ? `${jobData.amount.max}`
+            {jobData?.amount?.disclose
+              ? jobData.amount?.min >= 0 && jobData.amount?.max >= 0
+                ? `${jobData.amount.min} - ${jobData.amount.max}`
+                : jobData.amount?.value >= 0
+                ? `${jobData.amount.value}`
+                : 'Not Disclosed'
               : 'Not Disclosed'}
           </Text>
         </View>
@@ -635,9 +648,9 @@ export default function JobDetailedScreen({ navigation, route }) {
         {/* Action Buttons */}
         <View style={styles.actions}>
           <TouchableOpacity
-            style={styles.iconAction}
+            style={[styles.iconAction, disableChat && { opacity: 0.4 }]}
             onPress={handleChatPress}
-            disabled={chatLoading}
+            disabled={chatLoading || disableChat}
           >
             <Feather
               name={chatLoading ? 'loader' : 'message-square'}
@@ -649,7 +662,8 @@ export default function JobDetailedScreen({ navigation, route }) {
             onPress={() =>
               navigation.navigate('BidPlacementScreen', { job: jobData })
             }
-            style={styles.applyButton}
+            style={[styles.applyButton, disableApply && { opacity: 0.4 }]}
+            disabled={disableApply}
           >
             <Text style={styles.applyText}>Apply</Text>
             <Feather name="chevron-down" size={16} color="#fff" />
