@@ -8,7 +8,11 @@ import {
 } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Colors } from '../styles/commonStyles';
 import { getRelativeTime } from '../utils/timeUtils';
@@ -18,6 +22,8 @@ import MyStatusBar from '../components/MyStatusbar';
 import Feather from 'react-native-vector-icons/Feather';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllMyBids } from '../store/thunks/bidThunk';
+import { startNewChat } from '../store/thunks/chatThunk';
+import { useSnackbar } from '../contexts/SnackbarContext';
 
 const MyBidStatusDetailScreen = () => {
   const navigation = useNavigation();
@@ -25,9 +31,10 @@ const MyBidStatusDetailScreen = () => {
   const dispatch = useDispatch();
   const [showCancelWarning, setShowCancelWarning] = useState(false);
   const { jobData } = route.params || {};
-
+  const [chatLoading, setChatLoading] = useState(false);
   const job = jobData?.job;
   const jobId = job?._id;
+  const { showSnackbar } = useSnackbar();
 
   // Always read the live bid from Redux so edits are reflected immediately on back-navigate.
   // Fall back to route.params bid only if Redux hasn't loaded yet.
@@ -91,7 +98,33 @@ const MyBidStatusDetailScreen = () => {
     // TODO: dispatch cancel bid API
   };
   const statusConfig = getBidStatusConfig();
+  /**
+   * Initiate or retrieve an existing chat for this job.
+   * POST /api/chat/initiate  { jobId, participantId: jobData.createdBy._id }
+   * Navigates to ChatingScreen with the returned conversation object.
+   */
+  const handleChatPress = async () => {
+    if (chatLoading || !jobData?.createdBy?._id) return;
+    setChatLoading(true);
+    try {
+      const result = await dispatch(
+        startNewChat({
+          jobId: jobData._id,
+          participantId: jobData.createdBy._id,
+        }),
+      ).unwrap();
+      if (result?.data) {
+        //  console.log("Rendering chat item in job detail screen:", result.data);
+        navigation.navigate('ChatingScreen', { chatData: result.data });
+      }
+    } catch (err) {
+      showSnackbar('Could not open chat. Try again.', 'error');
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
+  
   const JobInfoSection = ({ children }) => (
     <View style={styles.cardContainer}>
       <View style={styles.contentContainer}>{children}</View>
@@ -143,7 +176,7 @@ const MyBidStatusDetailScreen = () => {
         <Text style={styles.detailButtonText}>View Detail</Text>
       </TouchableOpacity>
       {showChat && (
-        <TouchableOpacity style={styles.chatButton}>
+        <TouchableOpacity style={styles.chatButton} onPress={handleChatPress}>
           <Text style={styles.chatButtonText}>Chat</Text>
         </TouchableOpacity>
       )}
@@ -298,7 +331,9 @@ const MyBidStatusDetailScreen = () => {
         {/* Cancel row — hidden when bid is accepted */}
         {bidStatus !== 'accepted' && (
           <View style={styles.refundRow}>
-            <Text style={styles.refundText}>Your Bid Will be Refunded If you </Text>
+            <Text style={styles.refundText}>
+              Your Bid Will be Refunded If you{' '}
+            </Text>
             <TouchableOpacity onPress={() => setShowCancelWarning(true)}>
               <Text style={styles.refundBold}>Cancel Now</Text>
             </TouchableOpacity>
