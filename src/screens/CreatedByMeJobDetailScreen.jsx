@@ -217,10 +217,10 @@ const BidCard = ({ bid, actionLoading, chatLoading, onAction, onChat }) => {
             <TouchableOpacity
               style={[
                 styles.chatButton,
-                isChatInitiating && styles.buttonDisabled,
+                isChatInitiating || bid?.status === 'rejected' ? styles.buttonDisabled : null,
               ]}
               onPress={() => onChat(bid)}
-              disabled={isChatInitiating}
+              disabled={isChatInitiating || bid?.status === 'rejected'}
               activeOpacity={0.85}
             >
               {isChatInitiating ? (

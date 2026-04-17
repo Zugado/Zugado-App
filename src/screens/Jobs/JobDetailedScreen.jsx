@@ -666,7 +666,7 @@ export default function JobDetailedScreen({ navigation, route }) {
             disabled={disableApply}
           >
             <Text style={styles.applyText}>Apply</Text>
-            <Feather name="chevron-down" size={16} color="#fff" />
+            <Feather name="chevron-right" size={16} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
