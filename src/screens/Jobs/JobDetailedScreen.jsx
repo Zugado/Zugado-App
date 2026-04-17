@@ -607,7 +607,7 @@ export default function JobDetailedScreen({ navigation, route }) {
             <Text style={styles.budgetLabel}>Budget</Text>
             <Text
               style={{
-                fontSize: 12,
+                fontSize: 10,
                 fontWeight: '500',
                 color: '#6B7280',
                 marginLeft: 8,
@@ -615,7 +615,7 @@ export default function JobDetailedScreen({ navigation, route }) {
                 paddingVertical: 2,
                 backgroundColor: jobData.amount?.negotiable
                   ? '#c5f7d6'
-                  : '#ffc6b8d6',
+                  : '#ffd1c6d6',
                 borderRadius: 12,
               }}
             >

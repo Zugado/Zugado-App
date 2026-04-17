@@ -631,10 +631,17 @@ export default function ProfileScreen({ navigation }) {
               onPress={() => navigation.navigate('WishlistScreen')}
             >
               <View style={styles.settingsIconContainer}>
-                <Image
-                  source={require('../assets/Icons/SavedGolden.png')}
-                  style={styles.settingsWishlistIcon}
-                />
+                {wishlist.length > 0 ? (
+                  <Image
+                    source={require('../assets/Icons/SavedGolden.png')}
+                    style={styles.settingsWishlistIcon}
+                  />
+                ) : (
+                  <Image
+                    source={require('../assets/Icons/SavedBlack.png')}
+                    style={styles.settingsWishlistIcon}
+                  />
+                )} 
               </View>
               <View style={styles.settingsContent}>
                 <Text style={styles.settingsItemTitle}>My Wishlist</Text>
