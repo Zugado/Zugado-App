@@ -151,8 +151,8 @@ export default function JobDetailedScreen({ navigation, route }) {
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [locationText, setLocationText] = useState('Loading...');
-  const [hasBidded, setHasBidded] = useState(hasBiddedOnJob(route.params?.jobId));
-  const [hasCreated, setHasCreated] = useState(hasCreatedJob(route.params?.jobId));
+  // const [hasBidded, setHasBidded] = useState(hasBiddedOnJob(route.params?.jobId));
+  // const [hasCreated, setHasCreated] = useState(hasCreatedJob(route.params?.jobId));
   // Track chat button loading state to prevent double-taps
   const [chatLoading, setChatLoading] = useState(false);
   const flatListRef = useRef(null);

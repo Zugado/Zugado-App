@@ -313,7 +313,7 @@ const MyBidStatusDetailScreen = () => {
         </JobInfoSection>
 
         {/* Action Button */}
-        <TouchableOpacity
+        {bidStatus !== 'rejected' && (<TouchableOpacity
           style={[
             styles.mainActionButton,
             {
@@ -327,10 +327,10 @@ const MyBidStatusDetailScreen = () => {
           <Text style={styles.mainActionButtonText}>
             {statusConfig.buttonText}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity>)}
 
         {/* Cancel row — hidden when bid is accepted */}
-        {(bidStatus !== 'accepted' || bidStatus === 'rejected') && (
+        {(bidStatus !== 'accepted' && bidStatus !== 'rejected') && (
           <View style={styles.refundRow}>
             <Text style={styles.refundText}>
               Your Bid Will be Refunded If you{' '}
