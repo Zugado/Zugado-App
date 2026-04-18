@@ -1,31 +1,29 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
-  Modal,
-  FlatList,
   Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Video from 'react-native-video';
+import { CommonAppBar } from '../../components/CommonComponents';
 import MyStatusBar from '../../components/MyStatusbar';
+import { useSnackbar } from '../../contexts/SnackbarContext';
+import { hasBiddedOnJob, hasCreatedJob, selectWishlistIds } from '../../store/selector';
 import { getJobById } from '../../store/thunks/jobThunk';
 import { getWishlist } from '../../store/thunks/wishlistThunk';
-import { selectWishlistIds } from '../../store/selector';
-import { useSnackbar } from '../../contexts/SnackbarContext';
-import { handleWishlistToggle } from '../../utils/wishlistUtils';
 import { getLocationFromCoordinates } from '../../utils/locationUtils';
-import Video from 'react-native-video';
-import { selectToken } from '../../store/selector';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CommonAppBar } from '../../components/CommonComponents';
+import { handleWishlistToggle } from '../../utils/wishlistUtils';
 // Chat thunk — initiates or retrieves existing conversation before navigating
 import { startNewChat } from '../../store/thunks/chatThunk';
 
@@ -153,6 +151,8 @@ export default function JobDetailedScreen({ navigation, route }) {
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [locationText, setLocationText] = useState('Loading...');
+  const [hasBidded, setHasBidded] = useState(hasBiddedOnJob(route.params?.jobId));
+  const [hasCreated, setHasCreated] = useState(hasCreatedJob(route.params?.jobId));
   // Track chat button loading state to prevent double-taps
   const [chatLoading, setChatLoading] = useState(false);
   const flatListRef = useRef(null);
@@ -183,7 +183,7 @@ export default function JobDetailedScreen({ navigation, route }) {
     if (jobData?.location?.coordinates) {
       getLocationFromCoordinates(jobData.location.coordinates).then(
         ({ locality, city, state }) => {
-          setLocationText(`${locality}, ${city}, ${state}`);
+          setLocationText(`${locality}, ${city}, ${state}`);2
         },
       );
     }
@@ -191,7 +191,7 @@ export default function JobDetailedScreen({ navigation, route }) {
 
   const fetchJobDetails = async () => {
     try {
-      setLoading(true);
+      setLoading(true);2
       const response = await dispatch(getJobById(jobId));
       if (response.payload?.success) {
         setJobData(response.payload.data);
@@ -203,6 +203,7 @@ export default function JobDetailedScreen({ navigation, route }) {
       setLoading(false);
     }
   };
+  console.log('Job data in render:', jobData);
 
   /**
    * Initiate or retrieve an existing chat for this job.
@@ -554,7 +555,7 @@ export default function JobDetailedScreen({ navigation, route }) {
                 <View style={styles.detailLabel}>
                   <Feather
                     name="map-pin"
-                    size={16}
+                    size={16} 
                     color="#6B7280"
                     style={{ marginRight: 8 }}
                   />
@@ -658,16 +659,17 @@ export default function JobDetailedScreen({ navigation, route }) {
               color="#fff"
             />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('BidPlacementScreen', { job: jobData })
-            }
-            style={[styles.applyButton, disableApply && { opacity: 0.4 }]}
-            disabled={disableApply}
-          >
-            <Text style={styles.applyText}>Apply</Text>
-            <Feather name="chevron-right" size={16} color="#fff" />
-          </TouchableOpacity>
+          {!disableApply  && (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('BidPlacementScreen', { job: jobData })
+              }
+              style={styles.applyButton}
+            >
+              <Text style={styles.applyText}>Apply</Text>
+              {/* <Feather name="chevron-down" size={16} color="#fff" /> */}
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
