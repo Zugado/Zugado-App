@@ -19,13 +19,18 @@ import Video from 'react-native-video';
 import { CommonAppBar } from '../../components/CommonComponents';
 import MyStatusBar from '../../components/MyStatusbar';
 import { useSnackbar } from '../../contexts/SnackbarContext';
-import { hasBiddedOnJob, hasCreatedJob, selectWishlistIds } from '../../store/selector';
+import {
+  hasBiddedOnJob,
+  hasCreatedJob,
+  selectWishlistIds,
+} from '../../store/selector';
 import { getJobById } from '../../store/thunks/jobThunk';
 import { getWishlist } from '../../store/thunks/wishlistThunk';
 import { getLocationFromCoordinates } from '../../utils/locationUtils';
 import { handleWishlistToggle } from '../../utils/wishlistUtils';
 // Chat thunk — initiates or retrieves existing conversation before navigating
 import { startNewChat } from '../../store/thunks/chatThunk';
+import { Colors } from '../../styles/commonStyles';
 
 // Mock data for Task Details section
 const jobDetailsData = [
@@ -163,13 +168,14 @@ export default function JobDetailedScreen({ navigation, route }) {
     shallowEqual,
   );
   const { user, isGuest } = useSelector(state => state.auth);
-
+  const isUrgent = jobData?.jobType === 'quick';
   const isCreator = jobData?.createdBy?._id === (user?._id || user?.id);
   const alreadyApplied = appliedJobs.some(
     item => item?.job?._id === jobId || item?.jobId === jobId,
   );
   const disableApply = isCreator || alreadyApplied || isGuest;
-  const disableChat = isCreator || isGuest || jobData?.bid?.status === 'rejected';
+  const disableChat =
+    isCreator || isGuest || jobData?.bid?.status === 'rejected';
   const isWishlisted = wishlistIds.includes(jobId);
 
   useEffect(() => {
@@ -183,7 +189,8 @@ export default function JobDetailedScreen({ navigation, route }) {
     if (jobData?.location?.coordinates) {
       getLocationFromCoordinates(jobData.location.coordinates).then(
         ({ locality, city, state }) => {
-          setLocationText(`${locality}, ${city}, ${state}`);2
+          setLocationText(`${locality}, ${city}, ${state}`);
+          2;
         },
       );
     }
@@ -191,7 +198,8 @@ export default function JobDetailedScreen({ navigation, route }) {
 
   const fetchJobDetails = async () => {
     try {
-      setLoading(true);2
+      setLoading(true);
+      2;
       const response = await dispatch(getJobById(jobId));
       if (response.payload?.success) {
         setJobData(response.payload.data);
@@ -377,6 +385,15 @@ export default function JobDetailedScreen({ navigation, route }) {
                 style={styles.bookmarkIcon}
               />
             </TouchableOpacity>
+            {isUrgent && (
+              <View style={styles.urgentTag}>
+                <Image
+                  source={require('../../assets/Icons/urgentTag.png')}
+                  style={styles.urgentTagImage}
+                />
+                <Text style={styles.urgentText}>Urgent</Text>
+              </View>
+            )}
           </View>
         ) : (
           <View style={styles.imageContainer}>
@@ -397,6 +414,15 @@ export default function JobDetailedScreen({ navigation, route }) {
                 style={styles.bookmarkIcon}
               />
             </TouchableOpacity>
+            {isUrgent && (
+              <View style={styles.urgentTag}>
+                <Image
+                  source={require('../../assets/Icons/urgentTag.png')}
+                  style={styles.urgentTagImage}
+                />
+                <Text style={styles.urgentText}>Urgent</Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -419,11 +445,7 @@ export default function JobDetailedScreen({ navigation, route }) {
           {/* Task Title and Status */}
           <View style={styles.titleRow}>
             <Text style={styles.jobTitle}>{jobData.title || 'NA'}</Text>
-            {jobData.jobType === 'quick' && (
-              <View style={styles.statusBadge}>
-                <Text style={styles.statusText}>Urgent</Text>
-              </View>
-            )}
+            
           </View>
           {/* Creator Info + Rating */}
           <View style={styles.creatorRow}>
@@ -555,7 +577,7 @@ export default function JobDetailedScreen({ navigation, route }) {
                 <View style={styles.detailLabel}>
                   <Feather
                     name="map-pin"
-                    size={16} 
+                    size={16}
                     color="#6B7280"
                     style={{ marginRight: 8 }}
                   />
@@ -659,17 +681,16 @@ export default function JobDetailedScreen({ navigation, route }) {
               color="#fff"
             />
           </TouchableOpacity>
-          {!disableApply  && (
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('BidPlacementScreen', { job: jobData })
-              }
-              style={styles.applyButton}
-            >
-              <Text style={styles.applyText}>Apply</Text>
-              {/* <Feather name="chevron-down" size={16} color="#fff" /> */}
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            disabled={disableApply}
+            onPress={() =>
+              navigation.navigate('BidPlacementScreen', { job: jobData })
+            }
+            style={[styles.applyButton, disableApply && { opacity: 0.4 }]}
+          >
+            <Text style={styles.applyText}>Apply</Text>
+            {/* <Feather name="chevron-down" size={16} color="#fff" /> */}
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -745,7 +766,7 @@ const styles = StyleSheet.create({
   bookmarkButton: {
     position: 'absolute',
     top: 8,
-    right: 8,
+    left: 8,
     backgroundColor: 'rgba(151, 149, 149, 0.33)',
     padding: 8,
     borderRadius: 999,
@@ -754,7 +775,7 @@ const styles = StyleSheet.create({
   bookmarkIcon: { width: 23, height: 23, resizeMode: 'contain' },
 
   // Attachments Carousel Styles
-  attachmentsContainer: { position: 'relative', height: 200 },
+  attachmentsContainer: { position: 'relative', height: 200, overflow: 'visible' },
   attachmentItem: { width: width, height: 200 },
   attachmentImage: { width: '100%', height: '100%' },
   videoThumbnail: { position: 'relative', width: '100%', height: '100%' },
@@ -818,8 +839,6 @@ const styles = StyleSheet.create({
 
   content: { padding: 16 },
   titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 12,
   },
   jobTitle: { fontSize: 22, fontWeight: '700', flex: 1, paddingRight: 8 },
@@ -952,4 +971,23 @@ const styles = StyleSheet.create({
   },
   starsRow: { flexDirection: 'row', alignItems: 'center' },
   ratingText: { fontSize: 12, color: '#6B7280', marginLeft: 4 },
+  urgentTag: {
+    position: 'absolute',
+    top: 12,
+    right: -1,
+  },
+
+  urgentTagImage: {
+    width: 75,
+    height: 16,
+  },
+
+  urgentText: {
+    position: 'absolute',
+    right: 20,
+    top: 1,
+    fontSize: 10,
+    color: Colors.whiteColor,
+    fontWeight: '700',
+  },
 });

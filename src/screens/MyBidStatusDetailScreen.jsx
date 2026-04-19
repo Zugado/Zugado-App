@@ -30,12 +30,17 @@ const MyBidStatusDetailScreen = () => {
   const route = useRoute();
   const dispatch = useDispatch();
   const [showCancelWarning, setShowCancelWarning] = useState(false);
+  const [showMarkCompletedWarning, setShowMarkCompletedWarning] =
+    useState(false);
   const { jobData } = route.params || {};
   const [chatLoading, setChatLoading] = useState(false);
   const job = jobData?.job;
   const jobId = job?._id;
   const { showSnackbar } = useSnackbar();
-
+  console.log(
+    'MyBidStatusDetailScreen received jobData:',
+    JSON.stringify(jobData, null, 2),
+  );
   // Always read the live bid from Redux so edits are reflected immediately on back-navigate.
   // Fall back to route.params bid only if Redux hasn't loaded yet.
   const myAllBids = useSelector(state => state.job.myAllBids || []);
@@ -54,14 +59,9 @@ const MyBidStatusDetailScreen = () => {
   const bidStatus = bid?.status || 'pending';
   const isUrgent = job?.jobType === 'quick';
 
-  const displayImages = [
-    'https://images.unsplash.com/photo-1766068472854-3184eda0d376?q=80',
-    'https://images.unsplash.com/photo-1761839256951-10c4468c3621?q=80',
-    'https://plus.unsplash.com/premium_photo-1765927690120-94a4484a90a8?q=80',
-  ].map((url, index) => ({ id: index, url }));
 
   const getBidStatusConfig = () => {
-    if (bidStatus === 'accepted') {
+    if (bidStatus === 'accepted' || bidStatus === 'approved') {
       return {
         statusText: 'Accepted',
         congratsText: 'Congratulations!',
@@ -70,6 +70,7 @@ const MyBidStatusDetailScreen = () => {
         buttonText: 'Mark this Job as Completed',
         buttonColor: Colors.greenColor,
         buttonDisabled: false,
+        method: () => setShowMarkCompletedWarning(true),
       };
     } else if (bidStatus === 'rejected') {
       return {
@@ -79,7 +80,8 @@ const MyBidStatusDetailScreen = () => {
         textColor: Colors.secondary,
         buttonText: 'Cancel Bid',
         buttonColor: Colors.secondary,
-        buttonDisabled: false,
+        buttonDisabled: true,
+        method: () => setShowCancelWarning(true),
       };
     } else {
       return {
@@ -90,6 +92,7 @@ const MyBidStatusDetailScreen = () => {
         buttonText: 'Waiting for Response',
         buttonColor: '#c2c3c4',
         buttonDisabled: true,
+        method: null,
       };
     }
   };
@@ -97,6 +100,11 @@ const MyBidStatusDetailScreen = () => {
     setShowCancelWarning(false);
     // TODO: dispatch cancel bid API
   };
+  const handleMarkCompleted = () => {
+    console.log('Marking job as completed...');
+  };
+
+
   const statusConfig = getBidStatusConfig();
   /**
    * Initiate or retrieve an existing chat for this job.
@@ -136,26 +144,6 @@ const MyBidStatusDetailScreen = () => {
     <View style={styles.infoRow}>
       <MaterialIcons name={icon} style={[styles.locationIcon, iconStyle]} />
       <Text style={styles.overlayText}>{text}</Text>
-    </View>
-  );
-
-  const ImageGallery = () => (
-    <View style={styles.imageGallery}>
-      {displayImages?.map((image, index) => (
-        <View
-          key={image?.id}
-          style={[
-            styles.miniImagesContainer,
-            { marginLeft: index > 0 ? -30 : 0 },
-          ]}
-        >
-          <Image
-            source={{ uri: image?.url }}
-            style={styles.miniImage}
-            resizeMode="cover"
-          />
-        </View>
-      ))}
     </View>
   );
 
@@ -286,7 +274,7 @@ const MyBidStatusDetailScreen = () => {
             {bid?.message || 'No proposal message'}
           </Text>
 
-          {!(bidStatus === 'accepted') && (
+          {!(bidStatus === 'accepted' || bidStatus === 'approved') && (
             <TouchableOpacity
               onPress={() =>
                 navigation.navigate('BidUpdateScreen', { job: jobData })
@@ -313,24 +301,27 @@ const MyBidStatusDetailScreen = () => {
         </JobInfoSection>
 
         {/* Action Button */}
-        {bidStatus !== 'rejected' && (<TouchableOpacity
-          style={[
-            styles.mainActionButton,
-            {
-              backgroundColor: statusConfig.buttonColor,
-              borderColor: statusConfig.buttonColor,
-              opacity: statusConfig.buttonDisabled ? 0.7 : 1,
-            },
-          ]}
-          disabled={statusConfig.buttonDisabled}
-        >
-          <Text style={styles.mainActionButtonText}>
-            {statusConfig.buttonText}
-          </Text>
-        </TouchableOpacity>)}
+        {!statusConfig.buttonDisabled && (
+          <TouchableOpacity
+            onPress={statusConfig.method}
+            style={[
+              styles.mainActionButton,
+              {
+                backgroundColor: statusConfig.buttonColor,
+                borderColor: statusConfig.buttonColor,
+                opacity: statusConfig.buttonDisabled ? 0.7 : 1,
+              },
+            ]}
+            disabled={statusConfig.buttonDisabled}
+          >
+            <Text style={styles.mainActionButtonText}>
+              {statusConfig.buttonText}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Cancel row — hidden when bid is accepted */}
-        {(bidStatus !== 'accepted' && bidStatus !== 'rejected') && (
+        {/* {((bidStatus !== 'accepted'&& bidStatus !== 'approved') && bidStatus !== 'rejected') && (
           <View style={styles.refundRow}>
             <Text style={styles.refundText}>
               Your Bid Will be Refunded If you{' '}
@@ -339,13 +330,20 @@ const MyBidStatusDetailScreen = () => {
               <Text style={styles.refundBold}>Cancel Now</Text>
             </TouchableOpacity>
           </View>
-        )}
+        )} */}
       </ScrollView>
       {showCancelWarning && (
         <WarningWithButton
           message="Are you sure you want to cancel your bid?"
           onYes={handleCancelBid}
           onClose={() => setShowCancelWarning(false)}
+        />
+      )}
+      {showMarkCompletedWarning && (
+        <WarningWithButton
+          message="Are you sure you want to mark this job as completed?"
+          onYes={handleMarkCompleted}
+          onClose={() => setShowMarkCompletedWarning(false)}
         />
       )}
     </SafeAreaView>

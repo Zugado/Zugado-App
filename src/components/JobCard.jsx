@@ -277,7 +277,7 @@ const JobCard = ({ job, showButttons = true }) => {
           </Text>
 
           <View style={styles.badgeRow}>
-            {jobData?.jobType && (
+            {/* {jobData?.jobType && (
               <View style={styles.badge}>
                 <Feather name="zap" size={11} color="#fff" />
                 <Text style={styles.badgeText}>
@@ -285,7 +285,7 @@ const JobCard = ({ job, showButttons = true }) => {
                     jobData.jobType.slice(1)}
                 </Text>
               </View>
-            )}
+            )} */}
             {jobData?.timingType && (
               <View style={[styles.badge, { backgroundColor: '#6B7280' }]}>
                 <Feather name="clock" size={11} color="#fff" />
