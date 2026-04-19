@@ -885,6 +885,10 @@ const styles = StyleSheet.create({
   },
   // ── Phone-number warning ─────────────────────────────────────────────────
   phoneWarn: {
+    position: 'absolute',
+    bottom: 60,
+    left: 10,
+    right: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
