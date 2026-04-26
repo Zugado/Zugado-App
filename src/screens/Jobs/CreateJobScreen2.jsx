@@ -563,12 +563,12 @@ export default function CreateJob({ navigation, route }) {
     }
   };
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 20}
-      enabled={true}
-    >
+    // <KeyboardAvoidingView
+    //   style={{ flex: 1, backgroundColor: '#fff' }}
+    //   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    //   keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 20}
+    //   enabled={true}
+    // >
       <SafeAreaView style={styles.safeAreaBlack}>
         <MyStatusBar />
         <View style={styles.container}>
@@ -616,7 +616,7 @@ export default function CreateJob({ navigation, route }) {
           </View>
         </View>
       </SafeAreaView>
-    </KeyboardAvoidingView>
+   // </KeyboardAvoidingView> 
   );
 
   function personForm() {

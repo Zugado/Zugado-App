@@ -20,8 +20,6 @@ import { CommonAppBar } from '../../components/CommonComponents';
 import MyStatusBar from '../../components/MyStatusbar';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import {
-  hasBiddedOnJob,
-  hasCreatedJob,
   selectWishlistIds,
 } from '../../store/selector';
 import { getJobById } from '../../store/thunks/jobThunk';
@@ -445,7 +443,6 @@ export default function JobDetailedScreen({ navigation, route }) {
           {/* Task Title and Status */}
           <View style={styles.titleRow}>
             <Text style={styles.jobTitle}>{jobData.title || 'NA'}</Text>
-            
           </View>
           {/* Creator Info + Rating */}
           <View style={styles.creatorRow}>
@@ -775,7 +772,11 @@ const styles = StyleSheet.create({
   bookmarkIcon: { width: 23, height: 23, resizeMode: 'contain' },
 
   // Attachments Carousel Styles
-  attachmentsContainer: { position: 'relative', height: 200, overflow: 'visible' },
+  attachmentsContainer: {
+    position: 'relative',
+    height: 200,
+    overflow: 'visible',
+  },
   attachmentItem: { width: width, height: 200 },
   attachmentImage: { width: '100%', height: '100%' },
   videoThumbnail: { position: 'relative', width: '100%', height: '100%' },
