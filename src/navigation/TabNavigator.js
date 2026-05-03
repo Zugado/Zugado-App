@@ -3,7 +3,8 @@ import { View, TouchableOpacity, StyleSheet, Image, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../store/slices/authSlice';
 
 import HomeScreen from '../screens/Home/HomeScreen';
 import ManageJobScreen from '../screens/ManageJobScreen';
@@ -80,7 +81,9 @@ const icons = {
 export default function TabNavigator() {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
   const totalUnreadCount = useSelector(state => state.chat.totalUnreadCount || 0);
+  const isGuest = useSelector(state => state.auth.isGuest);
 
   // Persistent global socket — increments badge on incoming messages
   useGlobalChat();
@@ -91,6 +94,10 @@ export default function TabNavigator() {
   // };
 
   const handleCreateJobPress = async (navigation) => {
+    if (isGuest) {
+      dispatch(logout());
+      return;
+    }
     try {
       const draft = await AsyncStorage.getItem('jobDraft');
       if (draft) {

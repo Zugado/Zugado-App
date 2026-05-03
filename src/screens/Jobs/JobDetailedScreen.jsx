@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -19,9 +20,7 @@ import Video from 'react-native-video';
 import { CommonAppBar } from '../../components/CommonComponents';
 import MyStatusBar from '../../components/MyStatusbar';
 import { useSnackbar } from '../../contexts/SnackbarContext';
-import {
-  selectWishlistIds,
-} from '../../store/selector';
+import { selectWishlistIds } from '../../store/selector';
 import { getJobById } from '../../store/thunks/jobThunk';
 import { getWishlist } from '../../store/thunks/wishlistThunk';
 import { getLocationFromCoordinates } from '../../utils/locationUtils';
@@ -171,7 +170,8 @@ export default function JobDetailedScreen({ navigation, route }) {
   const alreadyApplied = appliedJobs.some(
     item => item?.job?._id === jobId || item?.jobId === jobId,
   );
-  const disableApply = isCreator || alreadyApplied || isGuest;
+  const hideApply = isCreator || alreadyApplied;
+  const disableApply = isGuest;
   const disableChat =
     isCreator || isGuest || jobData?.bid?.status === 'rejected';
   const isWishlisted = wishlistIds.includes(jobId);
@@ -197,7 +197,6 @@ export default function JobDetailedScreen({ navigation, route }) {
   const fetchJobDetails = async () => {
     try {
       setLoading(true);
-      2;
       const response = await dispatch(getJobById(jobId));
       if (response.payload?.success) {
         setJobData(response.payload.data);
@@ -674,20 +673,27 @@ export default function JobDetailedScreen({ navigation, route }) {
           >
             <Feather
               name={chatLoading ? 'loader' : 'message-square'}
-              size={20}
+              size={18}
               color="#fff"
             />
           </TouchableOpacity>
-          <TouchableOpacity
-            disabled={disableApply}
-            onPress={() =>
-              navigation.navigate('BidPlacementScreen', { job: jobData })
-            }
-            style={[styles.applyButton, disableApply && { opacity: 0.4 }]}
-          >
-            <Text style={styles.applyText}>Apply</Text>
-            {/* <Feather name="chevron-down" size={16} color="#fff" /> */}
-          </TouchableOpacity>
+          {isGuest ? (
+            <TouchableOpacity
+              onPress={() => dispatch(logout())}
+              style={styles.applyButton}
+            >
+              <Text style={styles.applyText}>Login to Apply</Text>
+            </TouchableOpacity>
+          ) : !hideApply ? (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('BidPlacementScreen', { job: jobData })
+              }
+              style={styles.applyButton}
+            >
+              <Text style={styles.applyText}>Apply</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
 
@@ -921,7 +927,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   budgetLabel: { fontSize: 12, fontWeight: '500', color: '#6B7280' },
-  budgetValue: { fontSize: 18, fontWeight: '800', color: '#16A34A' },
+  budgetValue: { fontSize: 16, fontWeight: '800', color: '#16A34A' },
 
   actions: { flexDirection: 'row', alignItems: 'center' },
   iconAction: {
@@ -938,7 +944,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 999,
   },
-  applyText: { color: '#fff', fontSize: 14, fontWeight: '700', marginRight: 6 },
+  applyText: { color: '#fff', fontSize: 12, fontWeight: '700', marginRight: 6 },
   applyArrow: { color: '#fff', fontSize: 18, lineHeight: 18 },
 
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
