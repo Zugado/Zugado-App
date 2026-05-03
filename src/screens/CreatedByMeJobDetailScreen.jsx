@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Modal,
+  TextInput,
 } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,7 +19,7 @@ import { CommonAppBar } from '../components/CommonComponents';
 import MyStatusBar from '../components/MyStatusbar';
 import Feather from 'react-native-vector-icons/Feather';
 import { useDispatch } from 'react-redux';
-import { getAllBidsByJobId, updateBidStatus } from '../store/thunks/bidThunk';
+import { getAllBidsByJobId, approveBid, rejectBid } from '../store/thunks/bidThunk';
 import { startNewChat } from '../store/thunks/chatThunk';
 import { useSnackbar } from '../contexts/SnackbarContext';
 
@@ -49,7 +51,14 @@ const StatBadge = ({ label, value, color }) => (
  * BidCard — renders a single bid with bidder info, amount, status and action buttons.
  * Receives handleBidAction and actionLoading as props so it can trigger approve/reject.
  */
-const BidCard = ({ bid, actionLoading, chatLoading, onAction, onChat }) => {
+const BidCard = ({
+  bid,
+  actionLoading,
+  chatLoading,
+  onAction,
+  onReject,
+  onChat,
+}) => {
   const hasAvatar = !!bid?.bidder?.profilePicture;
   const isAccepting = actionLoading === `${bid._id}_approved`;
   const isRejecting = actionLoading === `${bid._id}_rejected`;
@@ -198,7 +207,7 @@ const BidCard = ({ bid, actionLoading, chatLoading, onAction, onChat }) => {
               (isActioning || bid?.status !== 'pending') &&
                 styles.buttonDisabled,
             ]}
-            onPress={() => onAction(bid._id, 'rejected')}
+            onPress={() => onReject(bid._id)}
             disabled={isActioning || bid?.status !== 'pending'}
           >
             {isRejecting ? (
@@ -217,7 +226,9 @@ const BidCard = ({ bid, actionLoading, chatLoading, onAction, onChat }) => {
             <TouchableOpacity
               style={[
                 styles.chatButton,
-                isChatInitiating || bid?.status === 'rejected' ? styles.buttonDisabled : null,
+                isChatInitiating || bid?.status === 'rejected'
+                  ? styles.buttonDisabled
+                  : null,
               ]}
               onPress={() => onChat(bid)}
               disabled={isChatInitiating || bid?.status === 'rejected'}
@@ -261,8 +272,12 @@ const CreatedByMeJobDetailScreen = () => {
     rejected: 0,
   });
   const [actionLoading, setActionLoading] = useState(null);
-  // track which bid chat is currently initiating (by bid._id)
   const [chatLoading, setChatLoading] = useState(null);
+  const [rejectModal, setRejectModal] = useState({
+    visible: false,
+    bidId: null,
+  });
+  const [rejectReason, setRejectReason] = useState('');
 
   useEffect(() => {
     if (jobFromNav?._id) fetchBids(jobFromNav._id);
@@ -317,16 +332,14 @@ const CreatedByMeJobDetailScreen = () => {
     }
   };
 
-  const handleBidAction = async (bidId, status) => {
+  const handleBidAction = async (bidId, status, reason = '') => {
     setActionLoading(`${bidId}_${status}`);
     try {
-      const result = await dispatch(
-        updateBidStatus({ bidId, status }),
-      ).unwrap();
+      const result = status === 'approved'
+        ? await dispatch(approveBid({ bidId })).unwrap()
+        : await dispatch(rejectBid({ bidId, rejectionReason: reason })).unwrap();
       if (result?.success) {
-        setBids(prev =>
-          prev.map(b => (b._id === bidId ? { ...b, status } : b)),
-        );
+        setBids(prev => prev.map(b => (b._id === bidId ? { ...b, status } : b)));
         setStats(prev => {
           const updated = { ...prev, pending: Math.max(0, prev.pending - 1) };
           if (status === 'approved') updated.approved += 1;
@@ -339,11 +352,24 @@ const CreatedByMeJobDetailScreen = () => {
         );
       }
     } catch (err) {
-      console.error('[CreatedByMeJobDetailScreen] handleBidAction error:', err);
-      showSnackbar('Failed to update bid status. Try again.', 'error');
+      showSnackbar(err?.message || 'Failed to update bid status. Try again.', 'error');
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handleRejectPress = bidId => {
+    setRejectReason('');
+    setRejectModal({ visible: true, bidId });
+  };
+
+  const handleRejectSubmit = () => {
+    if (!rejectReason.trim()) {
+      showSnackbar('Please enter a reason', 'error');
+      return;
+    }
+    setRejectModal({ visible: false, bidId: null });
+    handleBidAction(rejectModal.bidId, 'rejected', rejectReason.trim());
   };
 
   const isUrgent = job?.jobType === 'quick';
@@ -478,6 +504,7 @@ const CreatedByMeJobDetailScreen = () => {
               actionLoading={actionLoading}
               chatLoading={chatLoading}
               onAction={handleBidAction}
+              onReject={handleRejectPress}
               onChat={handleChatWithBidder}
             />
           ))
@@ -485,6 +512,46 @@ const CreatedByMeJobDetailScreen = () => {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Reject Reason Modal */}
+      <Modal
+        visible={rejectModal.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRejectModal({ visible: false, bidId: null })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Reason for Rejection</Text>
+            <Text style={styles.modalSubtitle}>
+              Let the bidder know why their bid was rejected
+            </Text>
+            <TextInput
+              style={styles.reasonInput}
+              placeholder="Enter reason here..."
+              placeholderTextColor={Colors.grayColor}
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              multiline
+              maxLength={200}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setRejectModal({ visible: false, bidId: null })}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalSubmitBtn}
+                onPress={handleRejectSubmit}
+              >
+                <Text style={styles.modalSubmitText}>Reject Bid</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -681,4 +748,53 @@ const styles = StyleSheet.create({
   },
   chatButtonText: { color: '#fff', fontWeight: '700', fontSize: 12 },
   buttonDisabled: { opacity: 0.6 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    width: '88%',
+    elevation: 6,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  modalSubtitle: { fontSize: 12, color: Colors.grayColor, marginBottom: 14 },
+  reasonInput: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 13,
+    color: '#333',
+    minHeight: 90,
+    textAlignVertical: 'top',
+    backgroundColor: '#fafafa',
+  },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 16 },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    alignItems: 'center',
+  },
+  modalCancelText: { fontSize: 13, fontWeight: '600', color: '#333' },
+  modalSubmitBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+  },
+  modalSubmitText: { fontSize: 13, fontWeight: '700', color: '#fff' },
 });
