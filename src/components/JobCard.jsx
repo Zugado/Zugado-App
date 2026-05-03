@@ -254,6 +254,7 @@ const JobCard = ({ job, showButttons = true }) => {
           navigation.navigate('JobDetailedScreen', { jobId: jobData?._id })
         }
       >
+        
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={styles.row}>
@@ -277,15 +278,14 @@ const JobCard = ({ job, showButttons = true }) => {
           </Text>
 
           <View style={styles.badgeRow}>
-            {/* {jobData?.jobType && (
-              <View style={styles.badge}>
-                <Feather name="zap" size={11} color="#fff" />
+            {jobData?.jobType && (
+              <View style={[styles.badge, { backgroundColor: jobData.jobType === 'quick' ? '#EF4444' : '#111827' }]}>
+                <Feather name={jobData.jobType === 'quick' ? 'zap' : 'briefcase'} size={11} color="#fff" />
                 <Text style={styles.badgeText}>
-                  {jobData.jobType.charAt(0).toUpperCase() +
-                    jobData.jobType.slice(1)}
+                  {jobData.jobType === 'quick' ? 'Urgent' : 'Standard'}
                 </Text>
               </View>
-            )} */}
+            )}
             {jobData?.timingType && (
               <View style={[styles.badge, { backgroundColor: '#6B7280' }]}>
                 <Feather name="clock" size={11} color="#fff" />
