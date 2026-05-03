@@ -72,7 +72,16 @@ export default function DateTimePickerField({
         activeOpacity={0.7}
       >
         <Text style={{ color: value ? "#000" : "#888", fontSize: 12, flex: 1 }}>
-          {value || `Select ${label}`}
+          {value
+            ? mode === 'datetime' && value.includes('T')
+              // Bug 4: Format ISO datetime to readable string for non-tech users
+              ? new Date(value).toLocaleString('en-IN', {
+                  day: '2-digit', month: 'short', year: 'numeric',
+                  hour: '2-digit', minute: '2-digit', hour12: true,
+                  timeZone: 'Asia/Kolkata',
+                })
+              : value
+            : `Select ${label}`}
         </Text>
         <Feather 
           name={mode === "date" ? "calendar" : mode === "time" ? "clock" : "calendar"} 

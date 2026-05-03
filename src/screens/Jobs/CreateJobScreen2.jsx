@@ -118,22 +118,28 @@ export default function CreateJob({ navigation, route }) {
   const [isTimingClicked, setTimingClicked] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Load draft data on mount
+  // Load draft data on mount — selectedLocation from address picker takes priority
   useEffect(() => {
     const loadDraft = async () => {
       try {
         const draft = await AsyncStorage.getItem('jobDraft');
         if (draft) {
           const draftData = JSON.parse(draft);
-          console.log('Loading Screen 2 draft:', JSON.stringify(draftData,null,2));
-          
           setIsLoadingDraft(true);
           
-          // Load Screen 2 specific data
-          if (draftData.address) setAddress(draftData.address);
-          if (draftData.coordinates) setCoordinates(draftData.coordinates);
-          if (draftData.jobLocationType) setJobLocationType(draftData.jobLocationType);
+          // Bug 1 fix: if user came back from address picker, use that address
+          // instead of the one stored in draft
+          const incomingLocation = route.params?.selectedLocation;
+          if (incomingLocation) {
+            setAddress(incomingLocation.address || '');
+            setCoordinates(incomingLocation.coordinates || null);
+          } else {
+            if (draftData.address) setAddress(draftData.address);
+            if (draftData.coordinates) setCoordinates(draftData.coordinates);
+          }
           
+          if (draftData.jobLocationType) setJobLocationType(draftData.jobLocationType);
+
           // Timing data for person
           if (draftData.timingType) setTimingType(draftData.timingType);
           if (draftData.date) setDate(draftData.date);
@@ -387,6 +393,12 @@ export default function CreateJob({ navigation, route }) {
         return;
       }
 
+      // Bug 3 fix: timing type is mandatory
+      if (!timingType) {
+        showSnackbar('Please select a timing type', 'error');
+        return;
+      }
+
       const timingDetails = getTimingDetailsForPerson();
       console.log(
         'Person Timing Details:',
@@ -463,6 +475,12 @@ export default function CreateJob({ navigation, route }) {
       // Thing validation
       if (!coordinates) {
         showSnackbar('Please select a location', 'error');
+        return;
+      }
+
+      // Bug 3 fix: timing type is mandatory
+      if (!thingTimingType) {
+        showSnackbar('Please select a timing type', 'error');
         return;
       }
 
@@ -710,7 +728,7 @@ export default function CreateJob({ navigation, route }) {
 
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('SavedAddressesScreen', {
+                navigation.replace('SavedAddressesScreen', {
                   returnScreen: 'CreateJobScreen2',
                   jobData,
                 })
@@ -1003,7 +1021,7 @@ export default function CreateJob({ navigation, route }) {
 
           <TouchableOpacity
             onPress={() => {
-              navigation.navigate('SavedAddressesScreen', {
+              navigation.replace('SavedAddressesScreen', {
                 returnScreen: 'CreateJobScreen2',
                 jobData,
               });

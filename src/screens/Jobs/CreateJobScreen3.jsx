@@ -495,7 +495,20 @@ export default function CreateJobPageThree({ navigation, route }) {
                 {jobData?.timingDetails?.startDate && <PreviewRow label="Start Date" value={jobData.timingDetails.startDate} />}
                 {jobData?.timingDetails?.endDate && <PreviewRow label="End Date" value={jobData.timingDetails.endDate} />}
                 {jobData?.timingDetails?.dailyHours && <PreviewRow label="Daily Hours" value={jobData.timingDetails.dailyHours} />}
-                {jobData?.timingDetails?.deadline && <PreviewRow label="Deadline" value={jobData.timingDetails.deadline} />}
+                {jobData?.timingDetails?.deadline && (
+                  <PreviewRow
+                    label="Deadline"
+                    value={
+                      jobData.timingDetails.deadline.includes('T')
+                        ? new Date(jobData.timingDetails.deadline).toLocaleString('en-IN', {
+                            day: '2-digit', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit', hour12: true,
+                            timeZone: 'Asia/Kolkata',
+                          })
+                        : jobData.timingDetails.deadline
+                    }
+                  />
+                )}
                 {jobData?.timingDetails?.estimatedHours && <PreviewRow label="Estimated Hours" value={jobData.timingDetails.estimatedHours} />}
               </PreviewSection>
 
@@ -515,7 +528,7 @@ export default function CreateJobPageThree({ navigation, route }) {
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => navigation.goBack()}
+                onPress={() => navigation.navigate('CreateJobScreen')}
               >
                 <Feather name="edit-2" size={16} color="#000" />
                 <Text style={styles.editButtonText}>Edit</Text>
