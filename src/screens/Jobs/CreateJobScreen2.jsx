@@ -728,7 +728,7 @@ export default function CreateJob({ navigation, route }) {
 
             <TouchableOpacity
               onPress={() =>
-                navigation.replace('SavedAddressesScreen', {
+                navigation.navigate('SavedAddressesScreen', {
                   returnScreen: 'CreateJobScreen2',
                   jobData,
                 })

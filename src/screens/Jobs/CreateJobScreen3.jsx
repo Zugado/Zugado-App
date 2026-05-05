@@ -528,7 +528,7 @@ export default function CreateJobPageThree({ navigation, route }) {
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => navigation.navigate('CreateJobScreen')}
+               onPress={() => navigation.pop(2)}
               >
                 <Feather name="edit-2" size={16} color="#000" />
                 <Text style={styles.editButtonText}>Edit</Text>

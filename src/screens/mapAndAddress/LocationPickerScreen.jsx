@@ -540,7 +540,7 @@ const LocationPickerScreen = ({ navigation, route }) => {
       }
 
       if (route.params?.returnScreen) {
-        navigation.navigate(route.params.returnScreen, {
+        navigation.goBack({
           selectedLocation: {
             address: combinedAddress,
             coordinates: selectedLocation,

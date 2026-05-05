@@ -83,7 +83,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
   const handleSelectAddress = (address) => {
     const { returnScreen, jobData } = route.params || {};
     if (returnScreen === 'CreateJobScreen2') {
-      navigation.replace('CreateJobScreen2', {
+      navigation.goBack( {
         jobData,
         selectedLocation: {
           address: address.fullAddress || address.address,
@@ -193,7 +193,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
             style={styles.addAddressButton}
             onPress={() => {
               const { returnScreen, jobData } = route.params || {};
-              navigation.navigate('LocationPickerScreen', {
+              navigation.replace('LocationPickerScreen', {
                 returnScreen,
                 jobData,
               });
