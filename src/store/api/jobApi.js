@@ -1,6 +1,7 @@
 import { apiPostRequest } from "../https/post";
 import { apiGetRequest } from "../https/get";
 import { apiPutRequest } from "../https/put";
+import { apiDeleteRequest } from "../https/delete";
 
 //Create job api
 export const createJobAPI = (data) =>
@@ -106,6 +107,14 @@ export const getAllCreatedJobsAPI = (data) =>
 export const getAllAppliedJobsAPI = (data) =>
   apiGetRequest({
     apiUrl: `/jobs/applied?page=${data.pageNo}&limit=${data.limit}`,
+    content_type: "application/json",
+    data: null,
+});
+
+//Delete job by id api
+export const deleteJobByIdAPI = (jobId) =>
+  apiDeleteRequest({
+    apiUrl: `/jobs/${jobId}`,
     content_type: "application/json",
     data: null,
 });

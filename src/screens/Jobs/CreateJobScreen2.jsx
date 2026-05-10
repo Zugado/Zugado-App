@@ -441,6 +441,10 @@ export default function CreateJob({ navigation, route }) {
         showSnackbar('Please enter an amount', 'error');
         return;
       }
+        if (!jobLocationType) {
+        showSnackbar('Please Select Job Location Type', 'error');
+        return;
+      }
 
       const personJobData = {
         ...jobData,

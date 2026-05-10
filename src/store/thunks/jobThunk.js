@@ -12,7 +12,8 @@ import {
   getAllTagsAPI, 
   reportJobByIdAPI, 
   getAllCreatedJobsAPI,
-  getAllAppliedJobsAPI
+  getAllAppliedJobsAPI,
+  deleteJobByIdAPI
 } from '../api/jobApi';
 import { handleAxiosError } from '../../utils/handleAxiosError';
 
@@ -177,6 +178,19 @@ export const getAllAppliedJobs = createAsyncThunk(
   async (data, thunkAPI) => {
     try {
       const response = await getAllAppliedJobsAPI(data);
+      return response?.data;
+    } catch (error) {
+      return handleAxiosError(error, thunkAPI);
+    }
+  }
+);
+
+// Delete job by id thunk
+export const deleteJobById = createAsyncThunk(
+  "job/deleteJobById",
+  async (jobId, thunkAPI) => {
+    try {
+      const response = await deleteJobByIdAPI(jobId);
       return response?.data;
     } catch (error) {
       return handleAxiosError(error, thunkAPI);

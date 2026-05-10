@@ -21,13 +21,14 @@ import { CommonAppBar } from '../../components/CommonComponents';
 import MyStatusBar from '../../components/MyStatusbar';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { selectWishlistIds } from '../../store/selector';
-import { getJobById } from '../../store/thunks/jobThunk';
+import { getJobById, deleteJobById } from '../../store/thunks/jobThunk';
 import { getWishlist } from '../../store/thunks/wishlistThunk';
 import { getLocationFromCoordinates } from '../../utils/locationUtils';
 import { handleWishlistToggle } from '../../utils/wishlistUtils';
 // Chat thunk — initiates or retrieves existing conversation before navigating
 import { startNewChat } from '../../store/thunks/chatThunk';
 import { Colors } from '../../styles/commonStyles';
+import { WarningWithButton } from '../../components/lottie/WarningWithButton';
 
 // Mock data for Task Details section
 const jobDetailsData = [
@@ -157,6 +158,8 @@ export default function JobDetailedScreen({ navigation, route }) {
   // const [hasCreated, setHasCreated] = useState(hasCreatedJob(route.params?.jobId));
   // Track chat button loading state to prevent double-taps
   const [chatLoading, setChatLoading] = useState(false);
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const flatListRef = useRef(null);
   const intervalRef = useRef(null);
   const jobId = route.params?.jobId;
@@ -186,8 +189,8 @@ export default function JobDetailedScreen({ navigation, route }) {
   useEffect(() => {
     if (jobData?.location?.coordinates) {
       getLocationFromCoordinates(jobData.location.coordinates).then(
-        ({ locality, city, state }) => {
-          setLocationText(`${locality}, ${city}, ${state}`);
+        ({ country, city, state }) => {
+          setLocationText(` ${city}, ${state},${country}`);
           2;
         },
       );
@@ -233,6 +236,31 @@ export default function JobDetailedScreen({ navigation, route }) {
       showSnackbar('Could not open chat. Try again.', 'error');
     } finally {
       setChatLoading(false);
+    }
+  };
+
+  const handleDeleteJob = async () => {
+    if (deleteLoading) return;
+    setDeleteLoading(true);
+    try {
+      const response = await dispatch(deleteJobById(jobId)).unwrap();
+      if (response?.success) {
+        showSnackbar(
+          response?.message || 'Job deleted successfully',
+          'success',
+        );
+       navigation.pop(2);
+      }
+    } catch (error) {
+      const errorMessage =
+        error?.error?.details ||
+        error?.error?.message ||
+        error?.message ||
+        'Failed to delete job';
+      showSnackbar(errorMessage, 'error');
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteWarning(false);
     }
   };
 
@@ -684,6 +712,22 @@ export default function JobDetailedScreen({ navigation, route }) {
             >
               <Text style={styles.applyText}>Login to Apply</Text>
             </TouchableOpacity>
+          ) : isCreator ? (
+            <TouchableOpacity
+              onPress={() => setShowDeleteWarning(true)}
+              style={[styles.applyButton, styles.deleteButton]}
+              disabled={deleteLoading}
+            >
+              <Feather
+                name={deleteLoading ? 'loader' : 'trash-2'}
+                size={16}
+                color="#fff"
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.applyText}>
+                {deleteLoading ? 'Deleting...' : 'Delete Job'}
+              </Text>
+            </TouchableOpacity>
           ) : !hideApply ? (
             <TouchableOpacity
               onPress={() =>
@@ -736,6 +780,17 @@ export default function JobDetailedScreen({ navigation, route }) {
           )}
         </View>
       </Modal>
+
+      {/* Delete Warning Modal */}
+      {showDeleteWarning && (
+        <WarningWithButton
+          message="Are you sure you want to delete this job? All pending bids will be cancelled."
+          onYes={handleDeleteJob}
+          onClose={() => setShowDeleteWarning(false)}
+          yesText="Delete"
+          noText="Cancel"
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -943,6 +998,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 999,
+  },
+  deleteButton: {
+    backgroundColor: '#EF4444',
   },
   applyText: { color: '#fff', fontSize: 12, fontWeight: '700', marginRight: 6 },
   applyArrow: { color: '#fff', fontSize: 18, lineHeight: 18 },

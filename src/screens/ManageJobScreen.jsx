@@ -143,7 +143,7 @@ const CreatedTasksSection = ({
     'Cancelled',
     'Rejected',
   ];
-
+  //  Need to change when job JOSN will have STATUS field
   const getStatus = job => (job.isPublished ? 'Active' : 'Pending');
 
   const filteredJobs =
@@ -235,8 +235,8 @@ const ManageJobScreen = () => {
     shallowEqual,
   );
 
-  // console.log('Created Jobs:', createdJobs); //state.job.jobs.jobs;
-  console.log('Applied Jobs:', JSON.stringify(appliedJobs, null, 2)); //state.job.jobs.jobs;
+  console.log('Created Jobs:==>', JSON.stringify(createdJobs,null,2)); //state.job.jobs.jobs;
+  // console.log('Applied Jobs:', JSON.stringify(appliedJobs, null, 2)); //state.job.jobs.jobs;
 
   useEffect(() => {
     loadInitialData();
