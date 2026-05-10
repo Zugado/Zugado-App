@@ -727,12 +727,16 @@ export default function CreateJob({ navigation, route }) {
             </Text>
 
             <TouchableOpacity
-              onPress={() =>
+              onPress={() => {
                 navigation.navigate('SavedAddressesScreen', {
                   returnScreen: 'CreateJobScreen2',
                   jobData,
-                })
-              }
+                  onSelectAddress: (selectedData) => {
+                    setAddress(selectedData.address);
+                    setCoordinates(selectedData.coordinates);
+                  },
+                });
+              }}
               style={styles.mapButton}
             >
               <Feather name="map-pin" size={20} color="#000" />
@@ -1021,9 +1025,13 @@ export default function CreateJob({ navigation, route }) {
 
           <TouchableOpacity
             onPress={() => {
-              navigation.replace('SavedAddressesScreen', {
+              navigation.navigate('SavedAddressesScreen', {
                 returnScreen: 'CreateJobScreen2',
                 jobData,
+                onSelectAddress: (selectedData) => {
+                  setAddress(selectedData.address);
+                  setCoordinates(selectedData.coordinates);
+                },
               });
             }}
             style={styles.mapButton}

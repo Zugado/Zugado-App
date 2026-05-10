@@ -539,18 +539,15 @@ const LocationPickerScreen = ({ navigation, route }) => {
         showSnackbar('Address saved successfully', 'success');
       }
 
-      if (route.params?.returnScreen) {
-        navigation.goBack({
-          selectedLocation: {
-            address: combinedAddress,
-            coordinates: selectedLocation,
-            addressData: addressData
-          },
-          jobData: route.params?.jobData
+      const { onSelectAddress } = route.params || {};
+      if (onSelectAddress) {
+        onSelectAddress({
+          address: combinedAddress,
+          coordinates: selectedLocation,
+          addressData: addressData
         });
-      } else {
-        navigation.goBack();
       }
+       navigation.pop(2);
     } catch (error) {
       showSnackbar(
         editAddressId ? 'Failed to update address' : 'Failed to save address',

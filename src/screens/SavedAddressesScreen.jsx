@@ -18,8 +18,8 @@ import { getSavedAddresses, deleteAddress } from '../utils/addressStorage';
 import { useSnackbar } from '../contexts/SnackbarContext';
 import { CustomAlert } from '../components/CustomAlert';
 
-const SavedAddressesScreen = ({ navigation,route}) => {
-  const { user } = useSelector((state) => state.auth);
+const SavedAddressesScreen = ({ navigation, route }) => {
+  const { user } = useSelector(state => state.auth);
   const { showSnackbar } = useSnackbar();
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +34,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
   useFocusEffect(
     React.useCallback(() => {
       loadAddresses();
-    }, [])
+    }, []),
   );
 
   const loadAddresses = async () => {
@@ -54,19 +54,19 @@ const SavedAddressesScreen = ({ navigation,route}) => {
     loadAddresses();
   };
 
- 
-  const handleEditAddress = (address) => {
-    const { returnScreen, jobData } = route.params || {};
+  const handleEditAddress = address => {
+    const { returnScreen, jobData, onSelectAddress } = route.params || {};
     navigation.navigate('LocationPickerScreen', {
       editAddressId: address.id,
       returnScreen,
       jobData,
+      onSelectAddress,
     });
   };
 
   const handleDeleteAddress = async () => {
     if (!addressToDelete) return;
-    
+
     try {
       await deleteAddress(user?.id || user?._id, addressToDelete.id);
       setAddresses(prev => prev.filter(addr => addr.id !== addressToDelete.id));
@@ -78,25 +78,20 @@ const SavedAddressesScreen = ({ navigation,route}) => {
       setAddressToDelete(null);
     }
   };
- 
 
-  const handleSelectAddress = (address) => {
-    const { returnScreen, jobData } = route.params || {};
-    if (returnScreen === 'CreateJobScreen2') {
-      navigation.goBack( {
-        jobData,
-        selectedLocation: {
-          address: address.fullAddress || address.address,
-          coordinates: address.coordinates,
-          addressData: address,
-        },
+  const handleSelectAddress = address => {
+    showSnackbar('Address selected', 'success');
+    const { onSelectAddress } = route.params || {};
+    if (onSelectAddress) {
+      onSelectAddress({
+        address: address.fullAddress || address.address,
+        coordinates: address.coordinates,
+        addressData: address,
       });
-    } else {
-      showSnackbar('Address selected', 'success');
-      navigation.goBack();
     }
+    navigation.goBack();
   };
-  const getAddressIcon = (type) => {
+  const getAddressIcon = type => {
     switch (type) {
       case 'Office':
       case 'Work':
@@ -112,16 +107,18 @@ const SavedAddressesScreen = ({ navigation,route}) => {
     <View style={styles.emptyContainer}>
       <Feather name="map-pin" size={48} color={Colors.grayColor} />
       <Text style={styles.emptyTitle}>No Saved Addresses</Text>
-      <Text style={styles.emptySubtitle}>Add your first address to get started</Text>
+      <Text style={styles.emptySubtitle}>
+        Add your first address to get started
+      </Text>
     </View>
   );
 
- const renderAddressCard = ({ item }) => {
+  const renderAddressCard = ({ item }) => {
     const { returnScreen } = route.params || {};
     const isSelectable = returnScreen === 'CreateJobScreen2';
-    
+
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.addressCard, isSelectable && styles.selectableCard]}
         onPress={() => isSelectable && handleSelectAddress(item)}
         disabled={!isSelectable}
@@ -129,10 +126,10 @@ const SavedAddressesScreen = ({ navigation,route}) => {
       >
         <View style={styles.cardHeader}>
           <View style={styles.typeContainer}>
-            <Feather 
-              name={getAddressIcon(item.addressType)} 
-              size={16} 
-              color={Colors.primary} 
+            <Feather
+              name={getAddressIcon(item.addressType)}
+              size={16}
+              color={Colors.primary}
             />
             <Text style={styles.addressType}>{item.addressType}</Text>
           </View>
@@ -140,13 +137,13 @@ const SavedAddressesScreen = ({ navigation,route}) => {
             <Feather name="chevron-right" size={16} color={Colors.primary} />
           ) : (
             <View style={styles.actionButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => handleEditAddress(item)}
               >
                 <Feather name="edit-2" size={14} color={Colors.primary} />
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => {
                   setAddressToDelete(item);
@@ -158,13 +155,15 @@ const SavedAddressesScreen = ({ navigation,route}) => {
             </View>
           )}
         </View>
-        
+
         <View style={styles.addressContent}>
           <View style={styles.addressRow}>
             <Feather name="map-pin" size={14} color={Colors.grayColor} />
-            <Text style={styles.addressText}>{item.fullAddress || item.address}</Text>
+            <Text style={styles.addressText}>
+              {item.fullAddress || item.address}
+            </Text>
           </View>
-          
+
           {item.landmark && (
             <View style={styles.addressRow}>
               <Feather name="navigation" size={14} color={Colors.grayColor} />
@@ -172,7 +171,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
             </View>
           )}
         </View>
-        
+
         {isSelectable && (
           <View style={styles.selectIndicator}>
             <Text style={styles.selectText}>Tap to select</Text>
@@ -187,15 +186,16 @@ const SavedAddressesScreen = ({ navigation,route}) => {
       <MyStatusBar />
       <View style={styles.container}>
         <CommonAppBar title="Saved Addresses" navigation={navigation} />
-        
+
         <View style={styles.content}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.addAddressButton}
             onPress={() => {
-              const { returnScreen, jobData } = route.params || {};
-              navigation.replace('LocationPickerScreen', {
+              const { returnScreen, jobData, onSelectAddress } = route.params || {};
+              navigation.navigate('LocationPickerScreen', {
                 returnScreen,
                 jobData,
+                onSelectAddress,
               });
             }}
             activeOpacity={0.7}
@@ -217,7 +217,9 @@ const SavedAddressesScreen = ({ navigation,route}) => {
               keyExtractor={item => item.id}
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={renderEmptyList}
-              contentContainerStyle={addresses.length === 0 ? styles.emptyListContainer : null}
+              contentContainerStyle={
+                addresses.length === 0 ? styles.emptyListContainer : null
+              }
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -229,7 +231,7 @@ const SavedAddressesScreen = ({ navigation,route}) => {
             />
           )}
         </View>
-        
+
         {showDeleteAlert && (
           <CustomAlert
             message="Are you sure you want to delete this address?"
@@ -274,17 +276,14 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     borderWidth: 1,
     borderColor: Colors.primary,
-   
   },
- addButtonContent: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingVertical: 14,
-  paddingHorizontal: 16,
-
- }
-,
+  addButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
   addButtonText: {
     color: Colors.primary,
     fontSize: 14,
@@ -304,7 +303,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: "50%",
+    paddingVertical: '50%',
   },
   emptyTitle: {
     fontSize: 18,
