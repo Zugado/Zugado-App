@@ -41,12 +41,11 @@ const AppliedTasksSection = ({
 
   const filters = [
     'All',
+    'Approved',
     'Pending',
-    'Active',
+    'Rejected',
     'Completed',
     'Cancelled',
-    'Approved',
-    'Rejected',
   ];
   //  useEffect(() => {
   //   console.log('Applied Jobs Updated:', JSON.stringify(appliedJobs, null, 2));

@@ -161,14 +161,26 @@ export default function ChatingScreen() {
       return true;
     return state.job.createdJobs?.some(j => j._id === jobIdOfChat);
   });
-
+  // console.log('chat data====>:', JSON.stringify(chatData, null, 2));
   // Use reusable selector to decide whether current user has bidded for this job
   const hasBid = useSelector(state => selectHasBidded(state, jobIdOfChat));
+  const myAllBids = useSelector(state => state.job.myAllBids || []);
+  const liveBidEntry = myAllBids.find(
+    item => item?.job?._id === jobIdOfChat || item?.job === jobIdOfChat,
+  );
+  const bidStatus = liveBidEntry?.bids?.[0].status || null;
 
   // Chat is unlocked if user created the job OR has placed a bid on it
   // const isChatUnlocked = Boolean(isCreator || hasBid);
   const [isChatUnlocked, setIsChatUnlocked] = useState(isCreator || hasBid);
-
+  console.log(
+    'isCreator:',
+    isCreator,
+    'hasBid:',
+    hasBid,
+    'bidStatus:',
+    bidStatus,
+  );
   /**
    * useChat hook manages the Socket.IO lifecycle.
    * We pass chatId directly — no need to wait for activeChatId from REST.
@@ -460,7 +472,29 @@ export default function ChatingScreen() {
    * - not currently loading
    * This prevents the locked UI from flashing while messages are being fetched.
    */
-
+  // if (bidStatus === 'rejected') {
+  //   return (
+  //     <View
+  //       style={{
+  //         flex: 1,
+  //         justifyContent: 'center',
+  //         alignItems: 'center',
+  //         padding: 20,
+  //       }}
+  //     >
+  //       <Text
+  //         style={{
+  //           fontSize: 18,
+  //           fontWeight: 'bold',
+  //           textAlign: 'center',
+  //           marginTop: 40,
+  //         }}
+  //       >
+  //         Your bid for this job has been rejected.
+  //       </Text>
+  //     </View>
+  //   );
+  // }
   return (
     <SafeAreaView style={styles.safeAreaBlack}>
       <MyStatusBar />
@@ -639,7 +673,7 @@ export default function ChatingScreen() {
               />
 
               {/* Quick chat floating panel — anchored above the input so it doesn't push the input down */}
-              {!isChatUnlocked && (
+              {!isChatUnlocked && bidStatus !== 'rejected' && (
                 <View
                   pointerEvents={connected ? 'auto' : 'none'}
                   onLayout={e => {
@@ -718,8 +752,24 @@ export default function ChatingScreen() {
           )}
 
           {/* ── Bottom action area ── */}
-          {isChatUnlocked ? (
-            // UNLOCKED: live text input + send button
+
+          {bidStatus?.toUpperCase() === 'REJECTED' ? (
+            <View style={styles.rejectedContainer}>
+              <View style={styles.rejectedIconBox}>
+                <Feather name="alert-triangle" size={18} color="#DC2626" />
+              </View>
+
+              <View style={styles.rejectedTextContainer}>
+                <Text style={styles.rejectedTitle}>Bid Rejected</Text>
+
+                <Text style={styles.rejectedMessage}>
+                  Your previous bid was rejected by the employer. Chat access is
+                  disabled for rejected bids.
+                </Text>
+              </View>
+            </View>
+          ) : isChatUnlocked ? (
+            // ✅ CHAT UNLOCKED
             <View
               style={styles.inputRow}
               onLayout={e => {
@@ -727,15 +777,16 @@ export default function ChatingScreen() {
                 setInputHeight(h);
               }}
             >
-              {/* Phone-number warning — FEATURE: remove this block with ENABLE_PHONE_BLOCK flag */}
               {ENABLE_PHONE_BLOCK && containsPhone(inputText) && (
                 <View style={styles.phoneWarn}>
                   <Feather name="alert-circle" size={12} color="#c0392b" />
+
                   <Text style={styles.phoneWarnText}>
                     Phone numbers are not allowed in chat
                   </Text>
                 </View>
               )}
+
               <View style={styles.inputRowInner}>
                 <TextInput
                   style={styles.textInput}
@@ -746,9 +797,11 @@ export default function ChatingScreen() {
                   multiline
                   maxLength={500}
                 />
+
                 <TouchableOpacity
                   style={[
                     styles.sendButton,
+
                     (!inputText.trim() ||
                       (ENABLE_PHONE_BLOCK && containsPhone(inputText))) &&
                       styles.sendButtonDisabled,
@@ -764,7 +817,7 @@ export default function ChatingScreen() {
               </View>
             </View>
           ) : (
-            // LOCKED: disabled input + Place a Bid CTA
+            // ✅ CHAT LOCKED
             <View style={styles.bottomButtons}>
               <View style={styles.unlockButton}>
                 <Feather
@@ -773,10 +826,12 @@ export default function ChatingScreen() {
                   color={Colors.grayColor}
                   style={styles.lockIconMargin}
                 />
+
                 <Text style={styles.unlockButtonText}>
                   Chat will Unlock After Bidding
                 </Text>
               </View>
+
               <TouchableOpacity
                 style={styles.bidButton}
                 onPress={() =>
@@ -984,6 +1039,7 @@ const styles = StyleSheet.create({
   //   bottom: 102,
   //   zIndex: 20,
   // },
+
   quickChatCard: {
     alignSelf: 'flex-end',
     backgroundColor: Colors.whiteColor,
@@ -1176,5 +1232,43 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  rejectedContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 14,
+    borderRadius: 12,
+  },
+
+  rejectedIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+
+  rejectedTextContainer: {
+    flex: 1,
+  },
+
+  rejectedTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#B91C1C',
+    marginBottom: 4,
+  },
+
+  rejectedMessage: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#7F1D1D',
   },
 });

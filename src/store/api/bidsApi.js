@@ -6,9 +6,9 @@ import { apiPatchRequest } from "../https/patch";
 // Create Bid on job by id api
 export const postBidByJobIdAPI = (data) =>
   apiPostRequest({
-    apiUrl: `/bids/bid/${data}`,
+    apiUrl: `/bids/bid/${data.jobId}`,
     content_type: "application/json",
-    data: data,
+    data: data.payload,
   });
 
 // Update Bid on job by id api

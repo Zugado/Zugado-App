@@ -1,13 +1,7 @@
 // components/JobCard.js
 import { useNavigation } from '@react-navigation/native';
 import React, { useRef, useState } from 'react';
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSnackbar } from '../contexts/SnackbarContext';
@@ -63,7 +57,6 @@ const MiniJobCard = ({ jobData }) => {
 
   return (
     <View style={styles.cardContainer}>
-  
       {isUrgent && (
         <View style={styles.urgentTag}>
           <Image
@@ -79,7 +72,9 @@ const MiniJobCard = ({ jobData }) => {
         <View style={styles.contentContainer}>
           {/* Title + Price */}
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text ellipsizeMode="tail"  numberOfLines={1}  style={styles.title}>{trimText(job?.title, 40) || 'Job Title'}</Text>
+            <Text ellipsizeMode="tail" numberOfLines={1} style={styles.title}>
+              {trimText(job?.title, 40) || 'Job Title'}
+            </Text>
           </View>
 
           <View style={{ flexDirection: 'column', marginTop: 4, gap: 4 }}>
@@ -111,21 +106,15 @@ const MiniJobCard = ({ jobData }) => {
                   key={image.id}
                   style={[
                     styles.miniImagesContainer,
-                    { marginLeft: index > 0 ? -10 : 0 }
+                    { marginLeft: index > 0 ? -10 : 0 },
                   ]}
                 >
-                  <Image
-                    source={{ uri: image.url }}
-                    style={styles.miniImage}
-                  />
+                  <Image source={{ uri: image.url }} style={styles.miniImage} />
                 </View>
               ))}
             </View>
 
-            <View
-              style={styles.detailButton}
-             
-            >
+            <View style={styles.detailButton}>
               <Text style={styles.detailButtonText}>View Detail</Text>
             </View>
           </View>
@@ -175,6 +164,8 @@ const styles = StyleSheet.create({
   overlayText: {
     color: Colors.blackColor,
     fontSize: 12,
+    flex: 1,
+    flexWrap: 'wrap',
   },
   locationIcon: {
     color: Colors.grayColor,

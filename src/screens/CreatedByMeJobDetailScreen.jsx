@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  RefreshControl,
 } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -278,6 +279,7 @@ const CreatedByMeJobDetailScreen = () => {
     bidId: null,
   });
   const [rejectReason, setRejectReason] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (jobFromNav?._id) fetchBids(jobFromNav._id);
@@ -363,6 +365,12 @@ const CreatedByMeJobDetailScreen = () => {
     setRejectModal({ visible: true, bidId });
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchBids(jobFromNav._id);
+    setRefreshing(false);
+  };
+
   const handleRejectSubmit = () => {
     if (!rejectReason.trim()) {
       showSnackbar('Please enter a reason', 'error');
@@ -400,6 +408,14 @@ const CreatedByMeJobDetailScreen = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
       >
         <CommonAppBar
           borderBottomColor={Colors.whiteColor}

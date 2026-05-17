@@ -10,16 +10,28 @@
 export const selectHasBidded = (state, jobId) => {
   if (!jobId) return false;
   try {
-    const applied = state.job?.appliedJobs || [];
-    if (applied.some(item => item?.job?._id === jobId || item?.job === jobId)) return true;
-    // Fallback: check myAllBids in case appliedJobs hasn't been fetched yet
     const myBids = state.job?.myAllBids || [];
-    return myBids.some(item => item?.job?._id === jobId || item?.job === jobId || item?.jobId === jobId || item?.jobId?._id === jobId);
+    return myBids.some(item => {
+      const id = item?.job?._id || item?.job?.id || item?.job || item?.jobId?._id || item?.jobId?.id || item?.jobId;
+      return String(id) === String(jobId);
+    });
   } catch (e) {
     return false;
   }
 };
+export const selectMyBidStatus = (state, jobId) => {
+  if (!jobId) return null;
 
+  const myBids = state.job?.myAllBids || [];
+
+  const bid = myBids.find(item => {
+    const id = item?.job?._id || item?.job?.id || item?.job || item?.jobId?._id || item?.jobId?.id || item?.jobId;
+    return String(id) === String(jobId);
+  });
+
+  return bid?.status || null;
+};
 export default {
   selectHasBidded,
+  selectMyBidStatus,
 };

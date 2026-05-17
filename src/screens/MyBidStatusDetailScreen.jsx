@@ -5,6 +5,7 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,13 +35,14 @@ const MyBidStatusDetailScreen = () => {
     useState(false);
   const { jobData } = route.params || {};
   const [chatLoading, setChatLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const job = jobData?.job;
   const jobId = job?._id;
   const { showSnackbar } = useSnackbar();
-  console.log(
-    'MyBidStatusDetailScreen received jobData:',
-    JSON.stringify(jobData, null, 2),
-  );
+  // console.log(
+  //   'MyBidStatusDetailScreen received jobData:',
+  //   JSON.stringify(jobData, null, 2),
+  // );
   // Always read the live bid from Redux so edits are reflected immediately on back-navigate.
   // Fall back to route.params bid only if Redux hasn't loaded yet.
   const myAllBids = useSelector(state => state.job.myAllBids || []);
@@ -56,9 +58,14 @@ const MyBidStatusDetailScreen = () => {
     }, [dispatch]),
   );
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await dispatch(getAllMyBids());
+    setRefreshing(false);
+  };
+
   const bidStatus = bid?.status || 'pending';
   const isUrgent = job?.jobType === 'quick';
-
 
   const getBidStatusConfig = () => {
     if (bidStatus === 'accepted' || bidStatus === 'approved') {
@@ -103,7 +110,6 @@ const MyBidStatusDetailScreen = () => {
   const handleMarkCompleted = () => {
     console.log('Marking job as completed...');
   };
-
 
   const statusConfig = getBidStatusConfig();
   /**
@@ -196,7 +202,17 @@ const MyBidStatusDetailScreen = () => {
         backgroundColor={Colors.bodyBackColor}
         barStyle="dark-content"
       />
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
+      >
         <CommonAppBar
           borderBottomColor={Colors.whiteColor}
           navigation={navigation}
@@ -274,7 +290,11 @@ const MyBidStatusDetailScreen = () => {
             {bid?.message || 'No proposal message'}
           </Text>
 
-          {!(bidStatus === 'accepted' || bidStatus === 'approved') && (
+          {!(
+            bidStatus === 'accepted' ||
+            bidStatus === 'approved' ||
+            bidStatus === 'rejected'
+          ) && (
             <TouchableOpacity
               onPress={() =>
                 navigation.navigate('BidUpdateScreen', { job: jobData })
@@ -398,16 +418,20 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     flexDirection: 'column',
+    // backgroundColor: "#ec9f9f",
     marginTop: 4,
     gap: 4,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    // backgroundColor: Colors.extraLightGrayColor,
   },
   overlayText: {
     color: Colors.blackColor,
     fontSize: 12,
+    flex: 1,
+    flexWrap: 'wrap',
   },
   locationIcon: {
     color: Colors.grayColor,

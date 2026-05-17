@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,18 +17,51 @@ import JobCard from '../components/JobCard';
 import MyStatusBar from '../components/MyStatusbar';
 import { TextInput } from 'react-native-gesture-handler';
 import { useSnackbar } from '../contexts/SnackbarContext';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch } from 'react-redux';
+import {
+  getAllCreatedJobs,
+  getAllJobs,
+  getAllTags,
+  getJobById,
+} from '../store/thunks/jobThunk';
+import { getAllMyBids, postBidByJobId } from '../store/thunks/bidThunk';
+import { getWishlist } from '../store/thunks/wishlistThunk';
 
 const BidPlacementScreen = ({ navigation, route }) => {
   const { job } = route.params || {};
+  const dispatch = useDispatch();
   const { showSnackbar } = useSnackbar();
   const [isLoading, setIsLoading] = useState(false);
+  const [jobData, setJobData] = useState(job || null);
+  const [jobLoading, setJobLoading] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
   const [message, setMessage] = useState('');
   const [isNegotiable, setIsNegotiable] = useState(false);
   const scrollViewRef = useRef(null);
 
+  useEffect(() => {
+    if (job?._id) fetchJob();
+  }, []);
+  const reloadDataOnSuccess = async () => {
+    await dispatch(getAllTags());
+    await dispatch(getWishlist());
+    await dispatch(getAllJobs({ pageNo: 1, limit: 20 }));
+    await dispatch(getAllCreatedJobs({ pageNo: 1, limit: 20 }));
+    await dispatch(getAllMyBids());
+  };
+  const fetchJob = async () => {
+    try {
+      setJobLoading(true);
+      const response = await dispatch(getJobById(job._id));
+      if (response.payload?.success) {
+        setJobData(response.payload.data);
+      }
+    } catch (error) {
+      console.log('Error fetching job:', error);
+    } finally {
+      setJobLoading(false);
+    }
+  };
   const scrollToInput = (inputRef, scrollRef) => {
     if (inputRef?.current && scrollRef?.current) {
       inputRef.current.measureLayout(
@@ -54,29 +87,26 @@ const BidPlacementScreen = ({ navigation, route }) => {
 
     setIsLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      const response = await axios.post(
-        `https://apiuat.zugado.com/api/bids/bid/${job?._id}`,
-        {
-          bidAmount: Number(bidAmount),
-          message: message || '',
-          isNegotiable: isNegotiable,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
+      const response = await dispatch(
+        postBidByJobId({
+          jobId: jobData?._id,
+          payload: {
+            bidAmount: Number(bidAmount),
+            message: message || '',
+            isNegotiable,
           },
-        }
-      );
+        }),
+      ).unwrap();
 
-      showSnackbar('Bid submitted successfully!', 'success');
-      navigation.goBack();
+      if (response?.success) {
+        showSnackbar('Bid submitted successfully!', 'success');
+        reloadDataOnSuccess();
+        navigation.goBack();
+      }
     } catch (error) {
-      // console.error('Bid submission error:', error?.response || error);
       showSnackbar(
-        error.response?.data?.error?.message || 'Failed to submit bid',
-        'error'
+        error?.error?.message || error?.message || 'Failed to submit bid',
+        'error',
       );
     } finally {
       setIsLoading(false);
@@ -85,14 +115,25 @@ const BidPlacementScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <MyStatusBar backgroundColor={Colors.bodyBackColor} barStyle="dark-content" />
+      <MyStatusBar
+        backgroundColor={Colors.bodyBackColor}
+        barStyle="dark-content"
+      />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <CommonAppBar navigation={navigation} title="Place Your Bid" />
         <ScrollView ref={scrollViewRef} keyboardShouldPersistTaps="handled">
-          {job && <JobCard job={job} showButttons={false} />}
+          {jobLoading ? (
+            <ActivityIndicator
+              size="small"
+              color={Colors.primary}
+              style={{ margin: 16 }}
+            />
+          ) : (
+            jobData && <JobCard job={jobData} showButttons={false} />
+          )}
           <View style={styles.formContainer}>
             <Text style={styles.label}>Your Expected Amount</Text>
             <View style={styles.amountInputContainer}>
@@ -119,7 +160,9 @@ const BidPlacementScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 style={[
                   styles.negotiableToggle,
-                  isNegotiable ? styles.negotiableActive : styles.negotiableInactive,
+                  isNegotiable
+                    ? styles.negotiableActive
+                    : styles.negotiableInactive,
                 ]}
                 onPress={() => setIsNegotiable(!isNegotiable)}
                 activeOpacity={0.8}
@@ -153,7 +196,10 @@ const BidPlacementScreen = ({ navigation, route }) => {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+            style={[
+              styles.submitButton,
+              isLoading && styles.submitButtonDisabled,
+            ]}
             onPress={handleSubmitBid}
             disabled={isLoading}
           >
