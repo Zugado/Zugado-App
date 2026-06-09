@@ -28,18 +28,28 @@ export default function LoginScreen({ navigation }) {
   const [mobile, setMobile] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [loadingButton, setLoadingButton] = useState(null);
+  const [mobileError, setMobileError] = useState('');
   const { showSnackbar } = useSnackbar();
+
+  const MOBILE_REGEX = /^[6-9]\d{9}$/;
+
+  const validateMobile = (value) => {
+    if (!value) return 'Mobile number is required';
+    if (!/^\d+$/.test(value)) return 'Only digits are allowed';
+    if (!MOBILE_REGEX.test(value)) return 'Enter a valid 10-digit Indian mobile number';
+    return '';
+  };
 
   const handleToggleAgreement = () => {
     setAgreed(!agreed);
   };
 
   const handleGetOtp = async (method) => {
-    if (mobile.length !== 10) {
-      showSnackbar(t('please_enter_valid_mobile'), 'error');
+    const error = validateMobile(mobile);
+    if (error) {
+      setMobileError(error);
       return;
     }
-
     if (!agreed) {
       showSnackbar(t('please_agree_to_terms'), 'error');
       return;
@@ -101,15 +111,20 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.inputContainer}>
           <Text style={styles.countryCode}>+91</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, mobileError ? styles.inputError : null]}
             placeholder={t('enter_mobile')}
             placeholderTextColor="#999"
             keyboardType="phone-pad"
             value={mobile}
-            onChangeText={setMobile}
+            onChangeText={(text) => {
+              const digits = text.replace(/\D/g, '');
+              setMobile(digits);
+              // setMobileError(validateMobile(digits));
+            }}
             maxLength={10}
           />
         </View>
+        {mobileError ? <Text style={styles.errorText}>{mobileError}</Text> : null}
 
         {/* Agreement Text and Checkbox */}
         <TouchableOpacity style={styles.agreementContainer} onPress={handleToggleAgreement}>
@@ -184,7 +199,7 @@ const styles = StyleSheet.create({
     borderColor: '#e8e8e8',
     borderRadius: 14,
     width: '100%',
-    marginBottom: 18,
+    marginBottom: 4,
     backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -222,4 +237,6 @@ const styles = StyleSheet.create({
   linkText: { color: '#1a1a1a', fontWeight: '600' },
   skipButton: { padding: 10 },
   skipText: { color: '#888', fontSize: 13, fontWeight: '500' },
+  errorText: { alignSelf: 'flex-start', color: '#EF4444', fontSize: 11, marginBottom: 14, marginLeft: 4 },
+  inputError: { borderColor: '#EF4444' },
 });

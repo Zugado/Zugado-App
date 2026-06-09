@@ -22,6 +22,7 @@ export default function OtpVerification({ route, navigation }) {
   const { mobile, exposedOTP } = route.params;
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [currentExposedOTP, setCurrentExposedOTP] = useState(exposedOTP);
+  const [otpError, setOtpError] = useState('');
   const [snackbar, setSnackbar] = useState({ visible: false, message: '', type: 'success' });
   const otpInputs = useRef([]);
 
@@ -29,11 +30,12 @@ export default function OtpVerification({ route, navigation }) {
   const { loading } = useSelector((state) => state.auth);
 
   const handleOtpChange = (text, index) => {
+    const digit = text.replace(/\D/g, '');
     const newOtp = [...otp];
-    newOtp[index] = text;
+    newOtp[index] = digit;
     setOtp(newOtp);
-
-    if (text.length === 1 && index < otpInputs.current.length - 1) {
+    setOtpError('');
+    if (digit.length === 1 && index < otpInputs.current.length - 1) {
       otpInputs.current[index + 1].focus();
     }
   };
@@ -50,10 +52,16 @@ export default function OtpVerification({ route, navigation }) {
   };
 
   const handleSubmit = async () => {
-    const data = {
-      mobileOrEmail: mobile,
-      otp: otp.join(''),
-    };
+    const otpValue = otp.join('');
+    if (otpValue.length < 6) {
+      setOtpError('Please enter all 6 digits');
+      return;
+    }
+    if (!/^\d{6}$/.test(otpValue)) {
+      setOtpError('OTP must contain numbers only');
+      return;
+    }
+    const data = { mobileOrEmail: mobile, otp: otpValue };
     
     try {
       const response = await dispatch(verifyOtp(data));
@@ -129,17 +137,17 @@ export default function OtpVerification({ route, navigation }) {
             <TextInput
               key={index}
               ref={(el) => (otpInputs.current[index] = el)}
-              style={styles.otpInput}
+              style={[styles.otpInput, otpError ? styles.otpInputError : null]}
               keyboardType="number-pad"
               maxLength={1}
-              value={otp[index]} // Controlled input
+              value={otp[index]}
               onChangeText={(text) => handleOtpChange(text, index)}
               onKeyPress={(event) => handleKeyPress(event, index)}
-              onFocus={() => {
-              }}
+              onFocus={() => {}}
             />
           ))}
         </View>
+        {otpError ? <Text style={styles.otpErrorText}>{otpError}</Text> : null}
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>OTP not received? </Text>
@@ -254,5 +262,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  otpInputError: {
+    borderColor: '#EF4444',
+  },
+  otpErrorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginTop: -30,
+    marginBottom: 20,
+    alignSelf: 'flex-start',
+    marginLeft: '5%',
   },
 });

@@ -31,25 +31,35 @@ export default function RegisterScreen({ navigation }) {
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [errors, setErrors] = useState({});
   const [snackbar, setSnackbar] = useState({
     visible: false,
     message: '',
     type: 'success',
   });
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const NAME_REGEX = /^[a-zA-Z\s'-]{2,50}$/;
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validate = () => {
+    const newErrors = {};
+    if (!firstName.trim()) newErrors.firstName = 'First name is required';
+    else if (!NAME_REGEX.test(firstName.trim())) newErrors.firstName = 'Enter a valid first name (letters only)';
+    if (!lastName.trim()) newErrors.lastName = 'Last name is required';
+    else if (!NAME_REGEX.test(lastName.trim())) newErrors.lastName = 'Enter a valid last name (letters only)';
+    if (middleName.trim() && !NAME_REGEX.test(middleName.trim())) newErrors.middleName = 'Enter a valid middle name';
+    if (!email.trim()) newErrors.email = 'Email is required';
+    else if (!EMAIL_REGEX.test(email.trim())) newErrors.email = 'Enter a valid email address';
+    return newErrors;
+  };
 
   const handleRegister = async () => {
-    if (!firstName || !lastName || !email) {
-      Alert.alert('Error', 'Please fill all required fields.');
+    const newErrors = validate();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-
-    if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address.');
-      return;
-    }
-
+    setErrors({});
     const userData = { firstName, middleName, lastName, email };
 
     try {
@@ -151,37 +161,38 @@ export default function RegisterScreen({ navigation }) {
           <View style={styles.nameInputContainer}>
             <Text style={styles.inputLabel}>First Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.firstName && styles.inputError]}
               placeholder="First"
               value={firstName}
-              onChangeText={setFirstName}
+              onChangeText={v => { setFirstName(v); setErrors(e => ({ ...e, firstName: '' })); }}
               placeholderTextColor="#999"
               onFocus={() => scrollToInput(fistNameRef.current, scrollViewRef)}
             />
+            {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
           </View>
           <View style={styles.nameInputContainer}>
             <Text style={styles.inputLabel}>Middle Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.middleName && styles.inputError]}
               placeholder="Middle"
               value={middleName}
-              onChangeText={setMiddleName}
+              onChangeText={v => { setMiddleName(v); setErrors(e => ({ ...e, middleName: '' })); }}
               placeholderTextColor="#999"
-              onFocus={() =>
-                scrollToInput(middleNameRef.current, scrollViewRef)
-              }
+              onFocus={() => scrollToInput(middleNameRef.current, scrollViewRef)}
             />
+            {errors.middleName ? <Text style={styles.errorText}>{errors.middleName}</Text> : null}
           </View>
           <View style={styles.nameInputContainer}>
             <Text style={styles.inputLabel}>Last Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.lastName && styles.inputError]}
               placeholder="Last"
               value={lastName}
-              onChangeText={setLastName}
+              onChangeText={v => { setLastName(v); setErrors(e => ({ ...e, lastName: '' })); }}
               placeholderTextColor="#999"
               onFocus={() => scrollToInput(lastNameRef.current, scrollViewRef)}
             />
+            {errors.lastName ? <Text style={styles.errorText}>{errors.lastName}</Text> : null}
           </View>
         </View>
 
@@ -189,14 +200,16 @@ export default function RegisterScreen({ navigation }) {
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Email</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, errors.email && styles.inputError]}
             placeholder="example@mail.com"
             value={email}
-            onChangeText={text => setEmail(text.toLowerCase())}
+            onChangeText={text => { setEmail(text.toLowerCase()); setErrors(e => ({ ...e, email: '' })); }}
             placeholderTextColor="#999"
             keyboardType="email-address"
+            autoCapitalize="none"
             onFocus={() => scrollToInput(emailRef.current, scrollViewRef)}
           />
+          {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
         </View>
 
         {/* Mobile 
@@ -304,4 +317,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   continueButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  errorText: { color: '#EF4444', fontSize: 11, marginTop: 4, marginLeft: 2 },
+  inputError: { borderColor: '#EF4444' },
 });
