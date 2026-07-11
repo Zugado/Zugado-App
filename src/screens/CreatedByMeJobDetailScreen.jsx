@@ -185,8 +185,9 @@ const BidCard = ({
       <View style={styles.actionButtons}>
         {/* {bid?.status === 'pending' && ( */}
 
-        <>
-          <TouchableOpacity
+        {bid?.status !== 'rejected' && (
+          <>
+            <TouchableOpacity
             style={[
               styles.acceptBidButton,
               (isActioning || bid?.status !== 'pending') &&
@@ -218,29 +219,25 @@ const BidCard = ({
             )}
             <Text style={styles.rejectBidText}>Reject</Text>
           </TouchableOpacity>
-        </>
+          </>
+        )}
 
         {/* ── Chat button — always visible so creator can message any bidder ── */}
-        {(() => {
+        {bid?.status !== 'rejected' && (() => {
           const isChatInitiating = chatLoading === bid._id;
           return (
             <TouchableOpacity
+              key="chat"
               style={[
                 styles.chatButton,
-                isChatInitiating || bid?.status === 'rejected'
-                  ? styles.buttonDisabled
-                  : null,
+                isChatInitiating ? styles.buttonDisabled : null,
               ]}
               onPress={() => onChat(bid)}
-              disabled={isChatInitiating || bid?.status === 'rejected'}
+              disabled={isChatInitiating}
               activeOpacity={0.85}
             >
               {isChatInitiating ? (
-                <ActivityIndicator
-                  size="small"
-                  color="#fff"
-                  style={styles.chatIconMargin}
-                />
+                <ActivityIndicator size="small" color="#fff" style={styles.chatIconMargin} />
               ) : (
                 <Feather name="message-circle" size={18} color="#fff" />
               )}

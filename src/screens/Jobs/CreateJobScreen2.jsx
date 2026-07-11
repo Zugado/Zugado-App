@@ -437,6 +437,10 @@ export default function CreateJob({ navigation, route }) {
         showSnackbar('Flexible timing requires estimated hours', 'error');
         return;
       }
+      if (dailyHours !== null && dailyHours !== undefined && dailyHours >= 24) {
+        showSnackbar('Daily hours must be less than 24', 'error');
+        return;
+      }
       if (discloseAmount && !amount?.trim()) {
         showSnackbar('Please enter an amount', 'error');
         return;

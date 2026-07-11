@@ -396,7 +396,7 @@ export default function CreateJobPageThree({ navigation, route }) {
   const PreviewSection = ({ icon, title, children }) => (
     <View style={styles.previewSection}>
       <View style={styles.previewHeader}>
-        <Feather name={icon} size={18} color="#000" />
+       { title !== 'Payment' ? (<Feather name={icon} size={18} color="#000" />) : (<Text style={{ fontSize: 18, fontWeight: "bold", color: "#000" }}>₹</Text>) }
         <Text style={styles.previewTitle}>{title}</Text>
       </View>
       <View style={styles.previewContent}>{children}</View>
@@ -514,11 +514,11 @@ export default function CreateJobPageThree({ navigation, route }) {
 
               {/* Payment */}
               {jobData?.amount?.disclose && (
-                <PreviewSection icon="dollar-sign" title="Payment">
-                  <PreviewRow label="Amount" value={`₹${jobData.amount.value}`} />
+                <PreviewSection icon="inr-sign" title="Payment">
+                  <PreviewRow label="Amount" value={`₹ ${jobData.amount.value}`} />
                   {jobData?.amount?.unit && <PreviewRow label="Unit" value={jobData.amount.unit} />}
                   <PreviewRow label="Negotiable" value={jobData?.amount?.negotiable ? 'Yes' : 'No'} />
-                  {jobData?.amount?.deposit && <PreviewRow label="Deposit" value={`₹${jobData.amount.deposit}`} />}
+                  {jobData?.amount?.deposit && <PreviewRow label="Deposit" value={`₹ ${jobData.amount.deposit}`} />}
                 </PreviewSection>
               )}
 

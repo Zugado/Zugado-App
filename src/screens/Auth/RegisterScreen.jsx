@@ -38,7 +38,7 @@ export default function RegisterScreen({ navigation }) {
     type: 'success',
   });
 
-  const NAME_REGEX = /^[a-zA-Z\s'-]{2,50}$/;
+  const NAME_REGEX = /^(?=.{2,50}$)[A-Za-z]+(?:\s[A-Za-z]+)*$/;
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const validate = () => {

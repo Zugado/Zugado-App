@@ -154,7 +154,52 @@ const EditProfileScreen = ({ navigation }) => {
     }
   };
 
+  const NAME_REGEX = /^(?=.{2,50}$)[A-Za-z]+(?:\s[A-Za-z]+)*$/;
+  const EMAIL_REGEX = /^[^\.\s][\w.-]+@[\w-]+\.[a-zA-Z]{2,}$/;
+  const PHONE_REGEX = /^[6-9]\d{9}$/;
+
+  const validateProfileForm = () => {
+    if (!firstName.trim()) {
+      showSnackbar('First name is required', 'error');
+      return false;
+    }
+    if (!NAME_REGEX.test(firstName.trim())) {
+      showSnackbar('First name must be 2–50 letters only, no special characters', 'error');
+      return false;
+    }
+    if (middleName.trim() && !NAME_REGEX.test(middleName.trim())) {
+      showSnackbar('Middle name must be 2–50 letters only, no special characters', 'error');
+      return false;
+    }
+    if (!lastName.trim()) {
+      showSnackbar('Last name is required', 'error');
+      return false;
+    }
+    if (!NAME_REGEX.test(lastName.trim())) {
+      showSnackbar('Last name must be 2–50 letters only, no special characters', 'error');
+      return false;
+    }
+    if (!email.trim()) {
+      showSnackbar('Email address is required', 'error');
+      return false;
+    }
+    if (!EMAIL_REGEX.test(email.trim())) {
+      showSnackbar('Please enter a valid email address', 'error');
+      return false;
+    }
+    if (!mobNumber.trim()) {
+      showSnackbar('Contact number is required', 'error');
+      return false;
+    }
+    if (!PHONE_REGEX.test(mobNumber.trim())) {
+      showSnackbar('Please enter a valid 10-digit Indian mobile number', 'error');
+      return false;
+    }
+    return true;
+  };
+
   const handleUpdateUser = async () => {
+    if (!validateProfileForm()) return;
     setLoading(true);
     try {
       const updateData = {
