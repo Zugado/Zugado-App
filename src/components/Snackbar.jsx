@@ -1,5 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Text, StyleSheet, Dimensions, View } from 'react-native';
+import {
+  Animated,
+  Text,
+  StyleSheet,
+  Dimensions,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const { width } = Dimensions.get('window');
@@ -7,62 +13,100 @@ const { width } = Dimensions.get('window');
 export default function Snackbar({
   visible,
   message,
-  type = 'success', // success | error | warning
+  type = 'success',
   onHide,
-  duration = 2000,
+  duration = 2500,
 }) {
-const slideAnim = useRef(new Animated.Value(100)).current;
+  const slideAnim = useRef(new Animated.Value(120)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
-  const getStyle = () => {
+  const getTheme = () => {
     switch (type) {
       case 'success':
-        return { bg: '#18A558', icon: 'checkmark-circle-outline' };
+        return {
+          color: '#22C55E',
+          icon: 'checkmark-circle',
+        };
+
       case 'error':
-        return { bg: '#E03131', icon: 'close-circle-outline' };
+        return {
+          color: '#EF4444',
+          icon: 'close-circle',
+        };
+
       case 'warning':
-        return { bg: '#F59F00', icon: 'warning-outline' };
+        return {
+          color: '#F59E0B',
+          icon: 'warning',
+        };
+
       default:
-        return { bg: '#333', icon: 'information-circle-outline' };
+        return {
+          color: '#3B82F6',
+          icon: 'information-circle',
+        };
     }
   };
 
   useEffect(() => {
-    if (visible) {
+    if (!visible) return;
+
+    Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 300,
+        duration: 280,
         useNativeDriver: true,
-      }).start();
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 280,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
-      const timer = setTimeout(() => {
+    const timer = setTimeout(() => {
+      Animated.parallel([
         Animated.timing(slideAnim, {
-          toValue: 100,
-          duration: 300,
+          toValue: 120,
+          duration: 250,
           useNativeDriver: true,
-        }).start(() => {
-          onHide?.();
-        });
-      }, duration);
+        }),
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start(() => onHide?.());
+    }, duration);
 
-      return () => clearTimeout(timer);
-    }
-  }, [visible]);
+    return () => clearTimeout(timer);
+  }, [visible, duration, onHide, opacity, slideAnim]);
 
   if (!visible) return null;
 
-  const { bg, icon } = getStyle();
+  const { color, icon } = getTheme();
 
   return (
     <Animated.View
       style={[
         styles.container,
-        { backgroundColor: bg, transform: [{ translateY: slideAnim }] },
+        {
+          borderLeftColor: color,
+          transform: [{ translateY: slideAnim }],
+          opacity,
+        },
       ]}
     >
-      <View style={styles.row}>
-        <Icon name={icon} size={20} color="#fff" style={{ marginRight: 8 }} />
-        <Text style={styles.text}>{message}</Text>
-      </View>
+      <Icon
+        name={icon}
+        size={22}
+        color={color}
+        style={styles.icon}
+      />
+
+      <Text style={styles.text}>
+        {message}
+      </Text>
     </Animated.View>
   );
 }
@@ -70,27 +114,46 @@ const slideAnim = useRef(new Animated.Value(100)).current;
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 50,
-    left: width * 0.1,
-    width: width * 0.8,
-    padding: 14,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-    zIndex: 1000,
-  },
-  row: {
+    bottom: 100,
+
+    alignSelf: 'center',
+
+    width: width * 0.9,
+
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
+
+    backgroundColor: '#222831',
+
+    borderLeftWidth: 6,
+
+    borderRadius: 10,
+
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+
+    elevation: 8,
+
+    zIndex: 9999,
   },
+
+  icon: {
+    marginRight: 12,
+  },
+
   text: {
-    color: '#fff',
-    fontSize: 14,
-    textAlign: 'center',
     flex: 1,
-    flexWrap: 'wrap',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 21,
   },
 });

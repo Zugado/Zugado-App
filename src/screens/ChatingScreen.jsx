@@ -661,7 +661,8 @@ export default function ChatingScreen() {
                       </Text>
                     ) : (
                       <View style={styles.aiBubble}>
-                        <Text style={styles.aiBubbleLabel}>🤖 Quick chat</Text>
+                        
+                        <Text style={styles.aiBubbleLabel}> Quick chat</Text>
                         <Text style={styles.aiBubbleText}>
                           Tap a quick message below to send it to the other
                           user.
@@ -683,7 +684,11 @@ export default function ChatingScreen() {
                 >
                   <View style={styles.quickChatCard}>
                     <View style={styles.quickChatHeader}>
-                      <Text style={styles.quickChatTitle}>Quick chat</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Feather name="message-square" size={16} color={Colors.primary} />
+                            <Text style={styles.quickChatTitle}> Quick chat</Text>
+                      </View>
+                    
                       <View style={styles.quickChatHeaderRight}>
                         <View style={styles.lockBadge}>
                           <Feather
@@ -728,7 +733,7 @@ export default function ChatingScreen() {
                             ]}
                           >
                             <Feather
-                              name="arrow-right"
+                              name="send"
                               size={14}
                               color={
                                 connected ? Colors.primary : Colors.grayColor
@@ -1042,14 +1047,15 @@ const styles = StyleSheet.create({
 
   quickChatCard: {
     alignSelf: 'flex-end',
-    backgroundColor: Colors.whiteColor,
+    backgroundColor: '#ebf2f3de',
     borderRadius: 14,
+    maxWidth: '80%',
     padding: 12,
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
+    // elevation: 6,
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.06,
+    // shadowRadius: 6,
   },
   quickBubbleIconWrap: {
     borderRadius: 14,
@@ -1137,7 +1143,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   quickChatTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.blackColor,
   },
@@ -1147,12 +1153,12 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: Colors.extraLightGrayColor,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: 12,
   },
   lockIconMargin: { marginRight: 6 },
   lockBadgeText: {
-    fontSize: 11,
+    fontSize: 10,
     color: Colors.grayColor,
   },
   // Predefined suggestion bubble — right-aligned, mimics a sent message
@@ -1164,23 +1170,23 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.whiteColor,
     borderWidth: 1,
     borderColor: '#e6e6e6',
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginVertical: 6,
     maxWidth: '82%',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    // elevation: 2,
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 1 },
+    // shadowOpacity: 0.06,
+    // shadowRadius: 4,
   },
   quickBubbleDisabled: {
     opacity: 0.45,
   },
   quickBubbleText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.blackColor,
   },
   // AI reply bubble — left-aligned, mimics a received message
