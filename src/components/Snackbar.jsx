@@ -114,7 +114,7 @@ export default function Snackbar({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 50,
 
     alignSelf: 'center',
 

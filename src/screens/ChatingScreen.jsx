@@ -297,15 +297,6 @@ export default function ChatingScreen() {
     ? Math.max(computedPadding, keyboardHeight + basePadding)
     : computedPadding;
 
-  // When quick chats visibility or measured heights change, ensure the list scrolls
-  useEffect(() => {
-    // small delay to allow layout to settle
-    const t = setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: true });
-    }, 120);
-    return () => clearTimeout(t);
-  }, [showQuickChats, quickChatHeight, inputHeight]);
-
   /**
    * Step 1 — Load previous messages via REST on mount.
    * GET /api/chat/:chatId/messages  — chatId is the conversation _id from getAllChats
@@ -350,16 +341,6 @@ export default function ChatingScreen() {
       if (chatId) dispatch(markChatRead(chatId));
     }
   }).current;
-
-  // Auto-scroll to the latest message whenever the list grows
-  useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(
-        () => flatListRef.current?.scrollToEnd({ animated: true }),
-        100,
-      );
-    }
-  }, [messages.length]);
 
   /** Send message via Socket.IO and clear input */
   const handleSend = useCallback(() => {
@@ -641,38 +622,39 @@ export default function ChatingScreen() {
           ) : (
             <>
               {/* Always render the messages list so optimistic quick messages appear */}
-              <FlatList
-                ref={flatListRef}
-                data={messages}
-                keyExtractor={(item, index) => item._id ?? `msg_${index}`}
-                renderItem={renderMessage}
-                onViewableItemsChanged={onViewableItemsChanged}
-                viewabilityConfig={viewabilityConfig}
-                contentContainerStyle={[
-                  styles.messagesListDefault,
-                  { paddingBottom: effectivePadding },
-                ]}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
-                  <View style={styles.emptyChat}>
-                    {isChatUnlocked ? (
-                      <Text style={styles.emptyChatText}>
-                        No messages yet. Say hello! 👋
-                      </Text>
-                    ) : (
-                      <View style={styles.aiBubble}>
-                        
-                        <Text style={styles.aiBubbleLabel}> Quick chat</Text>
-                        <Text style={styles.aiBubbleText}>
-                          Tap a quick message below to send it to the other
-                          user.
+              <View style={{flex: 1, paddingBottom:!isChatUnlocked && bidStatus !== 'rejected'?10: 40,}}>
+                <FlatList
+                  ref={flatListRef}
+                  data={[...messages].reverse()}
+                  keyExtractor={(item, index) => item._id ?? `msg_${index}`}
+                  renderItem={renderMessage}
+                  onViewableItemsChanged={onViewableItemsChanged}
+                  viewabilityConfig={viewabilityConfig}
+                  inverted
+                  contentContainerStyle={[
+                    styles.messagesListDefault,
+                    { paddingBottom: effectivePadding },
+                  ]}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View style={styles.emptyChat}>
+                      {isChatUnlocked ? (
+                        <Text style={styles.emptyChatText}>
+                          No messages yet. Say hello! 👋
                         </Text>
-                      </View>
-                    )}
-                  </View>
-                }
-              />
-
+                      ) : (
+                        <View style={styles.aiBubble}>
+                          <Text style={styles.aiBubbleLabel}> Quick chat</Text>
+                          <Text style={styles.aiBubbleText}>
+                            Tap a quick message below to send it to the other
+                            user.
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  }
+                />
+              </View>
               {/* Quick chat floating panel — anchored above the input so it doesn't push the input down */}
               {!isChatUnlocked && bidStatus !== 'rejected' && (
                 <View
@@ -684,11 +666,21 @@ export default function ChatingScreen() {
                 >
                   <View style={styles.quickChatCard}>
                     <View style={styles.quickChatHeader}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Feather name="message-square" size={16} color={Colors.primary} />
-                            <Text style={styles.quickChatTitle}> Quick chat</Text>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                      >
+                        <Feather
+                          name="message-square"
+                          size={16}
+                          color={Colors.primary}
+                        />
+                        <Text style={styles.quickChatTitle}> Quick chat</Text>
                       </View>
-                    
+
                       <View style={styles.quickChatHeaderRight}>
                         <View style={styles.lockBadge}>
                           <Feather
@@ -989,7 +981,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.whiteColor,
     marginTop: 8,
     paddingHorizontal: 10,
-    paddingTop: 4,
+    paddingBottom: 4,
   },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   messagesList: { paddingVertical: 10, flexGrow: 1 },
@@ -1078,7 +1070,12 @@ const styles = StyleSheet.create({
     paddingBottom: 300,
     flexGrow: 1,
   },
-  messagesListDefault: { paddingVertical: 10, flexGrow: 1 },
+  messagesListDefault: {
+    paddingVertical: 10,
+    flexGrow: 1,
+    marginBottom: 0,
+    backgroundColor: Colors.whiteColor,
+  },
   inputRow: {
     zIndex: 30,
     flexDirection: 'column',

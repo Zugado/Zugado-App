@@ -109,6 +109,8 @@ const MyBidStatusDetailScreen = () => {
   };
   const handleMarkCompleted = () => {
     console.log('Marking job as completed...');
+    showSnackbar('Currently this function is not implemented.', 'error');
+
   };
 
   const statusConfig = getBidStatusConfig();
