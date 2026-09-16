@@ -20,6 +20,7 @@
  */
 
 import { createSlice } from '@reduxjs/toolkit';
+import { logout } from './authSlice';
 import { getAllChats, getChatMessages } from '../thunks/chatThunk';
 
 const chatSlice = createSlice({
@@ -199,7 +200,20 @@ const chatSlice = createSlice({
       })
       .addCase(getChatMessages.rejected, state => {
         state.messagesLoading = false;
-      });
+      })
+      .addCase(logout, () => ({
+        conversations: [],
+        totalPages: 1,
+        currentPage: 1,
+        total: 0,
+        totalUnreadCount: 0,
+        loading: false,
+        messages: [],
+        messagesLoading: false,
+        activeChatId: null,
+        hasMore: false,
+        error: null,
+      }));
   },
 });
 

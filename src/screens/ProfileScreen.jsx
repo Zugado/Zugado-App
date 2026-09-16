@@ -196,7 +196,7 @@ export default function ProfileScreen({ navigation }) {
     }
     Alert.alert('Login Required', 'You need to login to access this feature', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Login', onPress: () => dispatch(logout()) },
+      { text: 'Login', onPress: () => navigation.navigate('LoginScreen') },
     ]);
   };
 
@@ -382,7 +382,7 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.guestFooter}>
             <TouchableOpacity
               style={styles.guestBtn}
-              onPress={() => dispatch(logout())}
+              onPress={() => navigation.navigate('LoginScreen')}
             >
               <Text style={styles.guestBtnText}>Login / Sign Up</Text>
               <Feather name="arrow-right" size={24} color="#fff" />

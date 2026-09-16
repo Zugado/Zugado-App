@@ -136,7 +136,8 @@ const MyBidStatusDetailScreen = () => {
       }
     } catch (err) {
       console.log('Errror initiating chat:', err);
-      showSnackbar('Could not open chat. Try again.', 'error');
+      showSnackbar(err?.message + ". " + err?.error?.details, 'error');
+      // showSnackbar('Could not open chat. Try again.', 'error');
     } finally {
       setChatLoading(false);
     }

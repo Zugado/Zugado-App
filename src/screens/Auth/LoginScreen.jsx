@@ -80,7 +80,11 @@ export default function LoginScreen({ navigation }) {
   const handleGetOtpWhatsapp = () => handleGetOtp('whatsapp');
 
   const handleSkip = () => {
-    dispatch(setGuestMode());
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      dispatch(setGuestMode());
+    }
   };
 
   const isButtonEnabled = mobile.length === 10 && agreed;

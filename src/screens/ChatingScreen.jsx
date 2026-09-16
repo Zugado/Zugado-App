@@ -170,16 +170,23 @@ export default function ChatingScreen() {
   );
   const bidStatus = liveBidEntry?.bids?.[0].status || null;
 
-  // Chat is unlocked if user created the job OR has placed a bid on it
-  // const isChatUnlocked = Boolean(isCreator || hasBid);
-  const [isChatUnlocked, setIsChatUnlocked] = useState(isCreator || hasBid);
+  // Full chat access: creator always, or bidder with approved/active bid
+  const normalizedBidStatus = bidStatus?.toLowerCase() || null;
+  const isChatUnlocked =
+    isCreator ||
+    normalizedBidStatus === 'approved' ||
+    normalizedBidStatus === 'active';
+
+  // Quick chat (limited) access: bidder with pending bid
+  const isPending = !isCreator && normalizedBidStatus === 'pending';
+  // No bid placed yet
+  const hasNoBid = !isCreator && !hasBid;
   console.log(
-    'isCreator:',
-    isCreator,
-    'hasBid:',
-    hasBid,
-    'bidStatus:',
-    bidStatus,
+    'isCreator:', isCreator,
+    'hasBid:', hasBid,
+    'bidStatus:', bidStatus,
+    'isChatUnlocked:', isChatUnlocked,
+    'isPending:', isPending,
   );
   /**
    * useChat hook manages the Socket.IO lifecycle.
@@ -504,19 +511,26 @@ export default function ChatingScreen() {
           </TouchableOpacity>
 
           {hasAvatar ? (
-            <Image
-              source={{ uri: otherParticipant.avatar }}
-              style={styles.avatar}
-            />
+            <TouchableOpacity onPress={() => navigation.navigate('UserProfileScreen', { user: otherParticipant })}>
+              <Image
+                source={{ uri: otherParticipant.avatar }}
+                style={styles.avatar}
+              />
+            </TouchableOpacity>
           ) : (
-            // Fallback: show first letter of name when no avatar URL
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Text style={styles.avatarInitial}>
-                {otherParticipant?.firstName?.[0]?.toUpperCase() || '?'}
-              </Text>
-            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('UserProfileScreen', { user: otherParticipant })}>
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <Text style={styles.avatarInitial}>
+                  {otherParticipant?.firstName?.[0]?.toUpperCase() || '?'}
+                </Text>
+              </View>
+            </TouchableOpacity>
           )}
-          <View style={styles.userThings}>
+          <TouchableOpacity
+            style={styles.userThings}
+            onPress={() => navigation.navigate('UserProfileScreen', { user: otherParticipant })}
+            activeOpacity={0.7}
+          >
             <View style={styles.userHeader}>
               <Text style={styles.usernameTop}>{otherName || 'User'}</Text>
 
@@ -560,7 +574,6 @@ export default function ChatingScreen() {
             <Text style={styles.jobName} numberOfLines={1}>
               {chatData?.jobId?.title || 'Job'}
             </Text>
-            {/* Online/offline dot — driven by socket connection state */}
             <View style={styles.statusRow}>
               <View
                 style={[
@@ -576,7 +589,7 @@ export default function ChatingScreen() {
                   : 'Offline'}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* ── Sliding info banner ── */}
@@ -655,8 +668,8 @@ export default function ChatingScreen() {
                   }
                 />
               </View>
-              {/* Quick chat floating panel — anchored above the input so it doesn't push the input down */}
-              {!isChatUnlocked && bidStatus !== 'rejected' && (
+              {/* Quick chat panel — shown for pending bids OR users who haven't bid yet */}
+              {(isPending || hasNoBid) && (
                 <View
                   pointerEvents={connected ? 'auto' : 'none'}
                   onLayout={e => {
@@ -689,7 +702,7 @@ export default function ChatingScreen() {
                             color={Colors.grayColor}
                           />
                           <Text style={styles.lockBadgeText}>
-                            Bid to unlock
+                            {isPending ? 'Pending approval' : 'Bid to unlock'}
                           </Text>
                         </View>
                         <TouchableOpacity
@@ -750,23 +763,8 @@ export default function ChatingScreen() {
 
           {/* ── Bottom action area ── */}
 
-          {bidStatus?.toUpperCase() === 'REJECTED' ? (
-            <View style={styles.rejectedContainer}>
-              <View style={styles.rejectedIconBox}>
-                <Feather name="alert-triangle" size={18} color="#DC2626" />
-              </View>
-
-              <View style={styles.rejectedTextContainer}>
-                <Text style={styles.rejectedTitle}>Bid Rejected</Text>
-
-                <Text style={styles.rejectedMessage}>
-                  Your previous bid was rejected by the employer. Chat access is
-                  disabled for rejected bids.
-                </Text>
-              </View>
-            </View>
-          ) : isChatUnlocked ? (
-            // ✅ CHAT UNLOCKED
+          {isChatUnlocked ? (
+            // ✅ APPROVED / ACTIVE — full chat input
             <View
               style={styles.inputRow}
               onLayout={e => {
@@ -777,13 +775,11 @@ export default function ChatingScreen() {
               {ENABLE_PHONE_BLOCK && containsPhone(inputText) && (
                 <View style={styles.phoneWarn}>
                   <Feather name="alert-circle" size={12} color="#c0392b" />
-
                   <Text style={styles.phoneWarnText}>
                     Phone numbers are not allowed in chat
                   </Text>
                 </View>
               )}
-
               <View style={styles.inputRowInner}>
                 <TextInput
                   style={styles.textInput}
@@ -794,11 +790,9 @@ export default function ChatingScreen() {
                   multiline
                   maxLength={500}
                 />
-
                 <TouchableOpacity
                   style={[
                     styles.sendButton,
-
                     (!inputText.trim() ||
                       (ENABLE_PHONE_BLOCK && containsPhone(inputText))) &&
                       styles.sendButtonDisabled,
@@ -813,8 +807,34 @@ export default function ChatingScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+          ) : normalizedBidStatus === 'rejected' ? (
+            // ❌ REJECTED — show rejection notice
+            <View style={styles.statusNoticeContainer}>
+              <View style={[styles.statusNoticeIconBox, { backgroundColor: '#FEE2E2' }]}>
+                <Feather name="x-circle" size={18} color="#DC2626" />
+              </View>
+              <View style={styles.statusNoticeTextBox}>
+                <Text style={[styles.statusNoticeTitle, { color: '#B91C1C' }]}>Bid Rejected</Text>
+                <Text style={styles.statusNoticeMessage}>
+                  Your bid was rejected by the employer. Full chat access is only available for approved bids.
+                </Text>
+              </View>
+            </View>
+          ) : isPending ? (
+            // ⏳ PENDING — quick chat allowed, full input locked
+            <View style={styles.statusNoticeContainer}>
+              <View style={[styles.statusNoticeIconBox, { backgroundColor: '#FEF9C3' }]}>
+                <Feather name="clock" size={18} color="#CA8A04" />
+              </View>
+              <View style={styles.statusNoticeTextBox}>
+                <Text style={[styles.statusNoticeTitle, { color: '#92400E' }]}>Bid Under Review</Text>
+                <Text style={styles.statusNoticeMessage}>
+                  Your bid is pending approval. You can use quick chat above — full messaging unlocks once your bid is approved.
+                </Text>
+              </View>
+            </View>
           ) : (
-            // ✅ CHAT LOCKED
+            // 🔒 NO BID — prompt to place a bid
             <View style={styles.bottomButtons}>
               <View style={styles.unlockButton}>
                 <Feather
@@ -823,12 +843,10 @@ export default function ChatingScreen() {
                   color={Colors.grayColor}
                   style={styles.lockIconMargin}
                 />
-
                 <Text style={styles.unlockButtonText}>
-                  Chat will Unlock After Bidding
+                  Chat unlocks after placing a bid
                 </Text>
               </View>
-
               <TouchableOpacity
                 style={styles.bidButton}
                 onPress={() =>
@@ -1236,42 +1254,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  rejectedContainer: {
+  statusNoticeContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#FECACA',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    padding: 14,
+    borderColor: '#E5E7EB',
+    marginHorizontal: 4,
+    marginBottom: 10,
+    padding: 12,
     borderRadius: 12,
   },
-
-  rejectedIconBox: {
+  statusNoticeIconBox: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#FEE2E2',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
-
-  rejectedTextContainer: {
-    flex: 1,
-  },
-
-  rejectedTitle: {
-    fontSize: 14,
+  statusNoticeTextBox: { flex: 1 },
+  statusNoticeTitle: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#B91C1C',
-    marginBottom: 4,
+    marginBottom: 3,
   },
-
-  rejectedMessage: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: '#7F1D1D',
+  statusNoticeMessage: {
+    fontSize: 11,
+    lineHeight: 17,
+    color: '#6B7280',
   },
 });

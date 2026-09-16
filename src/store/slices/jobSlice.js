@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { logout } from './authSlice';
 import {
   getAllAppliedJobs,
   getAllCreatedJobs,
@@ -110,6 +111,9 @@ const jobSlice = createSlice({
       })
       .addCase(getAllTags.rejected, (state, action) => {
         state.tagsLoading = false;
+      })
+      .addCase(logout, state => {
+        Object.assign(state, initialState, { tags: [], tagsLoading: false });
       });
   },
 });

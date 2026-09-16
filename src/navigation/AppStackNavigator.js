@@ -24,6 +24,9 @@ import SubscriptionScreen from '../screens/SubscriptionScreen';
 import CreatedByMeJobDetailScreen from '../screens/CreatedByMeJobDetailScreen';
 import MyBidStatusDetailScreen from '../screens/MyBidStatusDetailScreen';
 import ChatingScreen from '../screens/ChatingScreen';
+import LoginScreen from '../screens/Auth/LoginScreen';
+import OtpVerification from '../screens/Auth/OtpVerification';
+import UserProfileScreen from '../screens/UserProfileScreen';
 const Stack = createStackNavigator();
 
 export default function AppStackNavigator() {
@@ -76,6 +79,9 @@ export default function AppStackNavigator() {
       <Stack.Screen name="BidPlacementScreen" component={BidPlacementScreen} />
       <Stack.Screen name="BidUpdateScreen" component={BidUpdateScreen} />
        <Stack.Screen name="ChatingScreen" component={ChatingScreen} />
+      <Stack.Screen name="LoginScreen" component={LoginScreen} />
+      <Stack.Screen name="OtpVerification" component={OtpVerification} />
+      <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
     </Stack.Navigator>
   );
 }

@@ -3,18 +3,14 @@ import { View, TouchableOpacity, StyleSheet, Image, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../store/slices/authSlice';
+import { useSelector } from 'react-redux';
+import { useGlobalChat } from '../hooks/useChat';
 
 import HomeScreen from '../screens/Home/HomeScreen';
 import ManageJobScreen from '../screens/ManageJobScreen';
 import CreateJobScreen from '../screens/Jobs/CreateJobScreen';
-import CreateJobScreen2 from '../screens/Jobs/CreateJobScreen2';
 import AllChatScreen from '../screens/AllChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import TabLoadingOverlay from '../components/TabLoadingOverlay';
-import LocationPickerScreen from '../screens/mapAndAddress/LocationPickerScreen';
-import { useGlobalChat } from '../hooks/useChat';
 
 const Tab = createBottomTabNavigator();
 
@@ -80,8 +76,6 @@ const icons = {
 
 export default function TabNavigator() {
   const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(false);
-  const dispatch = useDispatch();
   const totalUnreadCount = useSelector(state => state.chat.totalUnreadCount || 0);
   const isGuest = useSelector(state => state.auth.isGuest);
 
@@ -93,9 +87,16 @@ export default function TabNavigator() {
   //   setTimeout(() => setIsLoading(false), 1000);
   // };
 
+  const handleGuestTabPress = useCallback((e, navigation) => {
+    if (isGuest) {
+      e.preventDefault();
+      navigation.navigate('LoginScreen');
+    }
+  }, [isGuest]);
+
   const handleCreateJobPress = async (navigation) => {
     if (isGuest) {
-      dispatch(logout());
+      navigation.navigate('LoginScreen');
       return;
     }
     try {
@@ -166,8 +167,20 @@ export default function TabNavigator() {
         })}
         // screenListeners={{ tabPress: handleTabPress }}
       >
-        <Tab.Screen name={t('Home')} component={HomeScreen} />
-        <Tab.Screen name={t('Manage Tasks')} component={ManageJobScreen} />
+        <Tab.Screen
+          name={t('Home')}
+          component={HomeScreen}
+          listeners={({ navigation }) => ({
+            tabPress: e => handleGuestTabPress(e, navigation),
+          })}
+        />
+        <Tab.Screen
+          name={t('Manage Tasks')}
+          component={ManageJobScreen}
+          listeners={({ navigation }) => ({
+            tabPress: e => handleGuestTabPress(e, navigation),
+          })}
+        />
         <Tab.Screen
           name="Add"
           component={CreateJobScreen}
@@ -186,7 +199,13 @@ export default function TabNavigator() {
             ),
           }}
         />
-        <Tab.Screen name={t('Message')} component={AllChatScreen} />
+        <Tab.Screen
+          name={t('Message')}
+          component={AllChatScreen}
+          listeners={({ navigation }) => ({
+            tabPress: e => handleGuestTabPress(e, navigation),
+          })}
+        />
         <Tab.Screen name={t('Profile')} component={ProfileScreen} />
       </Tab.Navigator>
     

@@ -32,9 +32,9 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isGuest = false;
-      AsyncStorage.removeItem("token");
-      AsyncStorage.removeItem("user");
-      AsyncStorage.removeItem("guest");
+      state.wishlist = [];
+      state.error = null;
+      AsyncStorage.multiRemove(['token', 'user', 'guest', 'jobDraft']);
     },
     clearAuthState: (state) => {
       state.loading = false;
